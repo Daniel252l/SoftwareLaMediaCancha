@@ -1,0 +1,81 @@
+@model LaMediaCancha.Models.ViewModels.LoginViewModel
+@{
+    ViewBag.Title = "Iniciar Sesión";
+}
+
+<div class="card-custom">
+    <div class="card-header-custom">
+        <h2>Iniciar Sesión</h2>
+        <p>Ingresa tus credenciales para acceder</p>
+    </div>
+
+    <div class="card-body-custom">
+
+        @if (TempData["Exito"] != null)
+        {
+            <div class="alert-custom alert-success-custom">@TempData["Exito"]</div>
+        }
+
+        @if (TempData["MensajeInfo"] != null)
+        {
+            <div class="alert-custom alert-info-custom">@TempData["MensajeInfo"]</div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert-custom alert-danger-custom">@TempData["Error"]</div>
+        }
+
+        <form method="post" action="@Url.Action("Login", "Account")">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group-custom">
+                <label for="Email">Correo Electrónico</label>
+                <input type="email" class="form-control-custom" id="Email" name="Email"
+                       placeholder="Ingrese su correo electrónico" value="@Model.Email" />
+            </div>
+
+            <div class="form-group-custom">
+                <label for="Password">Contraseña</label>
+                <input type="password" class="form-control-custom" id="Password" name="Password"
+                       placeholder="Ingrese su contraseña" />
+            </div>
+
+            <div class="checkbox-custom">
+                <input type="checkbox" id="Recordarme" name="Recordarme" value="true"
+                       @(Model.Recordarme ? "checked" : "") />
+                <label for="Recordarme">Mantener sesión iniciada</label>
+            </div>
+
+            <button type="submit" class="btn-custom" id="btn-login">
+                <i class="fas fa-sign-in-alt"></i>
+                INICIAR SESIÓN
+            </button>
+
+            <div class="text-center mt-3">
+                <a href="@Url.Action("RecuperarPassword", "Account")" class="link-custom">
+                    ¿Olvidaste tu contraseña?
+                </a>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var form = document.querySelector('form');
+            var btn = document.getElementById('btn-login');
+            if (form && btn) {
+                form.addEventListener('submit', function () {
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> VALIDANDO CREDENCIALES...';
+                    btn.disabled = true;
+                    btn.style.opacity = '0.7';
+                });
+            }
+        });
+    </script>
+}

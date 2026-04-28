@@ -1,0 +1,286 @@
+@model IEnumerable<LaMediaCancha.Models.ProductoModels.Producto>
+@{
+    ViewBag.Title = "Productos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card-custom" style="max-width: 100%;">
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2><i class="fas fa-boxes"></i> Productos</h2>
+                            <p>Gestión de productos del inventario</p>
+                        </div>
+                        <a href="@Url.Action("Crear", "Producto")" class="btn-agregar">
+                            <i class="fas fa-plus"></i> Agregar Producto
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+                    <div class="table-responsive">
+                        <table class="table-custom" id="tblProductos">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Nombre</th>
+                                    <th>Departamento</th>
+                                    <th>SubDepartamento</th>
+                                    <th class="text-right">Precio Compra</th>
+                                    <th class="text-right">Precio Venta</th>
+                                    <th>Estado</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            @item.Codigo
+                                    </td>
+                                    <td>
+                                        @item.Nombre
+                                </td>
+                                <td>@item.DepartamentoNombre
+                            </td>
+                            <td>
+                                @item.SubDepartamentoNombre
+                        </td>
+                        <td class="text-right">
+                            @String.Format("{0:N0}", item.PrecioCompra)
+                    </td>
+                    <td class="text-right">@String.Format("{0:N0}", item.PrecioVenta)
+                </td>
+                <td>
+                    @if (item.Activo)
+                    {
+                        <span class="badge-success">Activo</span>
+                    }
+                    else
+                    {
+                        <span class="badge-danger">Inactivo</span>
+                    }
+                </td>
+                <td class="text-center">
+                    <a href="@Url.Action("Detalle", "Producto", new { id = item.ProductoId })" class="btn-ver" title="Ver detalles">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    <a href="@Url.Action("Editar", "Producto", new { id = item.ProductoId })" class="btn-editar" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <button type="button" class="btn-eliminar" data-id="@item.ProductoId" data-nombre="@item.Nombre" title="Eliminar">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+            </tr>
+        }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer-custom">
+                    <div class="action-buttons">
+                        <a href="@Url.Action("Dashboard", "Home")" class="btn-regresar">
+                            <i class="fas fa-arrow-left"></i> Regresar
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#tblProductos').DataTable({
+                language: { url: '//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json' },
+                order: [[1, 'asc']]
+            });
+
+            $('.btn-eliminar').click(function() {
+                var id = $(this).data('id');
+                var nombre = $(this).data('nombre');
+
+                Swal.fire({
+                    title: '¿Eliminar producto?',
+                    text: '¿Está seguro de eliminar "' + nombre + '"?',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.post('@Url.Action("Eliminar", "Producto")', { id: id }, function(response) {
+                            if (response.success) {
+                                Swal.fire('Eliminado', response.message, 'success').then(function() {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}
+
+<style>
+    .btn-agregar {
+        background: linear-gradient(135deg, #8B4513, #D35400);
+        color: white;
+        padding: 12px 25px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .btn-agregar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+
+    .btn-regresar {
+        background: #6c757d;
+        color: white;
+        padding: 12px 25px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .btn-regresar:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+            color: white;
+            text-decoration: none;
+        }
+
+    .btn-ver {
+        background: #3498DB;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        margin: 0 3px;
+        display: inline-block;
+        transition: all 0.3s ease;
+    }
+
+        .btn-ver:hover {
+            background: #2980B9;
+            transform: scale(1.05);
+            color: white;
+        }
+
+    .btn-editar {
+        background: #F39C12;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        margin: 0 3px;
+        display: inline-block;
+        transition: all 0.3s ease;
+    }
+
+        .btn-editar:hover {
+            background: #D68910;
+            transform: scale(1.05);
+            color: white;
+        }
+
+    .btn-eliminar {
+        background: #E74C3C;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 6px;
+        margin: 0 3px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .btn-eliminar:hover {
+            background: #C0392B;
+            transform: scale(1.05);
+        }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .table-custom th,
+        .table-custom td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .table-custom th {
+            background: #8B4513;
+            color: white;
+            font-weight: 600;
+        }
+
+        .table-custom tr:hover {
+            background: rgba(139, 69, 19, 0.05);
+        }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .badge-success {
+        background: #27AE60;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .badge-danger {
+        background: #E74C3C;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+    }
+
+    .card-footer-custom {
+        padding: 20px;
+        border-top: 1px solid #eee;
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    @@media (max-width: 768px) {
+        .action-buttons {
+            justify-content: center;
+        }
+    }
+</style>

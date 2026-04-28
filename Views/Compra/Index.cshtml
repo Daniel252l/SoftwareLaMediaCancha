@@ -1,0 +1,202 @@
+@model IEnumerable<LaMediaCancha.Models.CompraModels.EncabezadoCompra>
+@{
+    ViewBag.Title = "Compras";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card-custom" style="max-width: 100%;">
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2><i class="fas fa-shopping-cart"></i> Compras</h2>
+                            <p>Gestión de órdenes de compra</p>
+                        </div>
+                        <a href="@Url.Action("Registrar", "Compra")" class="btn-custom" style="width: auto;">
+                            <i class="fas fa-plus"></i> Nueva Compra
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+                    <div class="table-responsive">
+                        <table class="table-custom" id="tblCompras">
+                            <thead>
+                                <tr>
+                                    <th>Documento</th>
+                                    <th>Proveedor</th>
+                                    <th>Fecha</th>
+                                    <th class="text-right">Total</th>
+                                    <th>Estado</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model != null && Model.Any())
+                                {
+                                    foreach (var item in Model)
+                                    {
+                                        <tr>
+                                            <td>
+                                                @item.NumeroDocumento
+                                        </td>
+                                        <td>
+                                            @item.ProveedorNombre
+                                    </td>
+                                    <td>@item.FechaCompra.ToString("dd/MM/yyyy")
+                                </td>
+                                <td class="text-right">
+                                    @String.Format("{0:N0}", item.Total)
+                            </td>
+                            <td>
+                                @if (item.Estado == "Aprobada")
+                                {
+                                    <span class="badge-success">Aprobada</span>
+                                }
+                                else if (item.Estado == "Cerrada")
+                                {
+                                    <span class="badge-danger">Cerrada</span>
+                                }
+                                else
+                                {
+                                    <span class="badge-warning">@item.Estado</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <a href="@Url.Action("Detalle", new { id = item.CompraId })" class="btn-ver" title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                @if (item.Estado != "Cerrada")
+                                {
+                                    <a href="@Url.Action("Registrar", "Devolucion", new { compraId = item.CompraId })" class="btn-devolucion" title="Registrar devolución">
+                                        <i class="fas fa-undo-alt"></i>
+                                    </a>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center">
+                            No hay compras registradas
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="card-footer-custom">
+        <a href="@Url.Action("Dashboard", "Home")" class="btn-regresar">
+            <i class="fas fa-arrow-left"></i> Regresar al Dashboard
+        </a>
+    </div>
+</div>
+</div>
+</div>
+</div>
+
+<style>
+    .btn-ver {
+        background: #3498DB;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        display: inline-block;
+        margin: 0 2px;
+        text-decoration: none;
+    }
+
+        .btn-ver:hover {
+            background: #2980B9;
+            color: white;
+        }
+
+    .btn-devolucion {
+        background: #E67E22;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        display: inline-block;
+        margin: 0 2px;
+        text-decoration: none;
+    }
+
+        .btn-devolucion:hover {
+            background: #D35400;
+            color: white;
+        }
+
+    .btn-regresar {
+        background: #6c757d;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+        .btn-regresar:hover {
+            background: #5a6268;
+            color: white;
+        }
+
+    .badge-success {
+        background: #27AE60;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        display: inline-block;
+    }
+
+    .badge-warning {
+        background: #F39C12;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        display: inline-block;
+    }
+
+    .badge-danger {
+        background: #E74C3C;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        display: inline-block;
+    }
+
+    .card-footer-custom {
+        padding: 15px 20px;
+        border-top: 1px solid #eee;
+        text-align: right;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .table-custom th, .table-custom td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .table-custom th {
+            background: #8B4513;
+            color: white;
+        }
+</style>

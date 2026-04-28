@@ -1,0 +1,205 @@
+﻿@model LaMediaCancha.Models.Proveedor
+@{
+    ViewBag.Title = "Editar Proveedor";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card-custom" style="max-width: 100%;">
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2><i class="fas fa-edit"></i> Editar Proveedor</h2>
+                            <p>Modifique los datos del proveedor</p>
+                        </div>
+                        <a href="@Url.Action("Index", "Proveedor")" class="btn-custom" style="width: auto; padding: 10px 20px; background: #6c757d;">
+                            <i class="fas fa-arrow-left"></i> Regresar
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle"></i> @TempData["Success"]
+                        </div>
+                    }
+
+                    @using (Html.BeginForm("Editar", "Proveedor", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.HiddenFor(m => m.ProveedorId)
+                        @Html.HiddenFor(m => m.PersonaId)
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>NIT <span class="text-danger">*</span></label>
+                                    @Html.TextBoxFor(m => m.Nit, new { @class = "form-control-custom", required = "required", maxlength = "13" })
+                                    @Html.ValidationMessageFor(m => m.Nit, "", new { @class = "text-danger" })
+                                    <small class="text-muted">13 caracteres (números)</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Razón Social <span class="text-danger">*</span></label>
+                                    @Html.TextBoxFor(m => m.RazonSocial, new { @class = "form-control-custom", required = "required" })
+                                    @Html.ValidationMessageFor(m => m.RazonSocial, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Nombre Contacto</label>
+                                    @Html.TextBoxFor(m => m.Contacto, new { @class = "form-control-custom" })
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Teléfono</label>
+                                    @Html.TextBoxFor(m => m.Telefono, new { @class = "form-control-custom", maxlength = "8" })
+                                    @Html.ValidationMessageFor(m => m.Telefono, "", new { @class = "text-danger" })
+                                    <small class="text-muted">8 dígitos numéricos</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Correo Electrónico</label>
+                                    @Html.TextBoxFor(m => m.Correo, new { @class = "form-control-custom", type = "email" })
+                                    @Html.ValidationMessageFor(m => m.Correo, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Dirección</label>
+                                    @Html.TextBoxFor(m => m.Direccion, new { @class = "form-control-custom" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Política de Devolución <span class="text-danger">*</span></label>
+                                    @Html.DropDownListFor(m => m.MantenimientoId, (SelectList)ViewBag.Politicas, "Seleccione una política...", new { @class = "form-control-custom", required = "required" })
+                                    @Html.ValidationMessageFor(m => m.MantenimientoId, "", new { @class = "text-danger" })
+                                    <small class="text-muted">Define los días máximos para realizar devoluciones</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Política Personalizada</label>
+                                    @Html.TextAreaFor(m => m.PoliticaDevolucion, new { @class = "form-control-custom", rows = 2 })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Nombres (Persona) <span class="text-danger">*</span></label>
+                                    @Html.TextBoxFor(m => m.Nombres, new { @class = "form-control-custom", required = "required" })
+                                    @Html.ValidationMessageFor(m => m.Nombres, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Apellidos (Persona) <span class="text-danger">*</span></label>
+                                    @Html.TextBoxFor(m => m.Apellidos, new { @class = "form-control-custom", required = "required" })
+                                    @Html.ValidationMessageFor(m => m.Apellidos, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group-custom">
+                            <label>Estado</label>
+                            @Html.DropDownListFor(m => m.Activo, new SelectList(new[] { new { Value = "true", Text = "Activo" }, new { Value = "false", Text = "Inactivo" } }, "Value", "Text", Model.Activo), new { @class = "form-control-custom" })
+                        </div>
+
+                        <div class="text-right mt-3">
+                            <button type="submit" class="btn-custom">
+                                <i class="fas fa-save"></i> Guardar Cambios
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#Telefono').on('input', function () {
+                this.value = this.value.replace(/[^0-9]/g, '').slice(0, 8);
+            });
+
+            $('#Nit').on('input', function () {
+                this.value = this.value.replace(/[^0-9-]/g, '').slice(0, 13);
+            });
+        });
+    </script>
+}
+
+<style>
+    .alert-success {
+        background: #d4edda;
+        color: #155724;
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border: 1px solid #c3e6cb;
+    }
+
+    .text-danger {
+        color: #E74C3C;
+        font-size: 0.75rem;
+        margin-top: 5px;
+        display: block;
+    }
+
+    .text-muted {
+        color: #6c757d;
+        font-size: 0.7rem;
+        display: block;
+        margin-top: 5px;
+    }
+
+    .form-group-custom {
+        margin-bottom: 20px;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+
+    .btn-custom {
+        background: linear-gradient(135deg, #8B4513, #D35400);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+        }
+
+    .text-right {
+        text-align: right;
+    }
+</style>

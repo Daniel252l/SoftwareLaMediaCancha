@@ -1,0 +1,178 @@
+@model LaMediaCancha.Models.ProductoModels.Producto
+@{
+    ViewBag.Title = "Crear Producto";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card-custom" style="max-width: 100%;">
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2><i class="fas fa-plus-circle"></i> Crear Producto</h2>
+                            <p>Ingrese los datos del nuevo producto</p>
+                        </div>
+                        <a href="@Url.Action("Index", "Producto")" class="btn-custom" style="width: auto; padding: 10px 20px; background: #6c757d;">
+                            <i class="fas fa-arrow-left"></i> Regresar
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+                    @using (Html.BeginForm("Crear", "Producto", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Código</label>
+                                    @Html.TextBoxFor(m => m.Codigo, new { @class = "form-control-custom", required = "required" })
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Código de Barras</label>
+                                    @Html.TextBoxFor(m => m.CodigoBarras, new { @class = "form-control-custom" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group-custom">
+                            <label>Nombre</label>
+                            @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control-custom", required = "required" })
+                        </div>
+
+                        <div class="form-group-custom">
+                            <label>Descripción</label>
+                            @Html.TextAreaFor(m => m.Descripcion, new { @class = "form-control-custom", rows = 3 })
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Departamento</label>
+                                    @Html.DropDownListFor(m => m.DepartamentoId, (SelectList)ViewBag.Departamentos, "Seleccione...", new { @class = "form-control-custom", required = "required", id = "DepartamentoId" })
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>SubDepartamento</label>
+                                    <select id="SubDepartamentoId" name="SubDepartamentoId" class="form-control-custom" required disabled>
+                                        <option value="">Primero seleccione un departamento</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Presentación</label>
+                                    @Html.DropDownListFor(m => m.PresentacionId, (SelectList)ViewBag.Presentaciones, "Seleccione...", new { @class = "form-control-custom", required = "required" })
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Marca</label>
+                                    @Html.DropDownListFor(m => m.MarcaId, (SelectList)ViewBag.Marcas, "Seleccione...", new { @class = "form-control-custom" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Precio Compra</label>
+                                    @Html.TextBoxFor(m => m.PrecioCompra, new { @class = "form-control-custom", type = "number", step = "100", required = "required" })
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Precio Venta</label>
+                                    @Html.TextBoxFor(m => m.PrecioVenta, new { @class = "form-control-custom", type = "number", step = "100", required = "required" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>¿En Oferta?</label>
+                                    @Html.DropDownListFor(m => m.EstaEnOferta, new SelectList(new[] { new { Value = "false", Text = "No" }, new { Value = "true", Text = "Sí" } }, "Value", "Text"), new { @class = "form-control-custom", id = "EstaEnOferta" })
+                                </div>
+                            </div>
+                            <div class="col-md-6" id="divPrecioOferta" style="display: none;">
+                                <div class="form-group-custom">
+                                    <label>Precio Oferta</label>
+                                    @Html.TextBoxFor(m => m.PrecioOferta, new { @class = "form-control-custom", type = "number", step = "100" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row" id="divFechasOferta" style="display: none;">
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Fecha Inicio Oferta</label>
+                                    @Html.TextBoxFor(m => m.FechaInicioOferta, "{0:yyyy-MM-dd}", new { @class = "form-control-custom", type = "date" })
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Fecha Fin Oferta</label>
+                                    @Html.TextBoxFor(m => m.FechaFinOferta, "{0:yyyy-MM-dd}", new { @class = "form-control-custom", type = "date" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group-custom">
+                            <label>Activo</label>
+                            @Html.DropDownListFor(m => m.Activo, new SelectList(new[] { new { Value = "true", Text = "Sí" }, new { Value = "false", Text = "No" } }, "Value", "Text"), new { @class = "form-control-custom" })
+                        </div>
+
+                        <div class="text-right">
+                            <a href="@Url.Action("Index", "Producto")" class="btn-custom btn-secondary" style="width: auto; padding: 12px 25px; background: #6c757d; margin-right: 10px;">
+                                <i class="fas fa-times"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn-custom" style="width: auto; padding: 12px 25px;">
+                                <i class="fas fa-save"></i> Crear Producto
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $('#EstaEnOferta').change(function() {
+            if ($(this).val() === 'true') {
+                $('#divPrecioOferta').show();
+                $('#divFechasOferta').show();
+            } else {
+                $('#divPrecioOferta').hide();
+                $('#divFechasOferta').hide();
+            }
+        });
+
+        $('#DepartamentoId').change(function() {
+            var deptoId = $(this).val();
+            var select = $('#SubDepartamentoId');
+
+            if (deptoId) {
+                select.prop('disabled', false);
+                $.get('@Url.Action("GetSubDepartamentos", "Producto")', { departamentoId: deptoId }, function(data) {
+                    select.empty().append('<option value="">Seleccione...</option>');
+                    $.each(data, function(i, item) {
+                        select.append('<option value="' + item.Value + '">' + item.Text + '</option>');
+                    });
+                });
+            } else {
+                select.prop('disabled', true).empty().append('<option value="">Primero seleccione un departamento</option>');
+            }
+        });
+    </script>
+}

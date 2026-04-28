@@ -1,0 +1,242 @@
+@model LaMediaCancha.Models.DevolucionModels.EncabezadoDevolucion
+@{
+    ViewBag.Title = "Detalle Devolución";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-10 offset-md-1">
+            <div class="card-custom" style="max-width: 100%;">
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2><i class="fas fa-undo-alt"></i> Devolución #@Model.DevolucionId</h2>
+                            <p>Detalle de la devolución</p>
+                        </div>
+                        <a href="@Url.Action("Index", "Devolucion")" class="btn-custom" style="width: auto; padding: 10px 20px; background: #6c757d;">
+                            <i class="fas fa-arrow-left"></i> Regresar
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+                    <!-- Información de la devolución -->
+                    <div class="info-devolucion">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="info-item">
+                                    <label>COMPRA #</label>
+                                    <p><strong>@Model.NumeroDocCompra</strong></p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="info-item">
+                                    <label>FECHA DEVOLUCIÓN</label>
+                                    <p><strong>@Model.FechaDevolucion.ToString("dd/MM/yyyy HH:mm")</strong></p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="info-item">
+                                    <label>TIPO</label>
+                                    <p><strong>@Model.TipoDevolucion</strong></p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="info-item">
+                                    <label>ESTADO</label>
+                                    <p>
+                                        @if (Model.Estado == "Registrada")
+                                        {
+                                            <span class="badge-warning">Registrada</span>
+                                        }
+                                        else if (Model.Estado == "Autorizada")
+                                        {
+                                            <span class="badge-success">Autorizada</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge-info">@Model.Estado</span>
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="info-item">
+                                    <label>MOTIVO</label>
+                                    <p><strong>@Model.Motivo</strong></p>
+                                </div>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.Observaciones))
+                        {
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="info-item">
+                                        <label>OBSERVACIONES</label>
+                                        <p>@Model.Observaciones</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <hr />
+
+                    <h4>Productos devueltos</h4>
+                    <div class="table-responsive">
+                        <table class="table-custom">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Producto</th>
+                                    <th class="text-center">Cantidad</th>
+                                    <th class="text-right">Precio</th>
+                                    <th class="text-right">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Detalles != null && Model.Detalles.Any())
+                                {
+                                    foreach (var item in Model.Detalles)
+                                    {
+                                        <tr>
+                                            <td>
+                                                @item.ProductoCodigo
+                                        </td>
+                                        <td>
+                                            @item.ProductoNombre
+                                    </td>
+                                    <td class="text-center">
+                                        @item.Cantidad.ToString("N0")
+                                </td>
+                                <td class="text-right">@String.Format("{0:N2}", item.PrecioReferencia)
+                            </td>
+                            <td class="text-right">
+                                <strong>@String.Format("{0:N2}", item.Subtotal)</strong>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="text-center">
+                            No hay productos registrados
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4" class="text-right">
+                            <strong>TOTAL DEVUELTO:</strong>
+                        </td>
+                        <td class="text-right">
+                            <strong>@String.Format("{0:N2}", Model.MontoTotal)</strong>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <!-- Botones eliminados -->
+    </div>
+</div>
+</div>
+</div>
+</div>
+
+<style>
+    .info-devolucion {
+        background: #e8f4f8;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+
+    .info-item {
+        margin-bottom: 10px;
+    }
+
+        .info-item label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #7F8C8D;
+            display: block;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        .info-item p {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+    .badge-warning {
+        background: #F39C12;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-success {
+        background: #27AE60;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-info {
+        background: #3498DB;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+
+        .table-custom th, .table-custom td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .table-custom th {
+            background: #8B4513;
+            color: white;
+            font-weight: 600;
+        }
+
+        .table-custom tfoot td {
+            border-top: 2px solid #8B4513;
+            font-weight: bold;
+        }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    hr {
+        margin: 20px 0;
+        border: 0;
+        border-top: 1px solid #eee;
+    }
+</style>

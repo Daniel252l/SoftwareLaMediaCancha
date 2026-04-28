@@ -1,0 +1,190 @@
+﻿@model IEnumerable<LaMediaCancha.Models.LoteViewModel>
+@{
+    ViewBag.Title = "Lotes Próximos a Vencer";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card-custom" style="max-width: 100%;">
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2><i class="fas fa-clock"></i> Lotes Próximos a Vencer</h2>
+                            <p>Productos que vencen en los próximos @ViewBag.DiasAlerta días</p>
+                        </div>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <select id="selDias" class="form-control-custom" style="width:auto;">
+                                <option value="3" @(ViewBag.DiasAlerta == 3 ? "selected" : "")>3 días</option>
+                                <option value="7" @(ViewBag.DiasAlerta == 7 ? "selected" : "")>7 días</option>
+                                <option value="15" @(ViewBag.DiasAlerta == 15 ? "selected" : "")>15 días</option>
+                                <option value="30" @(ViewBag.DiasAlerta == 30 ? "selected" : "")>30 días</option>
+                            </select>
+                            <a href="@Url.Action("Index", "Inventario")" class="btn-custom"
+                               style="width:auto; padding:10px 20px; background:#6c757d;">
+                                <i class="fas fa-arrow-left"></i> Regresar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+
+                    @if (!Model.Any())
+                    {
+                        <div class="alert-success-custom">
+                            <i class="fas fa-check-circle"></i>
+                            No hay lotes próximos a vencer en los próximos @ViewBag.DiasAlerta días. ¡Todo en orden!
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table-custom" id="tblVencimientos">
+                                <thead>
+                                    <tr>
+                                        <th>Lote</th>
+                                        <th>Producto</th>
+                                        <th>Código</th>
+                                        <th>Proveedor</th>
+                                        <th class="text-center">F. Vencimiento</th>
+                                        <th class="text-center">Días Restantes</th>
+                                        <th class="text-center">Stock Actual</th>
+                                        <th>Urgencia</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var lote in Model.OrderBy(x => x.DiasParaVencer))
+                                    {
+                                        <tr>
+                                            <td><strong>@lote.NumeroLoteInterno</strong></td>
+                                            <td>@lote.ProductoNombre</td>
+                                            <td>@lote.ProductoCodigo</td>
+                                            <td>@lote.ProveedorNombre</td>
+                                            <td class="text-center">
+                                                @(lote.FechaVencimiento.HasValue
+                                                    ? lote.FechaVencimiento.Value.ToString("dd/MM/yyyy")
+                                                    : "—")
+                                            </td>
+                                            <td class="text-center">
+                                                @if (lote.DiasParaVencer <= 0)
+                                                {<span class="badge-danger">VENCIDO</span> }
+                                                else if (lote.DiasParaVencer <= 3)
+                                                { <span class="badge-danger">@lote.DiasParaVencer días</span> }
+                                            else if (lote.DiasParaVencer <= 7)
+                                            { <span class="badge-warning">@lote.DiasParaVencer días</span> }
+                                        else
+                                        { <span class="badge-info">@lote.DiasParaVencer días</span>}
+                                            </td>
+                                            <td class="text-center"><strong>@lote.CantidadActual</strong></td>
+                                            <td>
+                                                @if (lote.DiasParaVencer <= 0)
+                                                {<span class="badge-danger">⛔ Crítico</span> }
+                                                else if (lote.DiasParaVencer <= 3)
+                                                { <span class="badge-danger">🔴 Urgente</span> }
+                                                else if (lote.DiasParaVencer <= 7)
+                                                { <span class="badge-warning">🟡 Pronto</span> }
+                                                else
+                                                { <span class="badge-info">🔵 Monitorear</span>}
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .table-custom th, .table-custom td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+
+        .table-custom th {
+            background: #8B4513;
+            color: white;
+        }
+
+    .badge-success {
+        background: #27AE60;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        display: inline-block;
+    }
+
+    .badge-warning {
+        background: #F39C12;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        display: inline-block;
+    }
+
+    .badge-danger {
+        background: #E74C3C;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        display: inline-block;
+    }
+
+    .badge-info {
+        background: #3498DB;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        display: inline-block;
+    }
+
+    .form-control-custom {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .alert-success-custom {
+        background: #d4edda;
+        color: #155724;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #c3e6cb;
+        font-size: 1rem;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#tblVencimientos').DataTable({
+                language: { url: '//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json' },
+                order: [[5, 'asc']],
+                pageLength: 25
+            });
+
+            $('#selDias').change(function () {
+                var dias = $(this).val();
+                window.location.href = '@Url.Action("ProximosAVencer", "Lote")?dias=' + dias;
+            });
+        });
+    </script>
+}

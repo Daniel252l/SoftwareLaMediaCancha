@@ -1,0 +1,158 @@
+@model IEnumerable<LaMediaCancha.Models.DevolucionModels.EncabezadoDevolucion>
+@{
+    ViewBag.Title = "Devoluciones";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card-custom" style="max-width: 100%;">
+                <div class="card-header-custom">
+                    <h2><i class="fas fa-undo-alt"></i> Devoluciones</h2>
+                    <p>Gestión de devoluciones a proveedores</p>
+                </div>
+                <div class="card-body-custom">
+                    <div class="table-responsive">
+                        <table class="table-custom" id="tblDevoluciones">
+                            <thead>
+                                <tr>
+                                    <th>Compra #</th>
+                                    <th>Fecha</th>
+                                    <th>Motivo</th>
+                                    <th>Tipo</th>
+                                    <th class="text-right">Monto</th>
+                                    <th>Estado</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            @item.NumeroDocCompra
+                                    </td>
+                                    <td>
+                                        @item.FechaDevolucion.ToString("dd/MM/yyyy")
+                                </td>
+                                <td>
+                                    @item.Motivo
+                            </td>
+                            <td>@item.TipoDevolucion
+                        </td>
+                        <td class="text-right">@String.Format("{0:N2}", item.MontoTotal)
+                    </td>
+                    <td>
+                        @if (item.Estado == "Registrada")
+                        {
+                            <span class="badge-warning">Registrada</span>
+                        }
+                        else if (item.Estado == "Autorizada")
+                        {
+                            <span class="badge-success">Autorizada</span>
+                        }
+                        else
+                        {
+                            <span class="badge-info">@item.Estado</span>
+                        }
+                    </td>
+                    <td class="text-center">
+                        <a href="@Url.Action("Detalle", new { id = item.DevolucionId })" class="btn-ver">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+            }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer-custom">
+                    <a href="@Url.Action("Dashboard", "Home")" class="btn-regresar">Regresar al Dashboard</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .btn-ver {
+        background: #3498DB;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        display: inline-block;
+        text-decoration: none;
+    }
+
+        .btn-ver:hover {
+            background: #2980B9;
+            color: white;
+        }
+
+    .btn-regresar {
+        background: #6c757d;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .badge-warning {
+        background: #F39C12;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        display: inline-block;
+    }
+
+    .badge-success {
+        background: #27AE60;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        display: inline-block;
+    }
+
+    .badge-info {
+        background: #3498DB;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        display: inline-block;
+    }
+
+    .card-footer-custom {
+        padding: 15px 20px;
+        border-top: 1px solid #eee;
+        text-align: right;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .table-custom th, .table-custom td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .table-custom th {
+            background: #8B4513;
+            color: white;
+        }
+</style>

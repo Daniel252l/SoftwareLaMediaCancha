@@ -1,0 +1,37 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\Daniel\\Documents\\LaMediaCancha\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{80D0C2C8-1547-4127-A05B-51298F3DC8E3}|LaMediaCancha.csproj|c:\\users\\daniel\\documents\\lamediacancha\\views\\factura\\imprimir.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{80D0C2C8-1547-4127-A05B-51298F3DC8E3}|LaMediaCancha.csproj|solutionrelative:views\\factura\\imprimir.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Imprimir.cshtml",
+              "DocumentMoniker": "C:\\Users\\Daniel\\Documents\\LaMediaCancha\\Views\\Factura\\Imprimir.cshtml",
+              "RelativeDocumentMoniker": "Views\\Factura\\Imprimir.cshtml",
+              "ToolTip": "C:\\Users\\Daniel\\Documents\\LaMediaCancha\\Views\\Factura\\Imprimir.cshtml",
+              "RelativeToolTip": "Views\\Factura\\Imprimir.cshtml",
+              "ViewState": "AgIAAJMAAAAAAAAAAAAAAKEAAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-04-28T04:33:30.685Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

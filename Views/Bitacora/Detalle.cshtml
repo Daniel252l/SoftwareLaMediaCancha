@@ -1,0 +1,180 @@
+﻿@model LaMediaCancha.Models.Bitacora
+@{
+    ViewBag.Title = "Detalle Bitácora";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card-custom" style="max-width: 100%;">
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2><i class="fas fa-list-alt"></i> Detalle de Registro</h2>
+                            <p>Información completa del evento</p>
+                        </div>
+                        <a href="@Url.Action("Index", "Bitacora")" class="btn-custom" style="width: auto; padding: 10px 20px; background: #6c757d;">
+                            <i class="fas fa-arrow-left"></i> Regresar
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+                    <div class="info-section">
+                        <div class="info-title">
+                            <i class="fas fa-info-circle"></i> Información del Evento
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>ID Bitácora</label>
+                                    <p><strong>@Model.BitacoraId</strong></p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Fecha y Hora</label>
+                                    <p><strong>@Model.Fecha.ToString("dd/MM/yyyy HH:mm:ss")</strong></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Usuario</label>
+                                    <p><strong>@Model.UsuarioNombre</strong></p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Acción</label>
+                                    <p>
+                                        @if (Model.Accion == "CREAR")
+                                        {
+                                            <span class="badge-success">CREAR</span>
+                                        }
+                                        else if (Model.Accion == "EDITAR")
+                                        {
+                                            <span class="badge-warning">EDITAR</span>
+                                        }
+                                        else if (Model.Accion == "INACTIVAR" || Model.Accion == "ELIMINAR")
+                                        {
+                                            <span class="badge-danger">@Model.Accion</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge-info">@Model.Accion</span>
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Tabla Afectada</label>
+                                    <p>@Model.Tabla</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <div class="info-title">
+                            <i class="fas fa-file-alt"></i> Detalle del Evento
+                        </div>
+                        <div class="info-item">
+                            <label>Descripción</label>
+                            <p>@Model.Detalle</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .info-section {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid #e9ecef;
+    }
+
+    .info-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #8B4513;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #D35400;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .info-title i {
+            color: #D35400;
+            font-size: 1.1rem;
+        }
+
+    .info-item {
+        margin-bottom: 10px;
+    }
+
+        .info-item label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #7F8C8D;
+            display: block;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        .info-item p {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+    .badge-success {
+        background: #27AE60;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-warning {
+        background: #F39C12;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-danger {
+        background: #E74C3C;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-info {
+        background: #3498DB;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+</style>

@@ -1,0 +1,223 @@
+﻿@model LaMediaCancha.Models.Proveedor
+@{
+    ViewBag.Title = "Crear Proveedor";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card-custom" style="max-width: 100%;">
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2><i class="fas fa-plus-circle"></i> Crear Proveedor</h2>
+                            <p>Ingrese los datos del nuevo proveedor</p>
+                        </div>
+                        <a href="@Url.Action("Index", "Proveedor")" class="btn-custom" style="width: auto; padding: 10px 20px; background: #6c757d;">
+                            <i class="fas fa-arrow-left"></i> Regresar
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+                    @using (Html.BeginForm("Crear", "Proveedor", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>NIT <span class="text-danger">*</span></label>
+                                    @Html.TextBoxFor(m => m.Nit, new
+                                    {
+                                        @class = "form-control-custom",
+                                        required = "required",
+                                        placeholder = "Ej: 900123456-1",
+                                        maxlength = "13",
+                                        onkeypress = "return event.charCode >= 48 && event.charCode <= 57 || event.charCode == 45",
+                                        onpaste = "return false"
+                                    })
+                                    @Html.ValidationMessageFor(m => m.Nit, "", new { @class = "text-danger" })
+                                    <small class="text-muted">13 caracteres (números y guiones)</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Razón Social <span class="text-danger">*</span></label>
+                                    @Html.TextBoxFor(m => m.RazonSocial, new { @class = "form-control-custom", required = "required", placeholder = "Nombre comercial del proveedor" })
+                                    @Html.ValidationMessageFor(m => m.RazonSocial, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Nombre Contacto</label>
+                                    @Html.TextBoxFor(m => m.Contacto, new { @class = "form-control-custom", placeholder = "Persona de contacto" })
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Teléfono</label>
+                                    @Html.TextBoxFor(m => m.Telefono, new
+                                    {
+                                        @class = "form-control-custom",
+                                        placeholder = "8 dígitos",
+                                        maxlength = "8",
+                                        onkeypress = "return event.charCode >= 48 && event.charCode <= 57",
+                                        onpaste = "return false"
+                                    })
+                                    @Html.ValidationMessageFor(m => m.Telefono, "", new { @class = "text-danger" })
+                                    <small class="text-muted">8 dígitos numéricos</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Correo Electrónico</label>
+                                    @Html.TextBoxFor(m => m.Correo, new { @class = "form-control-custom", type = "email", placeholder = "correo@proveedor.com" })
+                                    @Html.ValidationMessageFor(m => m.Correo, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Dirección</label>
+                                    @Html.TextBoxFor(m => m.Direccion, new { @class = "form-control-custom", placeholder = "Dirección del proveedor" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Política de Devolución <span class="text-danger">*</span></label>
+                                    @Html.DropDownListFor(m => m.MantenimientoId, (SelectList)ViewBag.Politicas, "Seleccione una política...", new { @class = "form-control-custom", required = "required" })
+                                    @Html.ValidationMessageFor(m => m.MantenimientoId, "", new { @class = "text-danger" })
+                                    <small class="text-muted">Define los días máximos para realizar devoluciones</small>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Política Personalizada</label>
+                                    @Html.TextAreaFor(m => m.PoliticaDevolucion, new { @class = "form-control-custom", rows = 2, placeholder = "Políticas adicionales (opcional)" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Nombres (Persona) <span class="text-danger">*</span></label>
+                                    @Html.TextBoxFor(m => m.Nombres, new { @class = "form-control-custom", required = "required", placeholder = "Nombres de la persona" })
+                                    @Html.ValidationMessageFor(m => m.Nombres, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label>Apellidos (Persona) <span class="text-danger">*</span></label>
+                                    @Html.TextBoxFor(m => m.Apellidos, new { @class = "form-control-custom", required = "required", placeholder = "Apellidos de la persona" })
+                                    @Html.ValidationMessageFor(m => m.Apellidos, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-right mt-3">
+                            <button type="submit" class="btn-custom">
+                                <i class="fas fa-save"></i> Guardar Proveedor
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Validar teléfono: solo números y máximo 8
+            $('#Telefono').on('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '').slice(0, 8);
+            });
+
+            // Validar NIT: solo números y guiones, máximo 13
+            $('#Nit').on('input', function() {
+                this.value = this.value.replace(/[^0-9-]/g, '').slice(0, 13);
+                // Validar que solo tenga un guión
+                var partes = this.value.split('-');
+                if (partes.length > 2) {
+                    this.value = partes[0] + '-' + partes.slice(1).join('');
+                }
+            });
+
+            // Validar en el envío del formulario
+            $('form').submit(function(e) {
+                var nit = $('#Nit').val();
+                var telefono = $('#Telefono').val();
+                var errores = [];
+
+                if (nit.length !== 13) {
+                    errores.push('El NIT debe tener exactamente 13 caracteres');
+                }
+                if (telefono.length > 0 && telefono.length !== 8) {
+                    errores.push('El teléfono debe tener exactamente 8 dígitos');
+                }
+
+                if (errores.length > 0) {
+                    e.preventDefault();
+                    Swal.fire('Error de validación', errores.join('\n'), 'error');
+                }
+            });
+        });
+    </script>
+}
+
+<style>
+    .text-danger {
+        color: #E74C3C;
+        font-size: 0.75rem;
+        margin-top: 5px;
+        display: block;
+    }
+
+    .text-muted {
+        color: #6c757d;
+        font-size: 0.7rem;
+        display: block;
+        margin-top: 5px;
+    }
+
+    .form-group-custom {
+        margin-bottom: 20px;
+    }
+
+    .form-control-custom {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+
+    .btn-custom {
+        background: linear-gradient(135deg, #8B4513, #D35400);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .btn-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+        }
+
+    .text-right {
+        text-align: right;
+    }
+</style>

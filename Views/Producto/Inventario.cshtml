@@ -1,0 +1,504 @@
+@model IEnumerable<LaMediaCancha.Models.ProductoModels.InventarioProducto>
+@{
+    ViewBag.Title = "Inventario";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card-custom" style="max-width: 100%;">
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2><i class="fas fa-warehouse"></i> Inventario</h2>
+                            <p>Control de existencias y stock de productos</p>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <a href="@Url.Action("Dashboard", "Home")" class="btn-custom" style="width: auto; padding: 10px 20px; background: #6c757d;">
+                                <i class="fas fa-arrow-left"></i> Regresar
+                            </a>
+                            <a href="@Url.Action("Index", "Producto")" class="btn-custom" style="width: auto; padding: 10px 20px; background: #6c757d;">
+                                <i class="fas fa-boxes"></i> Productos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+
+                    <!-- Barra de búsqueda y filtros -->
+                    <div class="barra-filtros">
+                        <div class="filtro-item filtro-busqueda">
+                            <i class="fas fa-search icono-busqueda"></i>
+                            <input type="text" id="busquedaGeneral" placeholder="Buscar producto o código..." />
+                        </div>
+                        <div class="filtro-item">
+                            <select id="filtroDepartamento">
+                                <option value="">Todos los departamentos</option>
+                                @foreach (var dep in Model.Select(x => x.Departamento).Distinct().OrderBy(x => x))
+                                {
+                                    <option value="@dep">@dep</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="filtro-item">
+                            <select id="filtroEstado">
+                                <option value="">Todos los estados</option>
+                                <option value="NORMAL">Normal</option>
+                                <option value="STOCK BAJO">Stock Bajo</option>
+                                <option value="STOCK ALTO">Stock Alto</option>
+                                <option value="AGOTADO">Agotado</option>
+                            </select>
+                        </div>
+                        <button type="button" id="btnLimpiarFiltros" class="btn-limpiar">
+                            <i class="fas fa-eraser"></i> Limpiar
+                        </button>
+                    </div>
+
+                    <!-- Tabla de inventario -->
+                    <div class="table-responsive">
+                        <table class="table-custom" id="tblInventario">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Producto</th>
+                                    <th>Departamento</th>
+                                    <th class="text-center">Stock Actual</th>
+                                    <th class="text-center">Stock Mínimo</th>
+                                    <th class="text-center">Stock Máximo</th>
+                                    <th>Estado</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    string estadoTexto = item.ExistenciaActual == 0 ? "AGOTADO"
+                                        : item.ExistenciaActual <= item.StockMinimo ? "STOCK BAJO"
+                                        : item.ExistenciaActual >= item.StockMaximo ? "STOCK ALTO"
+                                        : "NORMAL";
+
+                                    <tr data-departamento="@item.Departamento" data-estado="@estadoTexto">
+                                        <td><strong>@item.Codigo</strong></td>
+                                        <td><strong>@item.Nombre</strong></td>
+                                        <td>@item.Departamento</td>
+                                        <td class="text-center">
+                                            <span class="stock-actual @(item.ExistenciaActual <= item.StockMinimo ? "stock-bajo" : "")">
+                                                @item.ExistenciaActual
+                                            </span>
+                                        </td>
+                                        <td class="text-center">@item.StockMinimo</td>
+                                        <td class="text-center">@item.StockMaximo</td>
+                                        <td>
+                                            @if (item.ExistenciaActual == 0)
+                                            {
+                                                <span class="badge-danger">AGOTADO</span>
+                                            }
+                                            else if (item.ExistenciaActual <= item.StockMinimo)
+                                            {
+                                                <span class="badge-warning">STOCK BAJO</span>
+                                            }
+                                            else if (item.ExistenciaActual >= item.StockMaximo)
+                                            {
+                                                <span class="badge-info">STOCK ALTO</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge-success">NORMAL</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <div style="display: flex; gap: 5px; justify-content: center;">
+                                                <button type="button" class="btn-ajustar"
+                                                        data-id="@item.ProductoId"
+                                                        data-nombre="@item.Nombre"
+                                                        data-actual="@item.ExistenciaActual"
+                                                        data-min="@item.StockMinimo"
+                                                        data-max="@item.StockMaximo">
+                                                    <i class="fas fa-edit"></i> Ajustar
+                                                </button>
+                                                <a href="@Url.Action("PorProducto", "Lote", new { productoId = item.ProductoId })"
+                                                   class="btn-lotes" title="Ver lotes">
+                                                    <i class="fas fa-layer-group"></i> Lotes
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        <div id="sinResultados" style="display:none; text-align:center; padding: 30px; color: #999;">
+                            <i class="fas fa-search" style="font-size:2rem; margin-bottom:10px;"></i>
+                            <p>No se encontraron productos con los filtros aplicados</p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ajustar inventario -->
+<div class="modal fade" id="modalAjustarInventario" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-edit"></i> Ajustar Inventario</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <form id="frmAjustarInventario" method="post">
+                <div class="modal-body">
+                    <input type="hidden" id="ajusteProductoId" name="ProductoId" />
+                    <div class="form-group-custom">
+                        <label>Producto</label>
+                        <input type="text" id="ajusteProductoNombre" class="form-control-custom" readonly />
+                    </div>
+                    <div class="form-group-custom">
+                        <label>Stock Actual</label>
+                        <input type="number" id="ajusteStockActual" class="form-control-custom" readonly />
+                    </div>
+                    <div class="form-group-custom">
+                        <label>Nuevo Stock</label>
+                        <input type="number" id="ajusteNuevoStock" class="form-control-custom" required min="0" />
+                    </div>
+                    <div class="form-group-custom">
+                        <label>Stock Mínimo</label>
+                        <input type="number" id="ajusteStockMinimo" class="form-control-custom" />
+                    </div>
+                    <div class="form-group-custom">
+                        <label>Stock Máximo</label>
+                        <input type="number" id="ajusteStockMaximo" class="form-control-custom" />
+                    </div>
+                    <div class="form-group-custom">
+                        <label>Motivo del Ajuste</label>
+                        <textarea id="ajusteMotivo" class="form-control-custom" rows="2"
+                                  placeholder="Ej: Ajuste por inventario físico, devolución, etc."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-custom btn-secondary" data-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn-custom">Guardar Ajuste</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .barra-filtros {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: #f8f9fa;
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .filtro-item {
+        display: flex;
+        align-items: center;
+        position: relative;
+    }
+
+    .filtro-busqueda {
+        flex: 1;
+        min-width: 220px;
+    }
+
+    .icono-busqueda {
+        position: absolute;
+        left: 12px;
+        color: #999;
+        font-size: 0.85rem;
+    }
+
+    .filtro-busqueda input {
+        width: 100%;
+        padding: 9px 12px 9px 34px;
+        border: 1px solid #ddd;
+        border-radius: 7px;
+        font-size: 0.9rem;
+        outline: none;
+        transition: border 0.2s;
+    }
+
+        .filtro-busqueda input:focus {
+            border-color: #8B4513;
+        }
+
+    .filtro-item select {
+        padding: 9px 14px;
+        border: 1px solid #ddd;
+        border-radius: 7px;
+        font-size: 0.85rem;
+        background: white;
+        outline: none;
+        cursor: pointer;
+        transition: border 0.2s;
+    }
+
+        .filtro-item select:focus {
+            border-color: #8B4513;
+        }
+
+    .btn-limpiar {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 9px 16px;
+        border-radius: 7px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: background 0.2s;
+        white-space: nowrap;
+    }
+
+        .btn-limpiar:hover {
+            background: #5a6268;
+        }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .table-custom th, .table-custom td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+
+        .table-custom th {
+            background: #8B4513;
+            color: white;
+            font-weight: 600;
+        }
+
+        .table-custom tbody tr:hover {
+            background: rgba(139, 69, 19, 0.05);
+        }
+
+    .badge-success {
+        background: #27AE60;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-warning {
+        background: #F39C12;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-danger {
+        background: #E74C3C;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-info {
+        background: #3498DB;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .stock-actual {
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+
+    .stock-bajo {
+        color: #E74C3C;
+    }
+
+    .btn-ajustar {
+        background: #3498DB;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.75rem;
+        transition: all 0.2s;
+    }
+
+        .btn-ajustar:hover {
+            background: #2980B9;
+        }
+
+    .btn-lotes {
+        background: #27AE60;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 5px;
+        font-size: 0.75rem;
+        text-decoration: none;
+        display: inline-block;
+        transition: all 0.2s;
+    }
+
+        .btn-lotes:hover {
+            background: #1E8449;
+            color: white;
+            text-decoration: none;
+        }
+
+    .modal-header {
+        background: linear-gradient(135deg, #8B4513, #D35400);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px 10px 0 0;
+    }
+
+        .modal-header .close {
+            color: white;
+            opacity: 1;
+        }
+
+    .modal-footer {
+        padding: 15px 20px;
+        border-top: 1px solid #eee;
+    }
+
+    .form-group-custom {
+        margin-bottom: 15px;
+    }
+
+        .form-group-custom label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: #555;
+        }
+
+    .form-control-custom {
+        width: 100%;
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+    }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+</style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function () {
+
+            function filtrarTabla() {
+                var busqueda     = $('#busquedaGeneral').val().toLowerCase();
+                var departamento = $('#filtroDepartamento').val().toLowerCase();
+                var estado       = $('#filtroEstado').val().toUpperCase();
+                var visibles     = 0;
+
+                $('#tblInventario tbody tr').each(function () {
+                    var codigo   = $(this).find('td:eq(0)').text().toLowerCase();
+                    var producto = $(this).find('td:eq(1)').text().toLowerCase();
+                    var depFila  = $(this).data('departamento').toString().toLowerCase();
+                    var estFila  = $(this).data('estado').toString().toUpperCase();
+
+                    var coincideBusqueda     = busqueda === '' || codigo.includes(busqueda) || producto.includes(busqueda);
+                    var coincideDepartamento = departamento === '' || depFila === departamento;
+                    var coincideEstado       = estado === '' || estFila === estado;
+
+                    if (coincideBusqueda && coincideDepartamento && coincideEstado) {
+                        $(this).show();
+                        visibles++;
+                    } else {
+                        $(this).hide();
+                    }
+                });
+
+                $('#sinResultados').toggle(visibles === 0);
+            }
+
+            $('#busquedaGeneral').on('input', filtrarTabla);
+            $('#filtroDepartamento, #filtroEstado').on('change', filtrarTabla);
+
+            $('#btnLimpiarFiltros').click(function () {
+                $('#busquedaGeneral').val('');
+                $('#filtroDepartamento').val('');
+                $('#filtroEstado').val('');
+                filtrarTabla();
+            });
+
+            $('.btn-ajustar').click(function () {
+                $('#ajusteProductoId').val($(this).data('id'));
+                $('#ajusteProductoNombre').val($(this).data('nombre'));
+                $('#ajusteStockActual').val($(this).data('actual'));
+                $('#ajusteNuevoStock').val($(this).data('actual'));
+                $('#ajusteStockMinimo').val($(this).data('min'));
+                $('#ajusteStockMaximo').val($(this).data('max'));
+                $('#ajusteMotivo').val('');
+                $('#modalAjustarInventario').modal('show');
+            });
+
+            $('#frmAjustarInventario').submit(function (e) {
+                e.preventDefault();
+                var nuevoStock = $('#ajusteNuevoStock').val();
+                if (nuevoStock === '' || nuevoStock < 0) {
+                    Swal.fire('Atención', 'Ingrese un stock válido', 'warning');
+                    return;
+                }
+                $.ajax({
+                    url: '@Url.Action("AjustarInventario", "Producto")',
+                    type: 'POST',
+                    data: {
+                        productoId: $('#ajusteProductoId').val(),
+                        nuevoStock: $('#ajusteNuevoStock').val(),
+                        stockMinimo: $('#ajusteStockMinimo').val(),
+                        stockMaximo: $('#ajusteStockMaximo').val(),
+                        motivo: $('#ajusteMotivo').val()
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire('Éxito', response.message, 'success').then(function () {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    },
+                    error: function () {
+                        Swal.fire('Error', 'Error al procesar la solicitud', 'error');
+                    }
+                });
+            });
+        });
+    </script>
+}

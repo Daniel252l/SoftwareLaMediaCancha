@@ -1,0 +1,40 @@
+﻿@{
+    ViewBag.Title = "Bienvenido";
+}
+
+<div class="welcome-page">
+    <!-- Logo principal (único) -->
+    <div class="logo-container">
+        <img src="~/Content/images/logo.png" alt="La Media Cancha Asadera" class="logo-img" />
+    </div>
+
+    <!-- Títulos -->
+    <h1 class="welcome-title">LA MEDIA CANCHA</h1>
+    <h2 class="welcome-subtitle">ASADERA</h2>
+
+    <!-- Mensaje de bienvenida -->
+    <p class="welcome-description">
+        Disfruta de la mejor experiencia gastronómica en un ambiente único y acogedor.
+    </p>
+
+    <a href="@Url.Action("Login", "Account")" class="access-btn">
+        <i class="fas fa-fire"></i>
+        ACCEDER AL SISTEMA
+    </a>
+
+    <!-- Características del restaurante -->
+    <div class="features-container">
+        <div class="feature-item">
+            <i class="fas fa-utensils"></i>
+            <p>Comida Tradicional</p>
+        </div>
+        <div class="feature-item">
+            <i class="fas fa-fire"></i>
+            <p>Parrilla Premium</p>
+        </div>
+        <div class="feature-item">
+            <i class="fas fa-glass-cheers"></i>
+            <p>Eventos Especiales</p>
+        </div>
+    </div>
+</div>

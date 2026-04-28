@@ -1,0 +1,277 @@
+﻿@model IEnumerable<LaMediaCancha.Models.Bitacora>
+@{
+    ViewBag.Title = "Bitácora";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card-custom" style="max-width: 100%;">
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2><i class="fas fa-list-alt"></i> Bitácora</h2>
+                            <p>Registro de actividad del sistema</p>
+                        </div>
+                        <div>
+                            <select id="filtroBusqueda" class="form-control-custom" style="width: 200px; display: inline-block; margin-right: 10px;">
+                                <option value="">Todos los registros</option>
+                                <option value="CREAR">CREAR</option>
+                                <option value="EDITAR">EDITAR</option>
+                                <option value="INACTIVAR">INACTIVAR</option>
+                                <option value="COMPRA">COMPRA</option>
+                                <option value="DEVOLUCION">DEVOLUCIÓN</option>
+                            </select>
+                            <button type="button" id="btnFiltrar" class="btn-custom" style="width: auto; padding: 8px 15px;">
+                                <i class="fas fa-filter"></i> Filtrar
+                            </button>
+                            <button type="button" id="btnLimpiar" class="btn-custom" style="width: auto; padding: 8px 15px; background: #6c757d;">
+                                <i class="fas fa-undo"></i> Limpiar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+                    <div id="mensajeSinResultados" class="alert alert-warning text-center" style="display: none;">
+                        <i class="fas fa-exclamation-triangle"></i> No se encontraron resultados para el filtro seleccionado.
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table-custom" id="tblBitacora">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Usuario</th>
+                                    <th>Acción</th>
+                                    <th>Tabla</th>
+                                    <th>Detalle</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            @item.Fecha.ToString("dd/MM/yyyy HH:mm:ss")
+                                    </td>
+                                    <td>
+                                        @item.UsuarioNombre
+                                </td>
+                                <td>
+                                    @if (item.Accion == "CREAR")
+                                    {
+                                        <span class="badge-success">CREAR</span>
+                                    }
+                                    else if (item.Accion == "EDITAR")
+                                    {
+                                        <span class="badge-warning">EDITAR</span>
+                                    }
+                                    else if (item.Accion == "INACTIVAR")
+                                    {
+                                        <span class="badge-danger">INACTIVAR</span>
+                                    }
+                                    else if (item.Accion == "COMPRA")
+                                    {
+                                        <span class="badge-info">COMPRA</span>
+                                    }
+                                    else if (item.Accion == "DEVOLUCION")
+                                    {
+                                        <span class="badge-primary">DEVOLUCIÓN</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@item.Accion</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (item.Tabla == "Proveedor")
+                                    {
+                                        <span class="badge-primary">Proveedor</span>
+                                    }
+                                    else if (item.Tabla == "Compra")
+                                    {
+                                        <span class="badge-primary">Compra</span>
+                                    }
+                                    else if (item.Tabla == "Devolución")
+                                    {
+                                        <span class="badge-primary">Devolución</span>
+                                    }
+                                    else
+                                    {
+                                        <span>@item.Tabla</span>
+                                    }
+                                </td>
+                                <td>@item.Detalle
+                            </td>
+                            <td class="text-center">
+                                <a href="@Url.Action("Detalle", new { id = item.BitacoraId })" class="btn-ver" title="Ver detalle">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer-custom">
+                    <a href="@Url.Action("Dashboard", "Home")" class="btn-regresar">
+                        <i class="fas fa-arrow-left"></i> Regresar al Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Filtro manual simple
+            $('#btnFiltrar').click(function () {
+                var accion = $('#filtroBusqueda').val();
+                var filas = $('#tblBitacora tbody tr');
+                var encontrados = 0;
+
+                if (accion === '') {
+                    filas.show();
+                    $('#mensajeSinResultados').hide();
+                    return;
+                }
+
+                filas.each(function () {
+                    var textoAccion = $(this).find('td:eq(2)').text().trim();
+                    if (textoAccion === accion) {
+                        $(this).show();
+                        encontrados++;
+                    } else {
+                        $(this).hide();
+                    }
+                });
+
+                if (encontrados === 0) {
+                    $('#mensajeSinResultados').show();
+                } else {
+                    $('#mensajeSinResultados').hide();
+                }
+            });
+
+            $('#btnLimpiar').click(function () {
+                $('#filtroBusqueda').val('');
+                $('#tblBitacora tbody tr').show();
+                $('#mensajeSinResultados').hide();
+            });
+        });
+    </script>
+}
+
+<style>
+    .alert-warning {
+        background: #fff3cd;
+        color: #856404;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border: 1px solid #ffeeba;
+    }
+
+    .badge-success {
+        background: #27AE60;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        display: inline-block;
+    }
+
+    .badge-warning {
+        background: #F39C12;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        display: inline-block;
+    }
+
+    .badge-danger {
+        background: #E74C3C;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        display: inline-block;
+    }
+
+    .badge-info {
+        background: #3498DB;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        display: inline-block;
+    }
+
+    .badge-primary {
+        background: #8B4513;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        display: inline-block;
+    }
+
+    .btn-ver {
+        background: #3498DB;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        display: inline-block;
+        text-decoration: none;
+    }
+
+        .btn-ver:hover {
+            background: #2980B9;
+            color: white;
+        }
+
+    .btn-regresar {
+        background: #6c757d;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .card-footer-custom {
+        padding: 15px 20px;
+        border-top: 1px solid #eee;
+        text-align: right;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .table-custom th, .table-custom td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .table-custom th {
+            background: #8B4513;
+            color: white;
+        }
+
+    .form-control-custom {
+        padding: 8px 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+    }
+</style>

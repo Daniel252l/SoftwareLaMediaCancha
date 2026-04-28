@@ -1,0 +1,219 @@
+﻿@model List<LaMediaCancha.Models.VentaModels.ProductoVenta>
+@{
+    ViewBag.Title = "Nueva Venta";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card-custom card-custom-full">
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2><i class="fas fa-shopping-cart"></i> Nueva Venta</h2>
+                            <p>Seleccione productos y cantidades - Sistema FIFO</p>
+                        </div>
+                        <div>
+                            <a href="@Url.Action("Carrito", "Venta")" class="btn-custom" style="background: #27AE60; width: auto; padding: 8px 15px;">
+                                <i class="fas fa-shopping-cart"></i> Ver Carrito (<span id="cartCount">0</span>)
+                            </a>
+                            <a href="@Url.Action("Dashboard", "Home")" class="btn-custom" style="background: #6c757d; width: auto; padding: 8px 15px;">
+                                <i class="fas fa-arrow-left"></i> Regresar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+                    <div class="table-responsive">
+                        <table class="table-custom" id="tblProductos">
+                            <thead>
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Producto</th>
+                                    <th class="text-center">Stock</th>
+                                    <th class="text-right">Precio (Q)</th>
+                                    <th class="text-center">Cantidad</th>
+                                    <th class="text-center"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var producto in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            @producto.Codigo
+                                    </td>
+                                    <td>
+                                        <strong>@producto.Nombre</strong>
+                                    </td>
+                                    <td class="text-center">
+                                        @producto.StockDisponible
+                                </td>
+                                <td class="text-right">@producto.PrecioVenta.ToString("N2")
+                            </td>
+                            <td>
+                                @if (producto.StockDisponible > 0)
+                                {
+                                    <input type="number" class="form-control cantidad-input"
+                                           style="width: 100px; text-align: center; margin: 0 auto;"
+                                           data-id="@producto.ProductoId"
+                                           data-nombre="@producto.Nombre"
+                                           data-precio="@producto.PrecioVenta"
+                                           data-stock="@producto.StockDisponible"
+                                           min="0" max="@producto.StockDisponible" step="1" value="0" />
+                                }
+                                else
+                                {
+                                    <input type="number" class="form-control cantidad-input"
+                                           style="width: 100px; text-align: center; margin: 0 auto; background: #f5f5f5;"
+                                           value="0" disabled readonly />
+                                }
+                            </td>
+                            <td class="text-center">
+                                @if (producto.StockDisponible > 0)
+                                {
+                                    <button type="button" class="btn-agregar-carrito btn-sm"
+                                            data-id="@producto.ProductoId"
+                                            data-nombre="@producto.Nombre"
+                                            data-precio="@producto.PrecioVenta"
+                                            data-stock="@producto.StockDisponible">
+                                        <i class="fas fa-cart-plus"></i> Agregar
+                                    </button>
+                                }
+                                else
+                                {
+                                    <button type="button" class="btn-agregar-carrito btn-sm" disabled style="background: #ccc; cursor: not-allowed;">
+                                        <i class="fas fa-cart-plus"></i> Sin stock
+                                    </button>
+                                }
+                            </td>
+                        </tr>
+                                }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+<style>
+    .btn-agregar-carrito {
+        background: #27AE60;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+        .btn-agregar-carrito:hover {
+            background: #1E8449;
+        }
+
+    .cantidad-input {
+        text-align: center;
+    }
+
+    .table-custom th, .table-custom td {
+        padding: 12px;
+        vertical-align: middle;
+    }
+</style>
+
+@section Scripts {
+    <link href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        function actualizarContadorCarrito() {
+            var carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
+            $('#cartCount').text(carrito.length);
+        }
+
+        function agregarAlCarrito(producto) {
+            var carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
+
+            var existe = carrito.find(p => p.ProductoId === producto.ProductoId);
+            if (existe) {
+                existe.Cantidad += producto.Cantidad;
+                if (producto.LotesSeleccionados) {
+                    existe.LotesSeleccionados = producto.LotesSeleccionados;
+                }
+            } else {
+                carrito.push(producto);
+            }
+
+            localStorage.setItem('carrito', JSON.stringify(carrito));
+            actualizarContadorCarrito();
+
+            Swal.fire('Agregado', producto.Nombre + ' x' + producto.Cantidad + ' agregado al carrito', 'success');
+
+            $('input[data-id="' + producto.ProductoId + '"]').val(0);
+        }
+
+        $(document).ready(function() {
+            $('#tblProductos').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json'
+                },
+                order: [[0, 'asc']],
+                pageLength: 25
+            });
+
+            actualizarContadorCarrito();
+
+            $('.btn-agregar-carrito').click(function() {
+                var $btn = $(this);
+                var $input = $('input[data-id="' + $btn.data('id') + '"]');
+                var cantidad = parseFloat($input.val()) || 0;
+
+                if (cantidad <= 0) {
+                    Swal.fire('Atención', 'Ingrese una cantidad válida', 'warning');
+                    return;
+                }
+
+                var maxStock = parseFloat($input.data('stock'));
+                if (cantidad > maxStock) {
+                    Swal.fire('Atención', 'Stock insuficiente. Disponible: ' + maxStock, 'warning');
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("AplicarFIFO", "Venta")',
+                    type: 'POST',
+                    data: { productoId: $btn.data('id'), cantidad: cantidad },
+                    success: function(response) {
+                        if (response.success) {
+                            var producto = {
+                                ProductoId: $btn.data('id'),
+                                Codigo: $btn.closest('tr').find('td:first').text(),
+                                Nombre: $btn.data('nombre'),
+                                Cantidad: cantidad,
+                                PrecioUnitario: $btn.data('precio'),
+                                Descuento: 0,
+                                Subtotal: cantidad * $btn.data('precio'),
+                                LotesSeleccionados: response.lotes
+                            };
+                            agregarAlCarrito(producto);
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    },
+                    error: function() {
+                        Swal.fire('Error', 'Error al verificar inventario', 'error');
+                    }
+                });
+            });
+
+            $('.cantidad-input').keypress(function(e) {
+                if (e.which === 13) {
+                    $(this).closest('tr').find('.btn-agregar-carrito').click();
+                }
+            });
+        });
+    </script>
+}

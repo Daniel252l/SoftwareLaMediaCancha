@@ -1,0 +1,120 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - La Media Cancha</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css" rel="stylesheet" />
+    <link href="~/Content/Site.css" rel="stylesheet" type="text/css" />
+</head>
+<body style="margin:0; padding:0;">
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="layout-wrapper" style="display:flex; flex-direction:column; min-height:100vh;">
+
+        <header class="simple-header"></header>
+
+        @if (ViewBag.FullWidth == true)
+        {
+            <main style="flex:1; padding:0; margin:0; width:100%; display:block;">
+                @RenderBody()
+            </main>
+        }
+        else
+        {
+            <main class="main-content">
+                @RenderBody()
+            </main>
+        }
+
+        @if (ViewBag.FullWidth != true)
+        {
+            <footer class="footer-custom">
+                <div class="container">
+                    <p>&copy; @DateTime.Now.Year - La Media Cancha Asadera  .</p>
+                    <p style="margin-top:10px; font-size:0.9rem;">
+                        <i class="fas fa-map-marker-alt"></i> Coatepeque, Quezaltenango |
+                        <i class="fas fa-phone"></i> (502) 1234-5678 |
+                        <i class="fas fa-envelope"></i> lamediacancha@gmail.com
+                    </p>
+                </div>
+            </footer>
+        }
+
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    @RenderSection("Scripts", required: false)
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+
+            function showToast(message, type) {
+                var container = document.getElementById('toastContainer');
+                if (!container) return;
+
+                var titles = { success: 'Éxito', error: 'Error', info: 'Información' };
+                var icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+
+                var toast = document.createElement('div');
+                toast.className = 'toast-notification toast-' + type;
+
+                var iconDiv = document.createElement('div');
+                iconDiv.className = 'toast-icon';
+                iconDiv.innerHTML = '<i class="fas ' + (icons[type] || 'fa-info-circle') + '"></i>';
+
+                var contentDiv = document.createElement('div');
+                contentDiv.className = 'toast-content';
+
+                var titleDiv = document.createElement('div');
+                titleDiv.className = 'toast-title';
+                titleDiv.innerText = titles[type] || 'Información';
+
+                var messageDiv = document.createElement('div');
+                messageDiv.className = 'toast-message';
+                messageDiv.innerText = message;
+
+                contentDiv.appendChild(titleDiv);
+                contentDiv.appendChild(messageDiv);
+                toast.appendChild(iconDiv);
+                toast.appendChild(contentDiv);
+                container.appendChild(toast);
+
+                setTimeout(function () {
+                    toast.style.animation = 'fadeOut 0.3s ease-out forwards';
+                    setTimeout(function () {
+                        if (toast.parentNode) toast.remove();
+                    }, 300);
+                }, 4000);
+            }
+
+            document.querySelectorAll('.toast-data').forEach(function (el) {
+                var message = el.getAttribute('data-message');
+                var type = el.getAttribute('data-type') || 'info';
+                if (message && message.trim() !== '') showToast(message, type);
+                el.remove();
+            });
+
+            var form = document.querySelector('form');
+            var btn = document.getElementById('btn-login');
+            if (form && btn) {
+                form.addEventListener('submit', function () {
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> VALIDANDO CREDENCIALES...';
+                    btn.disabled = true;
+                    btn.style.opacity = '0.7';
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>

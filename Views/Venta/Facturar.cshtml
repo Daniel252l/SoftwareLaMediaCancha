@@ -1,0 +1,242 @@
+﻿@{
+    ViewBag.Title = "Facturar Venta";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card-custom">
+                <div class="card-header-custom">
+                    <h2><i class="fas fa-receipt"></i> Facturar Venta</h2>
+                    <p>Complete los datos del cliente y confirme la venta</p>
+                </div>
+                <div class="card-body-custom">
+                    <form id="frmFacturar">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Nombre del Cliente</label>
+                                    <input type="text" id="ClienteNombre" class="form-control" placeholder="Consumidor Final" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Documento (NIT/Cédula)</label>
+                                    <input type="text" id="ClienteDocumento" class="form-control" placeholder="Opcional" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Teléfono</label>
+                                    <input type="text" id="ClienteTelefono" class="form-control" placeholder="Opcional" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Tipo de Pago</label>
+                                    <select id="TipoPago" class="form-control" required>
+                                        <option value="Efectivo">Efectivo</option>
+                                        <option value="Tarjeta Débito">Tarjeta Débito</option>
+                                        <option value="Tarjeta Crédito">Tarjeta Crédito</option>
+                                        <option value="Transferencia">Transferencia</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label>Observaciones</label>
+                                    <textarea id="Observaciones" class="form-control" rows="2" placeholder="Notas adicionales"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr />
+
+                        <h4>Resumen del Pedido</h4>
+                        <div id="resumen-carrito"></div>
+
+                        <div class="text-right mt-3">
+                            <button type="button" id="btnRegresar" class="btn-custom" style="background: #6c757d; width: auto; padding: 10px 20px;">
+                                <i class="fas fa-arrow-left"></i> Regresar
+                            </button>
+                            <button type="submit" id="btnFacturar" class="btn-custom" style="background: #27AE60; width: auto; padding: 10px 20px;">
+                                <i class="fas fa-check"></i> Confirmar Venta
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .detalle-lote {
+        font-size: 0.7rem;
+        color: #666;
+        margin-top: 3px;
+    }
+</style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function calcularTotales() {
+            var carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
+            var subtotal = 0;
+
+            for (var i = 0; i < carrito.length; i++) {
+                subtotal += carrito[i].Cantidad * carrito[i].PrecioUnitario;
+            }
+
+            var impuesto = subtotal * 0.12;
+            var total = subtotal + impuesto;
+
+            return { subtotal: subtotal, impuesto: impuesto, total: total };
+        }
+
+        function renderResumen() {
+            var carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
+            var container = $('#resumen-carrito');
+
+            if (carrito.length === 0) {
+                container.html('<div class="alert alert-warning">No hay productos en el carrito</div>');
+                $('#btnFacturar').prop('disabled', true);
+                return;
+            }
+
+            $('#btnFacturar').prop('disabled', false);
+
+            var html = `
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-right">Precio</th>
+                                <th class="text-right">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            for (var i = 0; i < carrito.length; i++) {
+                var item = carrito[i];
+                var subtotal = item.Cantidad * item.PrecioUnitario;
+
+                // Mostrar lotes utilizados
+                var lotesHtml = '';
+                if (item.LotesSeleccionados && item.LotesSeleccionados.length > 0) {
+                    lotesHtml = '<div class="detalle-lote">';
+                    for (var j = 0; j < item.LotesSeleccionados.length; j++) {
+                        var lote = item.LotesSeleccionados[j];
+                        lotesHtml += `📦 Lote ${lote.NumeroLote}: ${lote.Cantidad} x Q${lote.PrecioUnitario.toFixed(2)}<br/>`;
+                    }
+                    lotesHtml += '</div>';
+                }
+
+                html += `
+                    <tr>
+                        <td>
+                            <strong>${item.Nombre}</strong> (${item.Codigo})
+                            ${lotesHtml}
+                        </td
+                        <td class="text-center">${item.Cantidad}</td
+                        <td class="text-right">Q ${item.PrecioUnitario.toFixed(2)}</td
+                        <td class="text-right">Q ${subtotal.toFixed(2)}</td
+                    </tr
+                `;
+            }
+
+            var totales = calcularTotales();
+
+            html += `
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-right"><strong>Subtotal:</strong></td
+                                <td class="text-right">Q ${totales.subtotal.toFixed(2)}</td
+                            </tr
+                            <tr>
+                                <td colspan="3" class="text-right"><strong>IVA (12%):</strong></td
+                                <td class="text-right">Q ${totales.impuesto.toFixed(2)}</td
+                            </tr
+                            <tr style="background: #f8f9fa; font-weight: bold;">
+                                <td colspan="3" class="text-right"><strong>TOTAL:</strong></td
+                                <td class="text-right" style="color: #D35400;">Q ${totales.total.toFixed(2)}</td
+                            </tr
+                        </tfoot>
+                    </table>
+                </div>
+            `;
+
+            container.html(html);
+        }
+
+        $(document).ready(function() {
+            renderResumen();
+
+            $('#btnRegresar').click(function() {
+                window.location.href = '@Url.Action("Carrito")';
+            });
+
+            $('#frmFacturar').submit(function(e) {
+                e.preventDefault();
+
+                var carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
+                if (carrito.length === 0) {
+                    Swal.fire('Atención', 'No hay productos en el carrito', 'warning');
+                    return;
+                }
+
+                var totales = calcularTotales();
+
+                var data = {
+                    ClienteNombre: $('#ClienteNombre').val() || 'Consumidor Final',
+                    ClienteDocumento: $('#ClienteDocumento').val(),
+                    ClienteTelefono: $('#ClienteTelefono').val(),
+                    TipoPago: $('#TipoPago').val(),
+                    Subtotal: totales.subtotal,
+                    Impuesto: totales.impuesto,
+                    Descuento: 0,
+                    Total: totales.total,
+                    Observaciones: $('#Observaciones').val(),
+                    Carrito: carrito
+                };
+
+                Swal.fire({
+                    title: 'Confirmar venta',
+                    text: `Total a pagar: Q ${totales.total.toFixed(2)}`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, facturar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '@Url.Action("ProcesarVenta", "Venta")',
+                            type: 'POST',
+                            data: JSON.stringify(data),
+                            contentType: 'application/json',
+                            success: function(response) {
+                                if (response.success) {
+                                    localStorage.removeItem('carrito');
+                                    Swal.fire('Éxito', response.message, 'success').then(() => {
+                                        window.location.href = '@Url.Action("Factura", "Venta")/' + response.ventaId;
+                                    });
+                                } else {
+                                    Swal.fire('Error', response.message, 'error');
+                                }
+                            },
+                            error: function() {
+                                Swal.fire('Error', 'Error al procesar la venta', 'error');
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}

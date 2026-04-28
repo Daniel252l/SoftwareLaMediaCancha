@@ -1,0 +1,463 @@
+@model LaMediaCancha.Models.ViewModels.RegistrarCompraViewModel
+@{
+    ViewBag.Title = "Registrar Compra";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div style="width: 100%; max-width: 1400px; margin: 0 auto; padding: 20px; background: #f4f4f4; min-height: 100vh;">
+    <div style="width: 100%; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); overflow: hidden;">
+
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #8B4513, #D35400); color: white; padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h2 style="margin: 0;"><i class="fas fa-plus-circle"></i> Registrar Compra</h2>
+                    <p style="margin: 5px 0 0 0;">Ingrese los datos de la nueva orden de compra</p>
+                </div>
+                <a href="@Url.Action("Index", "Compra")" style="background: #6c757d; color: white; text-decoration: none; padding: 8px 20px; border-radius: 5px;">
+                    <i class="fas fa-arrow-left"></i> Regresar
+                </a>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div style="padding: 20px;">
+            <form id="frmCompra" method="post">
+                @Html.AntiForgeryToken()
+
+                <!-- Fila 1 -->
+                <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+                    <div style="flex: 1; min-width: 250px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Proveedor <span style="color: red;">*</span></label>
+                        @Html.DropDownListFor(m => m.ProveedorId, Model.Proveedores, "Seleccione...", new { @class = "form-control", id = "ProveedorId", style = "width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;" })
+                    </div>
+                    <div style="flex: 1; min-width: 250px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Tipo Compra</label>
+                        <input type="text" class="form-control" value="Compra Local" readonly disabled style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; background: #e9ecef;" />
+                        <input type="hidden" name="TipoCompraId" value="1" />
+                    </div>
+                    <div style="flex: 1; min-width: 250px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Tipo Pago</label>
+                        @Html.DropDownListFor(m => m.TipoPagoId, Model.TiposPago, "Seleccione...", new { @class = "form-control", id = "TipoPagoId", style = "width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;" })
+                    </div>
+                </div>
+
+                <!-- Fila 2 -->
+                <div style="display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+                    <div style="flex: 1; min-width: 250px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Número Documento</label>
+                        @Html.TextBoxFor(m => m.NumeroDocumento, new { @class = "form-control", @readonly = "readonly", style = "width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; background: #e9ecef;" })
+                    </div>
+                    <div style="flex: 1; min-width: 250px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Número Factura</label>
+                        @Html.TextBoxFor(m => m.NumeroFactura, new { @class = "form-control", style = "width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;" })
+                    </div>
+                    <div style="flex: 1; min-width: 250px;">
+                        <label style="display: block; margin-bottom: 5px; font-weight: bold;">Costo de Envío <span style="color: #3498DB;">(Q)</span></label>
+                        <input type="number" id="CostoEnvio" name="CostoEnvio" class="form-control" step="0.01" min="0" value="0" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;" />
+                        <small style="font-size: 11px; color: #6c757d;">Costo de envío cobrado por el proveedor</small>
+                    </div>
+                </div>
+
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;" />
+
+                <!-- Sección Productos -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h4 style="margin: 0;"><i class="fas fa-boxes"></i> Productos</h4>
+                    <button type="button" class="btn-agregar" id="btnAgregarProducto" style="background: #27AE60; color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer;">
+                        <i class="fas fa-plus"></i> AGREGAR PRODUCTO
+                    </button>
+                </div>
+
+                <!-- Tabla de productos -->
+                <div style="overflow-x: auto; width: 100%;">
+                    <table id="tblProductos" style="width: 100%; border-collapse: collapse; background: white;">
+                        <thead>
+                            <tr style="background: #8B4513; color: white;">
+                                <th style="padding: 12px; text-align: left; width: 35%;">Producto</th>
+                                <th style="padding: 12px; text-align: center; width: 15%;">Cantidad</th>
+                                <th style="padding: 12px; text-align: center; width: 20%;">Precio Unitario (Q)</th>
+                                <th style="padding: 12px; text-align: center; width: 15%;">Descuento %</th>
+                                <th style="padding: 12px; text-align: center; width: 15%;">Subtotal (Q)</th>
+                                <th style="padding: 12px; text-align: center; width: 5%;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="tblProductosBody">
+                            <!-- Los productos se agregarán aquí -->
+                        </tbody>
+                        <tfoot>
+                            <tr style="background: #f8f9fa;">
+                                <td colspan="5" style="padding: 12px; text-align: right; font-weight: bold;">TOTAL:</td>
+                                <td style="padding: 12px; text-align: center; font-weight: bold; color: #D35400;" id="totalGeneral">Q 0.00</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Observaciones -->
+                <div style="margin-top: 20px;">
+                    <label style="display: block; margin-bottom: 5px; font-weight: bold;">Observaciones</label>
+                    @Html.TextAreaFor(m => m.Observaciones, new { @class = "form-control", rows = 2, placeholder = "Observaciones adicionales (opcional)", style = "width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;" })
+                </div>
+
+                <!-- Botón Guardar -->
+                <div style="text-align: right; margin-top: 20px;">
+                    <button type="submit" class="btn-guardar" id="btnGuardar" style="background: #D35400; color: white; border: none; padding: 10px 30px; border-radius: 5px; cursor: pointer;">
+                        <i class="fas fa-save"></i> Guardar Compra
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para seleccionar producto -->
+<div id="modalProducto" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 9999; align-items: center; justify-content: center;">
+    <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);" onclick="cerrarModal()"></div>
+    <div style="position: relative; background: white; border-radius: 10px; width: 90%; max-width: 800px; max-height: 85%; overflow: hidden; z-index: 10000; display: flex; flex-direction: column;">
+        <div style="background: linear-gradient(135deg, #8B4513, #D35400); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+            <h5 style="margin: 0;"><i class="fas fa-search"></i> Seleccionar Producto</h5>
+            <button type="button" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;" onclick="cerrarModal()">&times;</button>
+        </div>
+        <div style="padding: 20px; overflow-y: auto; max-height: 500px;">
+            <input type="text" id="buscarProducto" class="form-control" placeholder="Buscar producto por nombre o código..." style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;" />
+            <div style="overflow-x: auto; margin-top: 15px;">
+                <table style="width: 100%; border-collapse: collapse;" id="tblBuscarProductos">
+                    <thead>
+                        <tr style="background: #8B4513; color: white;">
+                            <th style="padding: 8px;">Código</th>
+                            <th style="padding: 8px;">Producto</th>
+                            <th style="padding: 8px;">Presentación</th>
+                            <th style="padding: 8px;">Precio (Q)</th>
+                            <th style="padding: 8px;">Descuento</th>
+                            <th style="padding: 8px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td colspan="6" style="padding: 8px; text-align: center;">Seleccione un proveedor primero</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div style="padding: 15px 20px; border-top: 1px solid #eee; text-align: right; background: #f8f9fa;">
+            <button type="button" style="background: #6c757d; color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer;" onclick="cerrarModal()">Cancelar</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .form-control:focus {
+            outline: none;
+            border-color: #D35400 !important;
+            box-shadow: 0 0 0 2px rgba(211, 84, 0, 0.1) !important;
+        }
+
+        .btn-agregar:hover {
+            background: #1E8449 !important;
+        }
+
+        .btn-guardar:hover {
+            background: #A04000 !important;
+        }
+
+        #tblProductos td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+
+        #tblProductos input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            box-sizing: border-box;
+            font-size: 14px;
+            height: 38px;
+        }
+
+            #tblProductos input[readonly] {
+                background-color: #f5f5f5;
+            }
+
+        .btn-eliminar {
+            background: #E74C3C;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            height: 38px;
+            width: 100%;
+        }
+
+            .btn-eliminar:hover {
+                background: #C0392B;
+            }
+
+        .badge-descuento {
+            background: #3498DB;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 11px;
+            display: inline-block;
+        }
+
+        .btn-seleccionar {
+            background: #27AE60;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+            .btn-seleccionar:hover {
+                background: #1E8449;
+            }
+
+        .producto-nombre {
+            font-weight: bold;
+            font-size: 14px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .producto-precio {
+            font-size: 11px;
+            color: #6c757d;
+            display: block;
+        }
+
+        .subtotal-valor {
+            font-weight: bold;
+            color: #D35400;
+            font-size: 14px;
+            display: block;
+            text-align: center;
+        }
+    </style>
+
+    <script>
+        var contadorProductos = 0;
+
+        function formatearMoneda(valor) {
+            return 'Q ' + valor.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        function calcularTotalGeneral() {
+            let subtotal = 0;
+            $('#tblProductos tbody tr').each(function() {
+                let subtotalVal = parseFloat($(this).find('.subtotal-valor').data('val')) || 0;
+                subtotal += subtotalVal;
+            });
+
+            let costoEnvio = parseFloat($('#CostoEnvio').val()) || 0;
+            let total = subtotal + costoEnvio;
+
+            $('#totalGeneral').text(formatearMoneda(total));
+        }
+
+        function calcularSubtotal(fila) {
+            let cantidad = parseFloat(fila.find('.cantidad').val()) || 0;
+            let precio = parseFloat(fila.find('.precio').val()) || 0;
+            let descuento = parseFloat(fila.find('.descuento').val()) || 0;
+
+            let subtotal = cantidad * precio * (1 - descuento / 100);
+
+            fila.find('.subtotal-valor')
+                .text(formatearMoneda(subtotal))
+                .data('val', subtotal);
+
+            calcularTotalGeneral();
+        }
+
+        function agregarProducto(producto) {
+            if ($('#tblProductos tbody tr[data-id="' + producto.ProductoId + '"]').length > 0) {
+                Swal.fire('Atención', 'El producto ya está en la lista', 'warning');
+                return;
+            }
+
+            var descuentoBase = producto.DescuentoBase || 0;
+            var precioFormateado = formatearMoneda(producto.PrecioUnitario);
+
+            var html = `
+                <tr data-id="${producto.ProductoId}">
+                    <td style="vertical-align: middle;">
+                        <span class="producto-nombre">${producto.NombreProducto}</span>
+                        <span class="producto-precio">Precio: ${precioFormateado}</span>
+                        <input type="hidden" name="Productos[${contadorProductos}].ProductoId" value="${producto.ProductoId}" />
+                        <input type="hidden" name="Productos[${contadorProductos}].NombreProducto" value="${producto.NombreProducto}" />
+                    </td>
+                    <td>
+                        <input type="number" name="Productos[${contadorProductos}].Cantidad" class="cantidad" min="0.01" step="0.01" value="1" required />
+                    </td>
+                    <td>
+                        <input type="number" name="Productos[${contadorProductos}].PrecioUnitario" class="precio" min="0" step="0.01" value="${producto.PrecioUnitario}" required />
+                    </td>
+                    <td>
+                        <input type="number" name="Productos[${contadorProductos}].Descuento" class="descuento" min="0" max="100" step="1" value="${descuentoBase}" readonly />
+                    </td>
+                    <td>
+                        <span class="subtotal-valor" data-val="0">Q 0.00</span>
+                    </td>
+                    <td>
+                        <button type="button" class="btn-eliminar"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `;
+
+            $('#tblProductos tbody').append(html);
+            contadorProductos++;
+
+            var filaActual = $('#tblProductos tbody tr:last');
+            filaActual.find('.cantidad, .precio').on('change keyup', function() { calcularSubtotal(filaActual); });
+            filaActual.find('.btn-eliminar').click(function() {
+                filaActual.remove();
+                calcularTotalGeneral();
+                reindexarProductos();
+            });
+
+            calcularSubtotal(filaActual);
+        }
+
+        function reindexarProductos() {
+            $('#tblProductos tbody tr').each(function(index) {
+                $(this).find('input').each(function() {
+                    var name = $(this).attr('name');
+                    if (name && name.indexOf('Productos[') === 0) {
+                        $(this).attr('name', name.replace(/Productos\[\d+\]/, 'Productos[' + index + ']'));
+                    }
+                });
+            });
+            contadorProductos = $('#tblProductos tbody tr').length;
+        }
+
+        function abrirModal() {
+            var proveedorId = $('#ProveedorId').val();
+            if (!proveedorId || proveedorId === '') {
+                Swal.fire('Atención', 'Primero debe seleccionar un proveedor', 'warning');
+                return;
+            }
+            $('#modalProducto').css('display', 'flex');
+            cargarProductos('', proveedorId);
+        }
+
+        function cerrarModal() {
+            $('#modalProducto').hide();
+            $('#buscarProducto').val('');
+        }
+
+        function cargarProductos(filtro, proveedorId) {
+            $.get('@Url.Action("ListarProductos", "Compra")',
+                { filtro: filtro || '', proveedorId: proveedorId },
+                function(data) {
+                    var tbody = $('#tblBuscarProductos tbody');
+                    tbody.empty();
+
+                    if (data.length === 0) {
+                        tbody.append('<tr><td colspan="6" style="padding: 8px; text-align: center;">No se encontraron productos</td</tr');
+                    } else {
+                        for (var i = 0; i < data.length; i++) {
+                            var p = data[i];
+                            var row = `
+                                <tr>
+                                    <td style="padding: 8px;">${p.Codigo || ''}</td>
+                                    <td style="padding: 8px;"><strong>${p.NombreProducto}</strong></td>
+                                    <td style="padding: 8px;">${p.Presentacion || ''}</td>
+                                    <td style="padding: 8px; text-align: right;">${formatearMoneda(p.PrecioUnitario)}</td>
+                                    <td style="padding: 8px; text-align: center;"><span class="badge-descuento">${p.DescuentoBase || 0}%</span></td>
+                                    <td style="padding: 8px; text-align: center;">
+                                        <button type="button" class="btn-seleccionar"
+                                            data-id="${p.ProductoId}"
+                                            data-nombre="${p.NombreProducto}"
+                                            data-precio="${p.PrecioUnitario}"
+                                            data-descuento="${p.DescuentoBase || 0}">
+                                            Seleccionar
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                            tbody.append(row);
+                        }
+                    }
+                });
+        }
+
+        $(document).ready(function() {
+            $('#btnAgregarProducto').click(abrirModal);
+
+            $('#CostoEnvio').on('change keyup', function() {
+                calcularTotalGeneral();
+            });
+
+            $(document).on('click', '.btn-seleccionar', function() {
+                var producto = {
+                    ProductoId: $(this).data('id'),
+                    NombreProducto: $(this).data('nombre'),
+                    PrecioUnitario: parseFloat($(this).data('precio')),
+                    DescuentoBase: parseFloat($(this).data('descuento')) || 0
+                };
+                agregarProducto(producto);
+                cerrarModal();
+            });
+
+            $('#buscarProducto').on('keyup', function() {
+                var proveedorId = $('#ProveedorId').val();
+                if (proveedorId) cargarProductos($(this).val(), proveedorId);
+            });
+
+            $('#ProveedorId').change(function() {
+                $('#tblProductos tbody').empty();
+                contadorProductos = 0;
+                calcularTotalGeneral();
+            });
+
+            $('#frmCompra').submit(function(e) {
+                e.preventDefault();
+
+                if ($('#tblProductos tbody tr').length === 0) {
+                    Swal.fire('Atención', 'Debe agregar al menos un producto', 'warning');
+                    return;
+                }
+
+                reindexarProductos();
+
+                Swal.fire({
+                    title: '¿Guardar compra?',
+                    text: '¿Está seguro de registrar esta compra?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, guardar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        var btn = $('#btnGuardar');
+                        btn.html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
+                        btn.prop('disabled', true);
+
+                        $.post('@Url.Action("GuardarCompra", "Compra")', $('#frmCompra').serialize(), function(r) {
+                            if (r.success) {
+                                Swal.fire('Éxito', r.message, 'success').then(() => {
+                                    window.location.href = '@Url.Action("Index", "Compra")';
+                                });
+                            } else {
+                                Swal.fire('Error', r.message, 'error');
+                                btn.html('<i class="fas fa-save"></i> Guardar Compra');
+                                btn.prop('disabled', false);
+                            }
+                        }).fail(() => {
+                            Swal.fire('Error', 'Error al guardar la compra', 'error');
+                            btn.html('<i class="fas fa-save"></i> Guardar Compra');
+                            btn.prop('disabled', false);
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+}

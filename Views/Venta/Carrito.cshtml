@@ -1,0 +1,181 @@
+﻿@{
+    ViewBag.Title = "Carrito de Compras";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card-custom card-custom-full">
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2><i class="fas fa-shopping-cart"></i> Carrito de Compras</h2>
+                            <p>Revise los productos seleccionados</p>
+                        </div>
+                        <div>
+                            <a href="@Url.Action("Index")" class="btn-custom" style="background: #3498DB; width: auto; padding: 8px 15px;">
+                                <i class="fas fa-plus"></i> Agregar más
+                            </a>
+                            <a href="@Url.Action("Facturar")" class="btn-custom" style="background: #27AE60; width: auto; padding: 8px 15px;">
+                                <i class="fas fa-receipt"></i> Facturar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+                    <div id="carrito-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-custom th, .table-custom td {
+        padding: 12px;
+        vertical-align: middle;
+    }
+
+    .btn-eliminar {
+        background: #E74C3C;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .detalle-lote {
+        font-size: 0.75rem;
+        color: #666;
+        margin-top: 5px;
+        padding: 5px;
+        background: #f8f9fa;
+        border-radius: 5px;
+    }
+</style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function renderCarrito() {
+            var carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
+            var container = $('#carrito-container');
+
+            if (carrito.length === 0) {
+                container.html(`
+                    <div class="alert alert-info text-center">
+                        <i class="fas fa-info-circle"></i> El carrito está vacío
+                        <br />
+                        <a href="@Url.Action("Index")" class="btn-custom mt-3" style="background: #27AE60; width: auto;">Agregar productos</a>
+                    </div>
+                `);
+                return;
+            }
+
+            var html = `
+                <div class="table-responsive">
+                    <table class="table-custom">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Producto</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-right">Precio Unit.</th>
+                                <th class="text-right">Descuento</th>
+                                <th class="text-right">Subtotal</th>
+                                <th class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            var total = 0;
+
+            for (var i = 0; i < carrito.length; i++) {
+                var item = carrito[i];
+                var subtotal = item.Cantidad * item.PrecioUnitario;
+                total += subtotal;
+
+                // Mostrar lotes utilizados (FIFO)
+                var lotesHtml = '';
+                if (item.LotesSeleccionados && item.LotesSeleccionados.length > 0) {
+                    lotesHtml = '<div class="detalle-lote"><strong>Lotes:</strong><br/>';
+                    for (var j = 0; j < item.LotesSeleccionados.length; j++) {
+                        var lote = item.LotesSeleccionados[j];
+                        lotesHtml += `📦 ${lote.NumeroLote}: ${lote.Cantidad} unds x Q${lote.PrecioUnitario.toFixed(2)} = Q${lote.Subtotal.toFixed(2)}<br/>`;
+                    }
+                    lotesHtml += '</div>';
+                }
+
+                html += `
+                    <tr data-index="${i}">
+                        <td>${item.Codigo}</td
+                        <td>
+                            <strong>${item.Nombre}</strong>
+                            ${lotesHtml}
+                        </td
+                        <td class="text-center">${item.Cantidad}</td
+                        <td class="text-right">Q ${item.PrecioUnitario.toFixed(2)}</td
+                        <td class="text-right">Q 0.00</td
+                        <td class="text-right"><strong>Q ${subtotal.toFixed(2)}</strong></td
+                        <td class="text-center">
+                            <button class="btn-eliminar" data-index="${i}">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                        </td
+                    </tr
+                `;
+            }
+
+            html += `
+                        </tbody>
+                        <tfoot>
+                            <tr style="background: #f8f9fa; font-weight: bold;">
+                                <td colspan="5" class="text-right">TOTAL:</td
+                                <td class="text-right" style="color: #D35400;">Q ${total.toFixed(2)}</td
+                                <td></td
+                            </tr
+                        </tfoot>
+                    </table>
+                </div>
+                <div class="text-right mt-3">
+                    <button id="btnVaciarCarrito" class="btn-custom" style="background: #E74C3C; width: auto; padding: 10px 20px;">
+                        <i class="fas fa-trash-alt"></i> Vaciar Carrito
+                    </button>
+                </div>
+            `;
+
+            container.html(html);
+
+            // Eventos
+            $('.btn-eliminar').click(function() {
+                var index = $(this).data('index');
+                carrito.splice(index, 1);
+                localStorage.setItem('carrito', JSON.stringify(carrito));
+                renderCarrito();
+            });
+
+            $('#btnVaciarCarrito').click(function() {
+                Swal.fire({
+                    title: '¿Vaciar carrito?',
+                    text: 'Todos los productos serán eliminados',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, vaciar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        localStorage.setItem('carrito', '[]');
+                        renderCarrito();
+                    }
+                });
+            });
+        }
+
+        $(document).ready(function() {
+            renderCarrito();
+        });
+    </script>
+}

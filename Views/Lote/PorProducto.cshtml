@@ -1,0 +1,341 @@
+﻿@model IEnumerable<LaMediaCancha.Models.LoteViewModel>
+@{
+    ViewBag.Title = "Lotes del Producto";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card-custom" style="max-width: 100%;">
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2><i class="fas fa-layer-group"></i> Lotes del Producto</h2>
+                            <p>Historial y stock por lote — orden FIFO</p>
+                        </div>
+                        <div style="display:flex; gap:10px;">
+                            <a href="@Url.Action("ProximosAVencer", "Lote")" class="btn-custom"
+                               style="width:auto; padding:10px 20px; background:#E67E22;">
+                                <i class="fas fa-clock"></i> Próximos a Vencer
+                            </a>
+                            <a href="@Url.Action("Inventario", "Producto")" class="btn-custom"
+                               style="width:auto; padding:10px 20px; background:#6c757d;">
+                                <i class="fas fa-arrow-left"></i> Regresar al Inventario
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+
+                    @if (Model == null || !Model.Any())
+                    {
+                        <div class="alert-info-custom">
+                            <i class="fas fa-info-circle"></i> No hay lotes registrados para este producto.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table-custom" id="tblLotes">
+                                <thead>
+                                    <tr>
+                                        <th>Lote</th>
+                                        <th>Lote Proveedor</th>
+                                        <th>Compra</th>
+                                        <th>Proveedor</th>
+                                        <th class="text-center">F. Ingreso</th>
+                                        <th class="text-center">F. Vencimiento</th>
+                                        <th class="text-center">Días</th>
+                                        <th class="text-right">Precio</th>
+                                        <th class="text-center">Inicial</th>
+                                        <th class="text-center">Actual</th>
+                                        <th>Estado</th>
+                                        <th class="text-center">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var lote in Model)
+                                    {
+                                        string rowClass = "";
+                                        if (lote.Estado == "Vencido")
+                                        {
+                                            rowClass = "fila-vencida";
+                                        }
+                                        else if (lote.DiasParaVencer.HasValue && lote.DiasParaVencer <= 3)
+                                        {
+                                            rowClass = "fila-critica";
+                                        }
+                                        else if (lote.DiasParaVencer.HasValue && lote.DiasParaVencer <= 7)
+                                        {
+                                            rowClass = "fila-alerta";
+                                        }
+
+                                        <tr class="@rowClass">
+                                            <td><strong>@lote.NumeroLoteInterno</strong></td>
+                                            <td>@(lote.NumeroLoteProveedor ?? "—")</td>
+                                            <td>@lote.NumeroCompra</td>
+                                            <td>@lote.ProveedorNombre</td>
+                                            <td class="text-center">@lote.FechaIngreso.ToString("dd/MM/yyyy")</td>
+                                            <td class="text-center">
+                                                @if (lote.FechaVencimiento.HasValue)
+                                                {
+                                                    @lote.FechaVencimiento.Value.ToString("dd/MM/yyyy")
+                                                }
+                                                else
+                                                {
+                                                    <span style="color:#999;">Sin fecha</span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                @if (lote.DiasParaVencer.HasValue)
+                                                {
+                                                    if (lote.DiasParaVencer < 0)
+                                                    {
+                                                        <span class="badge-danger">Vencido</span>
+                                                    }
+                                                    else if (lote.DiasParaVencer <= 3)
+                                                    {
+                                                        <span class="badge-danger">@lote.DiasParaVencer días</span>
+                                                    }
+                                                    else if (lote.DiasParaVencer <= 7)
+                                                    {
+                                                        <span class="badge-warning">@lote.DiasParaVencer días</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge-success">@lote.DiasParaVencer días</span>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span style="color:#999;">—</span>
+                                                }
+                                            </td>
+                                            <td class="text-right">@lote.PrecioUnitario.ToString("N2")</td>
+                                            <td class="text-center">@lote.CantidadInicial</td>
+                                            <td class="text-center"><strong>@lote.CantidadActual</strong></td>
+                                            <td>
+                                                @if (lote.Estado == "Activo")
+                                                {
+                                                    <span class="badge-success">Activo</span>
+                                                }
+                                                else if (lote.Estado == "Agotado")
+                                                {
+                                                    <span class="badge-warning">Agotado</span>
+                                                }
+                                                else if (lote.Estado == "Vencido")
+                                                {
+                                                    <span class="badge-danger">Vencido</span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                @if (lote.Estado == "Activo")
+                                                {
+                                                    <button type="button" class="btn-editar-lote"
+                                                            onclick="abrirModalEditarLote(@lote.LoteId, '@lote.NumeroLoteInterno', '@(lote.NumeroLoteProveedor ?? "")', '@(lote.FechaVencimiento.HasValue ? lote.FechaVencimiento.Value.ToString("yyyy-MM-dd") : "")')">
+                                                        <i class="fas fa-edit"></i> Editar
+                                                    </button>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal personalizado -->
+<div id="modalEditarLote" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 10px; width: 500px; max-width: 90%; overflow: hidden; box-shadow: 0 5px 25px rgba(0,0,0,0.3);">
+        <div style="background: linear-gradient(135deg, #8B4513, #D35400); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;">
+            <h5 style="margin: 0;"><i class="fas fa-edit"></i> Editar Lote</h5>
+            <button type="button" id="cerrarModalBtn" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;">&times;</button>
+        </div>
+        <div style="padding: 20px;">
+            <input type="hidden" id="editLoteId" />
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Número de Lote</label>
+                <input type="text" id="editNumeroLote" class="form-control-custom" readonly style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; background: #f5f5f5;" />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Número de Lote del Proveedor</label>
+                <input type="text" id="editNumeroLoteProveedor" class="form-control-custom" placeholder="Ej: LP-2026-001" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;" />
+            </div>
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: 600;">Fecha de Vencimiento</label>
+                <input type="date" id="editFechaVencimiento" class="form-control-custom" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;" />
+            </div>
+        </div>
+        <div style="padding: 15px 20px; border-top: 1px solid #eee; text-align: right; background: #f8f9fa;">
+            <button type="button" id="cancelarModalBtn" style="background: #6c757d; color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">Cancelar</button>
+            <button type="button" id="btnGuardarLote" style="background: #D35400; color: white; border: none; padding: 8px 20px; border-radius: 5px; cursor: pointer;">
+                <i class="fas fa-save"></i> Guardar
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .table-custom th, .table-custom td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+
+        .table-custom th {
+            background: #8B4513;
+            color: white;
+        }
+
+    .fila-vencida {
+        background: #fdf2f2 !important;
+    }
+
+    .fila-critica {
+        background: #fff5f5 !important;
+    }
+
+    .fila-alerta {
+        background: #fffbf0 !important;
+    }
+
+    .badge-success {
+        background: #27AE60;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        display: inline-block;
+    }
+
+    .badge-warning {
+        background: #F39C12;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        display: inline-block;
+    }
+
+    .badge-danger {
+        background: #E74C3C;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.7rem;
+        display: inline-block;
+    }
+
+    .btn-editar-lote {
+        background: #3498DB;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.75rem;
+    }
+
+        .btn-editar-lote:hover {
+            background: #2980B9;
+        }
+
+    .alert-info-custom {
+        background: #d1ecf1;
+        color: #0c5460;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #bee5eb;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .text-right {
+        text-align: right;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        // Función para abrir el modal
+        function abrirModalEditarLote(id, numeroLote, proveedorLote, fechaVencimiento) {
+            document.getElementById('editLoteId').value = id;
+            document.getElementById('editNumeroLote').value = numeroLote;
+            document.getElementById('editNumeroLoteProveedor').value = proveedorLote;
+            document.getElementById('editFechaVencimiento').value = fechaVencimiento;
+            document.getElementById('modalEditarLote').style.display = 'flex';
+        }
+
+        // Función para cerrar el modal
+        function cerrarModalEditarLote() {
+            document.getElementById('modalEditarLote').style.display = 'none';
+        }
+
+        $(document).ready(function () {
+            // Inicializar DataTable
+            $('#tblLotes').DataTable({
+                language: { url: '//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json' },
+                order: [[4, 'asc']],
+                pageLength: 25
+            });
+
+            // Eventos del modal
+            $('#cerrarModalBtn, #cancelarModalBtn').on('click', function() {
+                cerrarModalEditarLote();
+            });
+
+            // Cerrar al hacer clic fuera del modal
+            $('#modalEditarLote').on('click', function(e) {
+                if (e.target === this) {
+                    cerrarModalEditarLote();
+                }
+            });
+
+            // Guardar lote
+            $('#btnGuardarLote').on('click', function () {
+                var loteId = $('#editLoteId').val();
+                var fechaVencimiento = $('#editFechaVencimiento').val();
+                var numeroLoteProveedor = $('#editNumeroLoteProveedor').val();
+
+                if (!fechaVencimiento) {
+                    Swal.fire('Atención', 'Ingrese la fecha de vencimiento', 'warning');
+                    return;
+                }
+
+                $.ajax({
+                    url: '@Url.Action("ActualizarVencimiento", "Lote")',
+                    type: 'POST',
+                    data: {
+                        loteId: loteId,
+                        fechaVencimiento: fechaVencimiento,
+                        numeroLoteProveedor: numeroLoteProveedor
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire('Éxito', 'Lote actualizado correctamente', 'success')
+                                .then(function () { location.reload(); });
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    },
+                    error: function () {
+                        Swal.fire('Error', 'Error al guardar', 'error');
+                    }
+                });
+            });
+        });
+    </script>
+}

@@ -1,0 +1,306 @@
+@model LaMediaCancha.Models.CompraModels.EncabezadoCompra
+@{
+    ViewBag.Title = "Detalle Compra";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card-custom" style="max-width: 100%;">
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2><i class="fas fa-file-invoice"></i> Detalle de Compra</h2>
+                            <p>Información de la orden de compra</p>
+                        </div>
+                        <a href="@Url.Action("Index", "Compra")" class="btn-custom" style="width: auto; padding: 10px 20px; background: #6c757d;">
+                            <i class="fas fa-arrow-left"></i> Regresar
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+
+                    <!-- Información de la compra -->
+                    <div class="info-compra">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="info-item">
+                                    <label>DOCUMENTO COMPRA</label>
+                                    <p><strong>@Model.NumeroDocumento</strong></p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="info-item">
+                                    <label>PROVEEDOR</label>
+                                    <p><strong>@Model.ProveedorNombre</strong></p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="info-item">
+                                    <label>FECHA COMPRA</label>
+                                    <p><strong>@Model.FechaCompra.ToString("dd/MM/yyyy")</strong></p>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="info-item">
+                                    <label>ESTADO</label>
+                                    <p>
+                                        @if (Model.Estado == "Aprobada")
+                                        {
+                                            <span class="badge-success">Aprobada</span>
+                                        }
+                                        else if (Model.Estado == "PendienteAprobacion")
+                                        {
+                                            <span class="badge-warning">Pendiente</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge-info">@Model.Estado</span>
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <h4>Productos</h4>
+                    <div class="table-responsive">
+                        <table class="table-custom" id="tblProductos">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th class="text-center">Cantidad</th>
+                                    <th class="text-right">Precio Unitario</th>
+                                    <th class="text-right">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Detalles != null && Model.Detalles.Any())
+                                {
+                                    foreach (var item in Model.Detalles)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@item.ProductoNombre</strong>
+                                                <br />
+                                                <small class="text-muted">Código: @item.ProductoCodigo</small>
+                                            </td>
+                                            <td class="text-center">
+                                                @item.Cantidad.ToString("N0")
+                                        </td>
+                                        <td class="text-right">@String.Format("{0:N2}", item.PrecioUnitario)
+                                    </td>
+                                    <td class="text-right">
+                                        <strong>@String.Format("{0:N2}", item.Subtotal)</strong>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4" class="text-center">
+                                    No hay productos registrados
+                                </td>
+                            </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Totales con impuesto -->
+                <div class="totales">
+                    <div class="row">
+                        <div class="col-md-8"></div>
+                        <div class="col-md-4">
+                            <div class="total-item">
+                                <label>SUBTOTAL:</label>
+                                <span>@String.Format("{0:N2}", Model.Subtotal)</span>
+                            </div>
+                            <div class="total-item">
+                                <label>IVA (12%):</label>
+                                <span>@String.Format("{0:N2}", Model.Impuesto)</span>
+                            </div>
+                            <div class="total-item total-final">
+                                <label>TOTAL:</label>
+                                <span><strong>@String.Format("{0:N2}", Model.Total)</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Observaciones))
+                {
+                    <div class="observaciones">
+                        <label>Observaciones</label>
+                        <p>@Model.Observaciones</p>
+                    </div>
+                }
+
+                <div class="action-buttons">
+                    @if (Model.Estado != "Cerrada")
+                    {
+                        <a href="@Url.Action("Registrar", "Devolucion", new { compraId = Model.CompraId })" class="btn-custom" style="width: auto; background: #E67E22;">
+                            <i class="fas fa-undo-alt"></i> Registrar Devolución
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<style>
+    .info-compra {
+        background: #e8f4f8;
+        padding: 20px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+    }
+
+    .info-item {
+        margin-bottom: 10px;
+    }
+
+        .info-item label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #7F8C8D;
+            display: block;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        .info-item p {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+    .badge-success {
+        background: #27AE60;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-warning {
+        background: #F39C12;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-info {
+        background: #3498DB;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+
+        .table-custom th,
+        .table-custom td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .table-custom th {
+            background: #8B4513;
+            color: white;
+            font-weight: 600;
+        }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .text-muted {
+        color: #6c757d;
+        font-size: 0.75rem;
+    }
+
+    .observaciones {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-top: 20px;
+    }
+
+        .observaciones label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #7F8C8D;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+    .action-buttons {
+        margin-top: 25px;
+        text-align: right;
+    }
+
+    hr {
+        margin: 20px 0;
+        border: 0;
+        border-top: 1px solid #eee;
+    }
+
+    /* Estilos para la sección de totales */
+    .totales {
+        margin-top: 20px;
+        padding-top: 15px;
+        border-top: 1px solid #eee;
+    }
+
+    .total-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+    }
+
+        .total-item label {
+            font-weight: 600;
+            color: #555;
+        }
+
+    .total-final {
+        font-size: 1.1rem;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 2px solid #8B4513;
+    }
+
+        .total-final label {
+            font-weight: 700;
+            color: #8B4513;
+        }
+
+        .total-final span {
+            font-weight: 700;
+            color: #8B4513;
+            font-size: 1.2rem;
+        }
+</style>

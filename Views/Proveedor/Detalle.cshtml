@@ -1,0 +1,257 @@
+﻿@model LaMediaCancha.Models.Proveedor
+@{
+    ViewBag.Title = "Detalle Proveedor";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card-custom" style="max-width: 100%;">
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2><i class="fas fa-info-circle"></i> Detalle Proveedor</h2>
+                            <p>Información completa del proveedor</p>
+                        </div>
+                        <a href="@Url.Action("Index", "Proveedor")" class="btn-custom" style="width: auto; padding: 10px 20px; background: #6c757d;">
+                            <i class="fas fa-arrow-left"></i> Regresar
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+                    <div class="info-section">
+                        <div class="info-title">
+                            <i class="fas fa-building"></i> Información del Proveedor
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>NIT</label>
+                                    <p><strong>@Model.Nit</strong></p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Razón Social</label>
+                                    <p><strong>@Model.RazonSocial</strong></p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Contacto</label>
+                                    <p>@(Model.Contacto ?? "-")</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Teléfono</label>
+                                    <p>@(Model.Telefono ?? "-")</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Correo Electrónico</label>
+                                    <p>@(Model.Correo ?? "-")</p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Dirección</label>
+                                    <p>@(Model.Direccion ?? "-")</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="info-section">
+                        <div class="info-title">
+                            <i class="fas fa-exchange-alt"></i> Políticas de Devolución
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Política Aplicada</label>
+                                    <p><strong>@(Model.PoliticaNombre ?? "No definida")</strong></p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Días Máximos para Devolución</label>
+                                    <p><strong>@Model.DiasMaximosDevolucion días</strong></p>
+                                </div>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.PoliticaDevolucion))
+                        {
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="info-item">
+                                        <label>Política Personalizada</label>
+                                        <p>@Model.PoliticaDevolucion</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="info-section">
+                        <div class="info-title">
+                            <i class="fas fa-user"></i> Persona de Contacto
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Nombre Completo</label>
+                                    <p><strong>@Model.NombreCompleto</strong></p>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-item">
+                                    <label>Estado</label>
+                                    <p>
+                                        @if (Model.Activo)
+                                        {
+                                            <span class="badge-success">Activo</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge-danger">Inactivo</span>
+                                        }
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <a href="@Url.Action("Editar", new { id = Model.ProveedorId })" class="btn-editar">
+                            <i class="fas fa-edit"></i> Editar Proveedor
+                        </a>
+                        <a href="@Url.Action("Index", "Proveedor")" class="btn-regresar">
+                            <i class="fas fa-arrow-left"></i> Volver al Listado
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .info-section {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid #e9ecef;
+    }
+
+    .info-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #8B4513;
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #D35400;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+        .info-title i {
+            color: #D35400;
+            font-size: 1.1rem;
+        }
+
+    .info-item {
+        margin-bottom: 10px;
+    }
+
+        .info-item label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #7F8C8D;
+            display: block;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        .info-item p {
+            margin: 0;
+            font-size: 1rem;
+        }
+
+    .badge-success {
+        background: #27AE60;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-danger {
+        background: #E74C3C;
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .action-buttons {
+        display: flex;
+        justify-content: flex-end;
+        gap: 15px;
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .btn-editar {
+        background: linear-gradient(135deg, #F39C12, #E67E22);
+        color: white;
+        padding: 12px 25px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .btn-editar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
+            color: white;
+            text-decoration: none;
+        }
+
+    .btn-regresar {
+        background: #6c757d;
+        color: white;
+        padding: 12px 25px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .btn-regresar:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+            color: white;
+            text-decoration: none;
+        }
+</style>
