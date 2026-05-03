@@ -1,11 +1,118 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-
-namespace LaMediaCancha.Views.Orden
-{
-	public class Index
-	{
-	}
+﻿@model List<LaMediaCancha.Models.OrdenModels.Mesa>
+@{
+    ViewBag.Title = "Mesas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card-custom card-custom-full">
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2><i class="fas fa-chair"></i> Gestión de Mesas</h2>
+                            <p>Seleccione una mesa para comenzar</p>
+                        </div>
+                        <a href="@Url.Action("Dashboard", "Home")" class="btn-custom" style="background: #6c757d; width: auto; padding: 8px 15px;">
+                            <i class="fas fa-arrow-left"></i> Regresar
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body-custom">
+                    <div class="mesas-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px;">
+                        @foreach (var mesa in Model)
+                        {
+                            string estadoClass = mesa.Estado == "Disponible" ? "mesa-disponible" : (mesa.Estado == "Ocupada" ? "mesa-ocupada" : "mesa-reservada");
+                            string estadoTexto = mesa.Estado;
+
+                            <div class="mesa-card @estadoClass" style="background: white; border-radius: 15px; padding: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+                                <div style="font-size: 3rem; margin-bottom: 10px;">
+                                    <i class="fas fa-chair"></i>
+                                </div>
+                                <h3 style="margin: 0;">Mesa @mesa.NumeroMesa</h3>
+                                <p><i class="fas fa-users"></i> Capacidad: @mesa.Capacidad personas</p>
+                                <p><i class="fas fa-location-dot"></i> @mesa.Ubicacion</p>
+                                <p><span class="estado-badge estado-@mesa.Estado.ToLower()">@estadoTexto</span></p>
+                                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
+                                    @if (mesa.Estado == "Disponible")
+                                    {
+                                        <a href="@Url.Action("Ordenar", new { mesaId = mesa.MesaId })" class="btn-ordenar">Ordenar</a>
+                                    }
+                                    else if (mesa.Estado == "Ocupada")
+                                    {
+                                        <a href="@Url.Action("Cuenta", new { mesaId = mesa.MesaId })" class="btn-cuenta">Generar Cuenta</a>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .mesa-card {
+        transition: transform 0.3s ease;
+        border-left: 5px solid #ccc;
+    }
+
+        .mesa-card:hover {
+            transform: translateY(-5px);
+        }
+
+    .mesa-disponible {
+        border-left-color: #27AE60;
+    }
+
+    .mesa-ocupada {
+        border-left-color: #E74C3C;
+    }
+
+    .mesa-reservada {
+        border-left-color: #F39C12;
+    }
+
+    .estado-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        display: inline-block;
+    }
+
+    .estado-disponible {
+        background: #27AE60;
+        color: white;
+    }
+
+    .estado-ocupada {
+        background: #E74C3C;
+        color: white;
+    }
+
+    .estado-reservada {
+        background: #F39C12;
+        color: white;
+    }
+
+    .btn-ordenar, .btn-cuenta {
+        background: #27AE60;
+        color: white;
+        padding: 8px 20px;
+        border-radius: 5px;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-cuenta {
+        background: #D35400;
+    }
+
+        .btn-ordenar:hover, .btn-cuenta:hover {
+            transform: scale(1.02);
+            color: white;
+            text-decoration: none;
+        }
+</style>
