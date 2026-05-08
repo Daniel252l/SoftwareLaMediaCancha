@@ -1,0 +1,82 @@
+﻿@model LaMediaCancha.Models.ViewModels.TicketViewModel
+
+<div style="text-align: center;">
+    <h3 style="margin-bottom: 5px; color: #000;">🏟️ LA MEDIA CANCHA</h3>
+    <p style="margin: 0; font-size: 11px; color: #000;">Tel: 1234-5678 | NIT: 123456-7</p>
+    <p style="margin: 0; font-size: 11px; color: #000;">Zona 1, Ciudad</p>
+</div>
+
+<div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
+
+@if (Model.EsCuentaSeparada && !string.IsNullOrEmpty(Model.NombrePersona))
+{
+    <div style="text-align: center; margin-bottom: 10px;">
+        <strong style="color: #000;">Cuenta de: @Model.NombrePersona</strong>
+    </div>
+}
+
+<table style="width: 100%; font-size: 12px; margin-bottom: 10px; color: #000;">
+    <tr>
+        <td><strong>Mesa:</strong> @Model.NumeroMesa</td>
+        <td><strong>Fecha:</strong> @Model.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+    </tr>
+    <tr>
+        <td><strong>Orden #:</strong> @Model.NumeroOrden</td>
+        <td><strong>Cliente:</strong> @Model.ClienteNombre</td>
+    </tr>
+</table>
+
+<div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
+
+<table style="width: 100%; font-size: 12px; border-collapse: collapse; color: #000;">
+    <thead>
+        <tr style="border-bottom: 1px solid #000;">
+            <th style="text-align: left;">Cant</th>
+            <th style="text-align: left;">Producto</th>
+            <th style="text-align: right;">Precio</th>
+            <th style="text-align: right;">Subtotal</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model.Detalles != null && Model.Detalles.Any())
+        {
+            foreach (var item in Model.Detalles)
+            {
+                <tr>
+                    <td style="text-align: left;">@item.Cantidad</td>
+                    <td style="text-align: left;">
+                        @item.ProductoNombre
+                        @if (item.EsDeCombo && !string.IsNullOrEmpty(item.ComboNombre))
+                        {
+                            <span style="font-size: 9px; color: #006600;"> [@item.ComboNombre]</span>
+                        }
+                    </td>
+                    <td style="text-align: right;">@item.PrecioUnitario.ToString("C")</td>
+                    <td style="text-align: right;">@item.Subtotal.ToString("C")</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="4" style="text-align: center; padding: 10px;">No hay productos registrados</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
+
+<div style="text-align: right; color: #000;">
+    <p style="margin: 3px 0;"><strong>Subtotal:</strong> @Model.Subtotal.ToString("C")</p>
+    <p style="margin: 3px 0;"><strong>IVA (12%):</strong> @Model.Impuesto.ToString("C")</p>
+    <p style="margin: 10px 0; font-size: 14px;"><strong>TOTAL:</strong> @Model.Total.ToString("C")</p>
+</div>
+
+<div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
+
+<div style="text-align: center; color: #000;">
+    <p style="margin: 5px 0;">Forma de pago: @ViewBag.FormaPago</p>
+    <p style="margin: 5px 0;">¡Gracias por su visita!</p>
+    <p style="margin: 5px 0; font-size: 10px;">*** Ticket de Venta ***</p>
+</div>

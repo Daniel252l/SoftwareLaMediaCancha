@@ -15,10 +15,12 @@
                             <p>Detalle completo de la factura</p>
                         </div>
                         <div>
-                            <a href="@Url.Action("Imprimir", new { id = Model.FacturaId })" class="btn-custom" style="background: #27AE60; width: auto; padding: 8px 15px;" target="_blank">
+                            <a href="@Url.Action("Imprimir", new { id = Model.FacturaId })" class="btn-custom"
+                               style="background: #27AE60; width: auto; padding: 8px 15px;" target="_blank">
                                 <i class="fas fa-print"></i> Imprimir
                             </a>
-                            <a href="@Url.Action("Index")" class="btn-custom" style="background: #6c757d; width: auto; padding: 8px 15px;">
+                            <a href="@Url.Action("Index")" class="btn-custom"
+                               style="background: #6c757d; width: auto; padding: 8px 15px;">
                                 <i class="fas fa-arrow-left"></i> Regresar
                             </a>
                         </div>
@@ -43,7 +45,6 @@
                         </div>
                     }
 
-                    <!-- Información de la factura -->
                     <div class="info-factura">
                         <div class="row">
                             <div class="col-md-6">
@@ -79,10 +80,17 @@
                                         <p>@Model.MotivoAnulacion</p>
                                     </div>
                                 }
+                                @if (!string.IsNullOrEmpty(Model.NumeroDocumento))
+                                {
+                                    <div class="info-group">
+                                        <label>COMPRA NÚMERO</label>
+                                        <p><strong>@Model.NumeroDocumento</strong></p>
+                                    </div>
+                                }
                             </div>
                             <div class="col-md-6">
                                 <div class="info-group">
-                                    <label>CLIENTE</label>
+                                    <label>CLIENTE / PROVEEDOR</label>
                                     <p><strong>@Model.ClienteNombre</strong></p>
                                 </div>
                                 <div class="info-group">
@@ -103,7 +111,6 @@
 
                     <hr />
 
-                    <!-- Tabla de productos -->
                     <h4>Productos</h4>
                     <div class="table-responsive">
                         <table class="table-custom" style="width: 100%;">
@@ -118,15 +125,24 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var item in Model.Detalles)
+                                @if (Model.Detalles != null && Model.Detalles.Any())
+                                {
+                                    foreach (var item in Model.Detalles)
+                                    {
+                                        <tr>
+                                            <td>@item.ProductoCodigo</td>
+                                            <td>@item.ProductoNombre</td>
+                                            <td class="text-center">@item.Cantidad</td>
+                                            <td class="text-right">@item.PrecioUnitario.ToString("N2")</td>
+                                            <td class="text-right">@item.Descuento.ToString("N2")</td>
+                                            <td class="text-right">@item.Subtotal.ToString("N2")</td>
+                                        </tr>
+                                    }
+                                }
+                                else
                                 {
                                     <tr>
-                                        <td>@item.ProductoCodigo</td>
-                                        <td>@item.ProductoNombre</td>
-                                        <td class="text-center">@item.Cantidad</td>
-                                        <td class="text-right">@item.PrecioUnitario.ToString("N2")</td>
-                                        <td class="text-right">@item.Descuento.ToString("N2")</td>
-                                        <td class="text-right">@item.Subtotal.ToString("N2")</td>
+                                        <td colspan="6" class="text-center">No hay productos registrados</td>
                                     </tr>
                                 }
                             </tbody>

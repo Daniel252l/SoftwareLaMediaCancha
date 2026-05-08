@@ -1,0 +1,323 @@
+﻿@model LaMediaCancha.Models.VentaModels.Venta
+@{
+    Layout = null;
+    ViewBag.Title = "Factura de Venta";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Factura @Model.NumeroFactura</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            padding: 20px;
+            width: 320px;
+            margin: 0 auto;
+            background: white;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 1px dashed #000;
+            padding-bottom: 10px;
+        }
+
+        .empresa-nombre {
+            font-size: 14px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+
+        .empresa-info {
+            font-size: 9px;
+            color: #555;
+            margin: 2px 0;
+        }
+
+        .separator {
+            border-top: 1px dashed #000;
+            margin: 8px 0;
+        }
+
+        .info {
+            margin-bottom: 12px;
+            font-size: 9px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+        }
+
+        .info-label {
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 9px;
+        }
+
+        th, td {
+            padding: 4px 0;
+            text-align: left;
+            border-bottom: 1px dotted #ccc;
+        }
+
+        th {
+            border-bottom: 1px solid #000;
+            font-weight: bold;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .totales {
+            margin-top: 10px;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+        }
+
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 3px 0;
+        }
+
+        .total-final {
+            font-weight: bold;
+            font-size: 11px;
+            margin-top: 5px;
+            padding-top: 5px;
+            border-top: 1px solid #000;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 15px;
+            border-top: 1px dashed #000;
+            padding-top: 10px;
+            font-size: 8px;
+        }
+
+        .gracias {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .garantia {
+            font-size: 8px;
+            text-align: center;
+            margin-top: 8px;
+            color: #555;
+        }
+
+        .btn-acciones {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 11px;
+            font-family: Arial, sans-serif;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-print {
+            background: #27AE60;
+            color: white;
+        }
+
+        .btn-volver {
+            background: #6c757d;
+            color: white;
+        }
+
+        @@media print {
+            .btn-acciones {
+                display: none;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+</head>
+<body>
+
+    <!-- Botones (no se imprimen) -->
+    <div class="btn-acciones">
+        <button class="btn btn-print" onclick="window.print()">
+            <i class="fas fa-print"></i> Imprimir
+        </button>
+        <a href="/Home/Dashboard" class="btn btn-volver">
+            <i class="fas fa-home"></i> Inicio
+        </a>
+        <a href="/Venta/Index" class="btn btn-volver">
+            <i class="fas fa-plus"></i> Nueva Venta
+        </a>
+    </div>
+
+    <!-- Encabezado -->
+    <div class="header">
+        <img src="@Url.Content("~/Content/images/logo.png")" alt="Logo"
+             style="max-width:80px; margin-bottom:8px;"
+             onerror="this.style.display='none'" />
+        <div class="empresa-nombre">LA MEDIA CANCHA ASADERA</div>
+        <div class="empresa-info">Av. Principal #123, Ciudad</div>
+        <div class="empresa-info">Tel: (555) 123-4567 | NIT: 123456789-0</div>
+        <div class="empresa-info">www.lamediacancha.com</div>
+    </div>
+
+    <!-- Datos de la venta -->
+    <div class="info">
+        <div class="info-row">
+            <span class="info-label">FACTURA:</span>
+            <span>@Model.NumeroFactura</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">FECHA:</span>
+            <span>@Model.FechaVenta.ToString("dd/MM/yyyy HH:mm")</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">CLIENTE:</span>
+            <span>@Model.ClienteNombre</span>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.ClienteDocumento))
+        {
+            <div class="info-row">
+                <span class="info-label">DOCUMENTO:</span>
+                <span>@Model.ClienteDocumento</span>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(Model.ClienteTelefono))
+        {
+            <div class="info-row">
+                <span class="info-label">TELÉFONO:</span>
+                <span>@Model.ClienteTelefono</span>
+            </div>
+        }
+        <div class="info-row">
+            <span class="info-label">TIPO PAGO:</span>
+            <span>@Model.TipoPago</span>
+        </div>
+        <div class="info-row">
+            <span class="info-label">ATENDIDO POR:</span>
+            <span>@Model.UsuarioNombre</span>
+        </div>
+    </div>
+
+    <div class="separator"></div>
+
+    <!-- Productos -->
+    <table>
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th class="text-center">Cant</th>
+                <th class="text-right">Precio</th>
+                <th class="text-right">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model.Detalles)
+            {
+                <tr>
+                    <td style="max-width: 120px;">
+                        @item.ProductoNombre
+                        @if (item.LotesUtilizados != null && item.LotesUtilizados.Any())
+                        {
+                            <br />
+                            <span style="font-size: 8px; color: #777;">
+                                @foreach (var lote in item.LotesUtilizados)
+                                {
+                                    <text>Lote @lote.NumeroLote </text>
+                                }
+                            </span>
+                        }
+                    </td>
+                    <td class="text-center">@item.Cantidad</td>
+                    <td class="text-right">@item.PrecioUnitario.ToString("N2")</td>
+                    <td class="text-right">@item.Subtotal.ToString("N2")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <!-- Totales -->
+    <div class="totales">
+        <div class="total-row">
+            <span>SUBTOTAL:</span>
+            <span>Q @Model.Subtotal.ToString("N2")</span>
+        </div>
+        @if (Model.Descuento > 0)
+        {
+            <div class="total-row">
+                <span>DESCUENTO:</span>
+                <span>- Q @Model.Descuento.ToString("N2")</span>
+            </div>
+        }
+        <div class="total-row">
+            <span>IVA (12%):</span>
+            <span>Q @Model.Impuesto.ToString("N2")</span>
+        </div>
+        <div class="total-final total-row">
+            <span>TOTAL:</span>
+            <span>Q @Model.Total.ToString("N2")</span>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(Model.Observaciones))
+    {
+        <div class="separator"></div>
+        <div style="font-size: 8px; margin-top: 5px;">
+            <strong>OBSERVACIONES:</strong><br />
+            @Model.Observaciones
+        </div>
+    }
+
+    <div class="garantia">
+        Todos nuestros productos cuentan con garantía<br />
+        de un mes a partir de la fecha de facturación.
+    </div>
+
+    <div class="gracias">¡Gracias por su compra!</div>
+
+    <div class="footer">
+        Este documento es una representación impresa de la factura electrónica<br />
+        Generado por La Media Cancha Asadera
+    </div>
+
+    <script>
+        window.onload = function () {
+            window.print();
+        }
+    </script>
+</body>
+</html>

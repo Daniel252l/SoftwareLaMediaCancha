@@ -7,6 +7,8 @@ namespace LaMediaCancha.Models.ViewModels
     public class FacturaViewModel
     {
         public int FacturaId { get; set; }
+        public int CompraId { get; set; }  
+        public int? VentaId { get; set; }
         public string NumeroFactura { get; set; }
         public string NumeroDocumento { get; set; }
         public DateTime FechaEmision { get; set; }

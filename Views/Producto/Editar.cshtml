@@ -1,4 +1,5 @@
 @model LaMediaCancha.Models.ProductoModels.Producto
+
 @{
     ViewBag.Title = "Editar Producto";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -9,136 +10,181 @@
         <div class="col-md-8 offset-md-2">
             <div class="card-custom" style="max-width: 100%;">
                 <div class="card-header-custom">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div>
-                            <h2><i class="fas fa-edit"></i> Editar Producto</h2>
-                            <p>Modifique los datos del producto</p>
+                            <h2 class="text-white mb-1">
+                                <i class="fas fa-edit me-2"></i> Editar Producto
+                            </h2>
+                            <p class="mb-0 text-white-50">Modifique los datos del producto</p>
                         </div>
-                        <a href="@Url.Action("Index", "Producto")" class="btn-custom" style="width: auto; padding: 10px 20px; background: #6c757d;">
-                            <i class="fas fa-arrow-left"></i> Regresar
+                        <a href="@Url.Action("Index", "Producto")" class="btn btn-light">
+                            <i class="fas fa-arrow-left me-1"></i> Regresar
                         </a>
                     </div>
                 </div>
-                <div class="card-body-custom">
-                    @using (Html.BeginForm("Editar", "Producto", FormMethod.Post))
+                <div class="card-body-custom p-4">
+
+                    @if (TempData["Success"] != null)
                     {
-                        @Html.AntiForgeryToken()
-                        @Html.HiddenFor(m => m.ProductoId)
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group-custom">
-                                    <label>Código</label>
-                                    @Html.TextBoxFor(m => m.Codigo, new { @class = "form-control-custom", required = "required" })
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group-custom">
-                                    <label>Código de Barras</label>
-                                    @Html.TextBoxFor(m => m.CodigoBarras, new { @class = "form-control-custom" })
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group-custom">
-                            <label>Nombre</label>
-                            @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control-custom", required = "required" })
-                        </div>
-
-                        <div class="form-group-custom">
-                            <label>Descripción</label>
-                            @Html.TextAreaFor(m => m.Descripcion, new { @class = "form-control-custom", rows = 3 })
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group-custom">
-                                    <label>Departamento</label>
-                                    @Html.DropDownListFor(m => m.DepartamentoId, (SelectList)ViewBag.Departamentos, "Seleccione...", new { @class = "form-control-custom", required = "required", id = "DepartamentoId" })
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group-custom">
-                                    <label>SubDepartamento</label>
-                                    @Html.DropDownListFor(m => m.SubDepartamentoId, (SelectList)ViewBag.SubDepartamentos, "Seleccione...", new { @class = "form-control-custom", required = "required", id = "SubDepartamentoId" })
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group-custom">
-                                    <label>Presentación</label>
-                                    @Html.DropDownListFor(m => m.PresentacionId, (SelectList)ViewBag.Presentaciones, "Seleccione...", new { @class = "form-control-custom", required = "required" })
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group-custom">
-                                    <label>Marca</label>
-                                    @Html.DropDownListFor(m => m.MarcaId, (SelectList)ViewBag.Marcas, "Seleccione...", new { @class = "form-control-custom" })
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group-custom">
-                                    <label>Precio Compra</label>
-                                    @Html.TextBoxFor(m => m.PrecioCompra, new { @class = "form-control-custom", type = "number", step = "100", required = "required" })
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group-custom">
-                                    <label>Precio Venta</label>
-                                    @Html.TextBoxFor(m => m.PrecioVenta, new { @class = "form-control-custom", type = "number", step = "100", required = "required" })
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group-custom">
-                                    <label>¿En Oferta?</label>
-                                    @Html.DropDownListFor(m => m.EstaEnOferta, new SelectList(new[] { new { Value = "false", Text = "No" }, new { Value = "true", Text = "Sí" } }, "Value", "Text"), new { @class = "form-control-custom", id = "EstaEnOferta" })
-                                </div>
-                            </div>
-                            <div class="col-md-6" id="divPrecioOferta" style="display: @(Model.EstaEnOferta ? "block" : "none");">
-                                <div class="form-group-custom">
-                                    <label>Precio Oferta</label>
-                                    @Html.TextBoxFor(m => m.PrecioOferta, new { @class = "form-control-custom", type = "number", step = "100" })
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row" id="divFechasOferta" style="display: @(Model.EstaEnOferta ? "block" : "none");">
-                            <div class="col-md-6">
-                                <div class="form-group-custom">
-                                    <label>Fecha Inicio Oferta</label>
-                                    @Html.TextBoxFor(m => m.FechaInicioOferta, "{0:yyyy-MM-dd}", new { @class = "form-control-custom", type = "date" })
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group-custom">
-                                    <label>Fecha Fin Oferta</label>
-                                    @Html.TextBoxFor(m => m.FechaFinOferta, "{0:yyyy-MM-dd}", new { @class = "form-control-custom", type = "date" })
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group-custom">
-                            <label>Activo</label>
-                            @Html.DropDownListFor(m => m.Activo, new SelectList(new[] { new { Value = "true", Text = "Sí" }, new { Value = "false", Text = "No" } }, "Value", "Text"), new { @class = "form-control-custom" })
-                        </div>
-
-                        <div class="text-right">
-                            <a href="@Url.Action("Detalle", "Producto", new { id = Model.ProductoId })" class="btn-custom btn-secondary" style="width: auto; padding: 12px 25px; background: #6c757d; margin-right: 10px;">
-                                <i class="fas fa-times"></i> Cancelar
-                            </a>
-                            <button type="submit" class="btn-custom" style="width: auto; padding: 12px 25px;">
-                                <i class="fas fa-save"></i> Guardar Cambios
-                            </button>
+                        <div class="alert alert-success d-flex align-items-center gap-2 mb-4" role="alert"
+                             style="border-radius: 10px; border-left: 4px solid #28a745;">
+                            <i class="fas fa-check-circle text-success" style="font-size: 1.3rem;"></i>
+                            <span class="fw-semibold">@TempData["Success"]</span>
                         </div>
                     }
+                    @if (TempData["Error"] != null)
+                    {
+                        <div class="alert alert-danger d-flex align-items-center gap-2 mb-4" role="alert"
+                             style="border-radius: 10px; border-left: 4px solid #dc3545;">
+                            <i class="fas fa-times-circle text-danger" style="font-size: 1.3rem;"></i>
+                            <span class="fw-semibold">@TempData["Error"]</span>
+                        </div>
+                    }
+
+                    <form action="@Url.Action("Editar", "Producto")" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="ProductoId" value="@Model.ProductoId" />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Código <span class="text-danger">*</span></label>
+                                <input type="text" name="Codigo" class="form-control" value="@Model.Codigo" placeholder="Ej: PROD001" required />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Código de Barras</label>
+                                <input type="text" name="CodigoBarras" class="form-control" value="@Model.CodigoBarras" placeholder="Opcional" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Nombre <span class="text-danger">*</span></label>
+                            <input type="text" name="Nombre" class="form-control" value="@Model.Nombre" placeholder="Nombre del producto" required />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Descripción</label>
+                            <textarea name="Descripcion" class="form-control" rows="3" placeholder="Descripción del producto (opcional)">@Model.Descripcion</textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Departamento <span class="text-danger">*</span></label>
+                                <select id="DepartamentoId" name="DepartamentoId" class="form-select" required>
+                                    <option value="">Seleccione un departamento...</option>
+                                    @if (ViewBag.Departamentos != null)
+                                    {
+                                        var departamentos = ViewBag.Departamentos as IEnumerable<SelectListItem>;
+                                        if (departamentos != null)
+                                        {
+                                            foreach (var item in departamentos)
+                                            {
+                                                <option value="@item.Value" @(item.Selected ? "selected" : "")>@item.Text</option>
+                                            }
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">SubDepartamento <span class="text-danger">*</span></label>
+                                <select id="SubDepartamentoId" class="form-select" disabled>
+                                    <option value="">Cargando...</option>
+                                </select>
+                                <input type="hidden" id="SubDepartamentoIdHidden" name="SubDepartamentoId" value="@Model.SubDepartamentoId" />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Presentación <span class="text-danger">*</span></label>
+                                <select id="PresentacionId" name="PresentacionId" class="form-select" required>
+                                    <option value="">Seleccione una presentación...</option>
+                                    @if (ViewBag.Presentaciones != null)
+                                    {
+                                        var presentaciones = ViewBag.Presentaciones as IEnumerable<SelectListItem>;
+                                        if (presentaciones != null)
+                                        {
+                                            foreach (var item in presentaciones)
+                                            {
+                                                <option value="@item.Value" @(item.Selected ? "selected" : "")>@item.Text</option>
+                                            }
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Marca</label>
+                                <select id="MarcaId" name="MarcaId" class="form-select">
+                                    <option value="">Seleccione una marca...</option>
+                                    @if (ViewBag.Marcas != null)
+                                    {
+                                        var marcas = ViewBag.Marcas as IEnumerable<SelectListItem>;
+                                        if (marcas != null)
+                                        {
+                                            foreach (var item in marcas)
+                                            {
+                                                <option value="@item.Value" @(item.Selected ? "selected" : "")>@item.Text</option>
+                                            }
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Precio Compra (Q) <span class="text-danger">*</span></label>
+                                <input type="number" name="PrecioCompra" class="form-control" step="0.01" min="0" value="@Model.PrecioCompra" placeholder="0.00" required />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Precio Venta (Q) <span class="text-danger">*</span></label>
+                                <input type="number" name="PrecioVenta" class="form-control" step="0.01" min="0" value="@Model.PrecioVenta" placeholder="0.00" required />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">¿En Oferta?</label>
+                                <select id="EstaEnOferta" name="EstaEnOferta" class="form-select">
+                                    <option value="false" @(Model.EstaEnOferta == true ? "" : "selected")>No</option>
+                                    <option value="true" @(Model.EstaEnOferta == true ? "selected" : "")>Sí</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3" id="divPrecioOferta" style="display: @(Model.EstaEnOferta == true ? "block" : "none");">
+                                <label class="form-label fw-bold">Precio Oferta (Q)</label>
+                                <input type="number" name="PrecioOferta" class="form-control" step="0.01" min="0" value="@Model.PrecioOferta" placeholder="0.00" />
+                            </div>
+                        </div>
+
+                        <div class="row" id="divFechasOferta" style="display: @(Model.EstaEnOferta == true ? "block" : "none");">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Fecha Inicio Oferta</label>
+                                <input type="date" name="FechaInicioOferta" class="form-control"
+                                       value="@(Model.FechaInicioOferta.HasValue ? Model.FechaInicioOferta.Value.ToString("yyyy-MM-dd") : "")" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Fecha Fin Oferta</label>
+                                <input type="date" name="FechaFinOferta" class="form-control"
+                                       value="@(Model.FechaFinOferta.HasValue ? Model.FechaFinOferta.Value.ToString("yyyy-MM-dd") : "")" />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Estado</label>
+                            <select id="Activo" name="Activo" class="form-select">
+                                <option value="true" @(Model.Activo ? "selected" : "")>Activo</option>
+                                <option value="false" @(!Model.Activo ? "selected" : "")>Inactivo</option>
+                            </select>
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                            <a href="@Url.Action("Index", "Producto")" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Guardar Cambios
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -147,27 +193,177 @@
 
 @section Scripts {
     <script>
-        $('#EstaEnOferta').change(function() {
-            if ($(this).val() === 'true') {
-                $('#divPrecioOferta').show();
-                $('#divFechasOferta').show();
-            } else {
-                $('#divPrecioOferta').hide();
-                $('#divFechasOferta').hide();
-            }
-        });
+        $(document).ready(function () {
 
-        $('#DepartamentoId').change(function() {
-            var deptoId = $(this).val();
-            if (deptoId) {
-                $.get('@Url.Action("GetSubDepartamentos", "Producto")', { departamentoId: deptoId }, function(data) {
-                    var select = $('#SubDepartamentoId');
-                    select.empty().append('<option value="">Seleccione...</option>');
-                    $.each(data, function(i, item) {
-                        select.append('<option value="' + item.Value + '">' + item.Text + '</option>');
+            $('#EstaEnOferta').change(function () {
+                if ($(this).val() === 'true') {
+                    $('#divPrecioOferta').show(300);
+                    $('#divFechasOferta').show(300);
+                } else {
+                    $('#divPrecioOferta').hide(300);
+                    $('#divFechasOferta').hide(300);
+                }
+            });
+
+            $('#SubDepartamentoId').change(function () {
+                $('#SubDepartamentoIdHidden').val($(this).val());
+            });
+
+            function cargarSubDepartamentos(subDepartamentoSeleccionado) {
+                var deptoId = $('#DepartamentoId').val();
+                var select = $('#SubDepartamentoId');
+
+                if (deptoId && deptoId !== '') {
+                    select.prop('disabled', true);
+                    select.html('<option value="">Cargando...</option>');
+
+                    $.ajax({
+                        url: '@Url.Action("GetSubDepartamentos", "Producto")',
+                        type: 'GET',
+                        data: { departamentoId: deptoId },
+                        dataType: 'json',
+                        success: function (data) {
+                            select.empty();
+                            select.append('<option value="">Seleccione un subdepartamento...</option>');
+                            if (data && data.length > 0) {
+                                $.each(data, function (i, item) {
+                                    var isSelected = (subDepartamentoSeleccionado && item.Value == subDepartamentoSeleccionado) ? ' selected="selected"' : '';
+                                    select.append('<option value="' + item.Value + '"' + isSelected + '>' + item.Text + '</option>');
+                                });
+                                select.prop('disabled', false);
+                                $('#SubDepartamentoIdHidden').val(select.val());
+                            } else {
+                                select.append('<option value="">No hay subdepartamentos disponibles</option>');
+                                select.prop('disabled', true);
+                                $('#SubDepartamentoIdHidden').val('');
+                            }
+                        },
+                        error: function () {
+                            select.html('<option value="">Error al cargar subdepartamentos</option>');
+                            select.prop('disabled', true);
+                            $('#SubDepartamentoIdHidden').val('');
+                        }
                     });
-                });
+                } else {
+                    select.prop('disabled', true);
+                    select.html('<option value="">Primero seleccione un departamento</option>');
+                    $('#SubDepartamentoIdHidden').val('');
+                }
+            }
+
+            $('#DepartamentoId').change(function () {
+                cargarSubDepartamentos(null);
+            });
+
+            // Precargar subdepartamentos con el valor actual del modelo
+            var subDeptoActual = '@Model.SubDepartamentoId';
+            if ($('#DepartamentoId').val() && $('#DepartamentoId').val() !== '') {
+                cargarSubDepartamentos(subDeptoActual);
             }
         });
     </script>
 }
+
+<style>
+    .card-custom {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        margin-bottom: 20px;
+    }
+
+    .card-header-custom {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #c95a00 0%, #a04700 100%) !important;
+    }
+
+        .card-header-custom h2 {
+            margin-bottom: 5px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .card-header-custom .btn-light {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            padding: 8px 18px;
+        }
+
+            .card-header-custom .btn-light:hover {
+                background: rgba(255,255,255,0.3);
+                transform: translateY(-2px);
+            }
+
+    .form-control, .form-select {
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        padding: 10px 12px;
+        transition: all 0.2s ease;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #c95a00;
+            box-shadow: 0 0 0 3px rgba(201, 90, 0, 0.1);
+            outline: none;
+        }
+
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 5px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #c95a00, #a04700);
+        border: none;
+        padding: 10px 25px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #a04700, #8b3a00);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(201, 90, 0, 0.3);
+        }
+
+    .btn-secondary {
+        background: #6c757d;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+    }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+    .text-danger {
+        color: #dc3545 !important;
+    }
+
+    .border-top {
+        border-top: 1px solid #e9ecef !important;
+    }
+
+    @@media (max-width: 768px) {
+        .card-header-custom {
+            padding: 1rem;
+        }
+
+            .card-header-custom h2 {
+                font-size: 1.3rem;
+            }
+
+        .btn-primary, .btn-secondary {
+            padding: 8px 16px;
+        }
+    }
+</style>

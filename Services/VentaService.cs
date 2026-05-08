@@ -22,7 +22,6 @@ namespace LaMediaCancha.Services
         {
             var productos = new List<VentaModels.ProductoVenta>();
 
-            // Muestra TODOS los productos activos, el stock se calcula desde lotes
             string query = @"
                 SELECT 
                     p.ProductoId,
@@ -49,8 +48,8 @@ namespace LaMediaCancha.Services
                         var producto = new VentaModels.ProductoVenta
                         {
                             ProductoId = (int)reader["ProductoId"],
-                            Codigo = reader["Codigo"].ToString(),
-                            Nombre = reader["Nombre"].ToString(),
+                            Codigo = reader["Codigo"].ToString().Trim(),
+                            Nombre = reader["Nombre"].ToString().Trim(),
                             PrecioVenta = (decimal)reader["PrecioVenta"],
                             StockDisponible = (decimal)reader["StockReal"],
                             Lotes = new List<VentaModels.LoteDisponible>()
@@ -60,7 +59,6 @@ namespace LaMediaCancha.Services
                 }
             }
 
-            // Cargar lotes solo para productos con stock > 0
             foreach (var producto in productos.Where(p => p.StockDisponible > 0))
             {
                 producto.Lotes = ObtenerLotesPorProducto(producto.ProductoId);
@@ -101,7 +99,7 @@ namespace LaMediaCancha.Services
                         lotes.Add(new VentaModels.LoteDisponible
                         {
                             LoteId = (int)reader["LoteId"],
-                            NumeroLote = reader["NumeroLote"].ToString(),
+                            NumeroLote = reader["NumeroLote"].ToString().Trim(),
                             Cantidad = (decimal)reader["CantidadActual"],
                             PrecioUnitario = (decimal)reader["PrecioUnitario"],
                             FechaIngreso = (DateTime)reader["FechaIngreso"],
@@ -188,6 +186,30 @@ namespace LaMediaCancha.Services
                         // 2. Insertar detalles y lotes
                         foreach (var item in model.Carrito)
                         {
+                            // Obtener código limpio — si viene vacío desde JS, buscarlo en BD
+                            string codigoLimpio = (item.Codigo ?? "").Trim();
+                            if (string.IsNullOrEmpty(codigoLimpio))
+                            {
+                                string queryCode = "SELECT LTRIM(RTRIM(Codigo)) FROM Producto WHERE ProductoId = @PId";
+                                using (var cmdCode = new SqlCommand(queryCode, conn, transaction))
+                                {
+                                    cmdCode.Parameters.AddWithValue("@PId", item.ProductoId);
+                                    codigoLimpio = cmdCode.ExecuteScalar()?.ToString() ?? "S/C";
+                                }
+                            }
+
+                            // Obtener nombre limpio
+                            string nombreLimpio = (item.Nombre ?? "").Trim();
+                            if (string.IsNullOrEmpty(nombreLimpio))
+                            {
+                                string queryNombre = "SELECT LTRIM(RTRIM(Nombre)) FROM Producto WHERE ProductoId = @PId";
+                                using (var cmdNombre = new SqlCommand(queryNombre, conn, transaction))
+                                {
+                                    cmdNombre.Parameters.AddWithValue("@PId", item.ProductoId);
+                                    nombreLimpio = cmdNombre.ExecuteScalar()?.ToString() ?? "Sin nombre";
+                                }
+                            }
+
                             // Insertar detalle venta
                             string insertDetalle = @"
                                 INSERT INTO DetalleVenta (VentaId, ProductoId, ProductoCodigo, ProductoNombre, 
@@ -201,8 +223,8 @@ namespace LaMediaCancha.Services
                             {
                                 cmd.Parameters.AddWithValue("@VentaId", ventaId);
                                 cmd.Parameters.AddWithValue("@ProductoId", item.ProductoId);
-                                cmd.Parameters.AddWithValue("@ProductoCodigo", item.Codigo);
-                                cmd.Parameters.AddWithValue("@ProductoNombre", item.Nombre);
+                                cmd.Parameters.AddWithValue("@ProductoCodigo", codigoLimpio);
+                                cmd.Parameters.AddWithValue("@ProductoNombre", nombreLimpio);
                                 cmd.Parameters.AddWithValue("@Cantidad", item.Cantidad);
                                 cmd.Parameters.AddWithValue("@PrecioUnitario", item.PrecioUnitario);
                                 cmd.Parameters.AddWithValue("@Descuento", item.Descuento);
@@ -213,7 +235,6 @@ namespace LaMediaCancha.Services
                             // Insertar lotes utilizados y actualizar inventario
                             foreach (var lote in item.LotesSeleccionados)
                             {
-                                // Insertar detalle venta lote
                                 string insertDetalleLote = @"
                                     INSERT INTO DetalleVentaLote (DetalleVentaId, LoteId, Cantidad, PrecioUnitario, Subtotal)
                                     VALUES (@DetalleVentaId, @LoteId, @Cantidad, @PrecioUnitario, @Subtotal)";
@@ -228,7 +249,6 @@ namespace LaMediaCancha.Services
                                     cmd.ExecuteNonQuery();
                                 }
 
-                                // Actualizar cantidad del lote
                                 string updateLote = @"
                                     UPDATE Lote 
                                     SET CantidadActual = CantidadActual - @Cantidad,
@@ -255,13 +275,75 @@ namespace LaMediaCancha.Services
                 }
             }
         }
+        public List<VentaModels.Venta> BuscarVentas(BuscarVentaViewModel filtro)
+        {
+            var ventas = new List<VentaModels.Venta>();
 
+            string query = @"
+        SELECT 
+            VentaId,
+            NumeroFactura,
+            FechaVenta,
+            ClienteNombre,
+            ClienteDocumento,
+            Total,
+            Estado
+        FROM Venta
+        WHERE 1=1";
+
+            if (!string.IsNullOrEmpty(filtro.NumeroFactura))
+                query += " AND NumeroFactura LIKE @NumeroFactura";
+            if (!string.IsNullOrEmpty(filtro.NumeroDocumento))
+                query += " AND ClienteDocumento LIKE @NumeroDocumento";
+            if (filtro.FechaInicio.HasValue)
+                query += " AND CAST(FechaVenta AS DATE) >= @FechaInicio";
+            if (filtro.FechaFin.HasValue)
+                query += " AND CAST(FechaVenta AS DATE) <= @FechaFin";
+            if (!string.IsNullOrEmpty(filtro.Estado))
+                query += " AND Estado = @Estado";
+
+            query += " ORDER BY FechaVenta DESC";
+
+            using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand(query, conn))
+            {
+                if (!string.IsNullOrEmpty(filtro.NumeroFactura))
+                    cmd.Parameters.AddWithValue("@NumeroFactura", "%" + filtro.NumeroFactura + "%");
+                if (!string.IsNullOrEmpty(filtro.NumeroDocumento))
+                    cmd.Parameters.AddWithValue("@NumeroDocumento", "%" + filtro.NumeroDocumento + "%");
+                if (filtro.FechaInicio.HasValue)
+                    cmd.Parameters.AddWithValue("@FechaInicio", filtro.FechaInicio.Value);
+                if (filtro.FechaFin.HasValue)
+                    cmd.Parameters.AddWithValue("@FechaFin", filtro.FechaFin.Value);
+                if (!string.IsNullOrEmpty(filtro.Estado))
+                    cmd.Parameters.AddWithValue("@Estado", filtro.Estado);
+
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        ventas.Add(new VentaModels.Venta
+                        {
+                            VentaId = (int)reader["VentaId"],
+                            NumeroFactura = reader["NumeroFactura"].ToString(),
+                            FechaVenta = (DateTime)reader["FechaVenta"],
+                            ClienteNombre = reader["ClienteNombre"].ToString(),
+                            ClienteDocumento = reader["ClienteDocumento"]?.ToString(),
+                            Total = (decimal)reader["Total"],
+                            Estado = reader["Estado"].ToString()
+                        });
+                    }
+                }
+            }
+
+            return ventas;
+        }
         public VentaModels.Venta ObtenerVentaPorId(int ventaId)
         {
             VentaModels.Venta venta = null;
 
-            string queryVenta = @"
-                SELECT * FROM Venta WHERE VentaId = @VentaId";
+            string queryVenta = @"SELECT * FROM Venta WHERE VentaId = @VentaId";
 
             using (var conn = new SqlConnection(_connectionString))
             using (var cmd = new SqlCommand(queryVenta, conn))
@@ -331,8 +413,8 @@ namespace LaMediaCancha.Services
                                 DetalleVentaId = detalleId,
                                 VentaId = (int)reader["VentaId"],
                                 ProductoId = (int)reader["ProductoId"],
-                                ProductoCodigo = reader["ProductoCodigo"].ToString(),
-                                ProductoNombre = reader["ProductoNombre"].ToString(),
+                                ProductoCodigo = reader["ProductoCodigo"].ToString().Trim(),
+                                ProductoNombre = reader["ProductoNombre"].ToString().Trim(),
                                 Cantidad = (decimal)reader["Cantidad"],
                                 PrecioUnitario = (decimal)reader["PrecioUnitario"],
                                 Descuento = (decimal)reader["Descuento"],
@@ -347,7 +429,7 @@ namespace LaMediaCancha.Services
                             detalle.LotesUtilizados.Add(new VentaModels.DetalleVentaLote
                             {
                                 LoteId = (int)reader["LoteId"],
-                                NumeroLote = reader["NumeroLoteInterno"].ToString(),
+                                NumeroLote = reader["NumeroLoteInterno"].ToString().Trim(),
                                 Cantidad = (decimal)reader["CantidadLote"],
                                 PrecioUnitario = (decimal)reader["PrecioLote"],
                                 Subtotal = (decimal)reader["SubtotalLote"]

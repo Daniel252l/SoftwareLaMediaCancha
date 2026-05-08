@@ -1,4 +1,5 @@
 @model LaMediaCancha.Models.ProductoModels.Producto
+
 @{
     ViewBag.Title = "Detalle Producto";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -7,169 +8,88 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-8 offset-md-2">
-            <div class="card-custom" style="max-width: 100%;">
+            <div class="card-custom">
                 <div class="card-header-custom">
-                    <h2><i class="fas fa-info-circle"></i> Detalle del Producto</h2>
-                    <p>Información completa del producto</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2 class="text-white mb-1"><i class="fas fa-info-circle"></i> Detalle del Producto</h2>
+                            <p class="mb-0 text-white-50">Información completa del producto</p>
+                        </div>
+                        <a href="@Url.Action("Index")" class="btn btn-light">
+                            <i class="fas fa-arrow-left"></i> Regresar
+                        </a>
+                    </div>
                 </div>
-                <div class="card-body-custom">
-                    <!-- Información General -->
-                    <div class="info-section">
-                        <div class="info-title">
-                            <i class="fas fa-tag"></i> Información General
+                <div class="card-body-custom p-4">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small text-uppercase">Código</label>
+                            <p class="fw-bold fs-5">@Model.Codigo</p>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <label>Código</label>
-                                    <p><strong>@Model.Codigo</strong></p>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <label>Código de Barras</label>
-                                    <p><strong>@(Model.CodigoBarras ?? "-")</strong></p>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="info-item">
-                                    <label>Nombre</label>
-                                    <p><strong>@Model.Nombre</strong></p>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="info-item">
-                                    <label>Descripción</label>
-                                    <p>@(Model.Descripcion ?? "-")</p>
-                                </div>
-                            </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small text-uppercase">Código de Barras</label>
+                            <p class="fw-bold fs-5">@(Model.CodigoBarras ?? "-")</p>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="text-muted small text-uppercase">Nombre</label>
+                            <p class="fw-bold fs-5">@Model.Nombre</p>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="text-muted small text-uppercase">Descripción</label>
+                            <p>@(Model.Descripcion ?? "-")</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small text-uppercase">Precio Compra</label>
+                            <p class="text-danger fw-bold fs-4">@(Model.PrecioCompra?.ToString("C") ?? "-")</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small text-uppercase">Precio Venta</label>
+                            <p class="text-success fw-bold fs-4">@Model.PrecioVenta.ToString("C")</p>
                         </div>
                     </div>
 
-                    <!-- Clasificación -->
-                    <div class="info-section">
-                        <div class="info-title">
-                            <i class="fas fa-folder-open"></i> Clasificación
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <label>Departamento</label>
-                                    <p>@Model.DepartamentoNombre</p>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <label>SubDepartamento</label>
-                                    <p>@Model.SubDepartamentoNombre</p>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <label>Presentación</label>
-                                    <p>@Model.PresentacionNombre</p>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <label>Marca</label>
-                                    <p>@(Model.MarcaNombre ?? "-")</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Precios -->
-                    <div class="info-section">
-                        <div class="info-title">
-                            <i class="fas fa-dollar-sign"></i> Precios
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <label>Precio Compra</label>
-                                    <p class="precio-compra">@String.Format("{0:N0}", Model.PrecioCompra)</p>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <label>Precio Venta</label>
-                                    <p class="precio-venta">@String.Format("{0:N0}", Model.PrecioVenta)</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Oferta -->
-                    @if (Model.EstaEnOferta)
+                    @if (Model.EstaEnOferta == true)
                     {
-                        <div class="info-section oferta-section">
-                            <div class="info-title">
-                                <i class="fas fa-percent"></i> Oferta Especial
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="info-item">
-                                        <label>Precio Oferta</label>
-                                        <p class="precio-oferta">@String.Format("{0:N0}", Model.PrecioOferta)</p>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="info-item">
-                                        <label>Vigencia</label>
-                                        <p>@(Model.FechaInicioOferta?.ToString("dd/MM/yyyy")) - @(Model.FechaFinOferta?.ToString("dd/MM/yyyy"))</p>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="alert alert-warning mt-3">
+                            <h6><i class="fas fa-percent"></i> Oferta Especial</h6>
+                            <p><strong>Precio Oferta:</strong> @(Model.PrecioOferta?.ToString("C") ?? "-")</p>
+                            <p><strong>Vigencia:</strong> @(Model.FechaInicioOferta?.ToString("dd/MM/yyyy")) hasta @(Model.FechaFinOferta?.ToString("dd/MM/yyyy"))</p>
                         </div>
                     }
 
-                    <!-- Estado -->
-                    <div class="info-section">
-                        <div class="info-title">
-                            <i class="fas fa-info-circle"></i> Estado
+                    <div class="row mt-3">
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small text-uppercase">Estado</label>
+                            <p>
+                                @if (Model.Activo)
+                                {
+                                    <span class="badge bg-success px-3 py-2">Activo</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger px-3 py-2">Inactivo</span>
+                                }
+                            </p>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <label>Estado del Producto</label>
-                                    <p>
-                                        @if (Model.Activo)
-                                        {
-                                            <span class="badge-success">Activo</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge-danger">Inactivo</span>
-                                        }
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="info-item">
-                                    <label>Fecha Creación</label>
-                                    <p>@Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</p>
-                                </div>
-                            </div>
-                            @if (Model.FechaModificacion.HasValue)
-                            {
-                                <div class="col-md-6">
-                                    <div class="info-item">
-                                        <label>Última Modificación</label>
-                                        <p>@Model.FechaModificacion.Value.ToString("dd/MM/yyyy HH:mm")</p>
-                                    </div>
-                                </div>
-                            }
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small text-uppercase">Fecha Creación</label>
+                            <p>@Model.FechaCreacion?.ToString("dd/MM/yyyy HH:mm")</p>
                         </div>
+                        @if (Model.FechaModificacion.HasValue)
+                        {
+                            <div class="col-md-6 mb-3">
+                                <label class="text-muted small text-uppercase">Última Modificación</label>
+                                <p>@Model.FechaModificacion.Value.ToString("dd/MM/yyyy HH:mm")</p>
+                            </div>
+                        }
                     </div>
 
-                    <!-- Botones de acción -->
-                    <div class="action-buttons">
-                        <a href="@Url.Action("Editar", "Producto", new { id = Model.ProductoId })" class="btn-editar">
-                            <i class="fas fa-edit"></i> Editar Producto
-                        </a>
-                        <a href="@Url.Action("Index", "Producto")" class="btn-regresar">
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a href="@Url.Action("Index")" class="btn btn-secondary">
                             <i class="fas fa-arrow-left"></i> Regresar
+                        </a>
+                        <a href="@Url.Action("Editar", new { id = Model.ProductoId })" class="btn btn-primary">
+                            <i class="fas fa-edit"></i> Editar Producto
                         </a>
                     </div>
                 </div>
@@ -179,162 +99,46 @@
 </div>
 
 <style>
-    .btn-editar {
-        background: linear-gradient(135deg, #F39C12, #E67E22);
-        color: white;
-        padding: 12px 25px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 0.9rem;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-        .btn-editar:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(243, 156, 18, 0.3);
-            color: white;
-            text-decoration: none;
-        }
-
-    .btn-regresar {
-        background: #6c757d;
-        color: white;
-        padding: 12px 25px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: 600;
-        font-size: 0.9rem;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-        .btn-regresar:hover {
-            background: #5a6268;
-            transform: translateY(-2px);
-            color: white;
-            text-decoration: none;
-        }
-
-    .info-section {
-        background: #f8f9fa;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 25px;
-        border: 1px solid #e9ecef;
-    }
-
-    .info-title {
-        font-size: 1rem;
-        font-weight: 700;
-        color: #8B4513;
-        margin-bottom: 15px;
-        padding-bottom: 10px;
-        border-bottom: 2px solid #D35400;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-        .info-title i {
-            color: #D35400;
-            font-size: 1.1rem;
-        }
-
-    .info-item {
+    .card-custom {
         background: white;
-        padding: 12px 15px;
-        border-radius: 8px;
-        border: 1px solid #e9ecef;
-        height: 100%;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
     }
 
-        .info-item label {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            color: #7F8C8D;
-            font-weight: 600;
-            margin-bottom: 5px;
-            display: block;
-            letter-spacing: 0.5px;
+    .card-header-custom {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #c95a00 0%, #a04700 100%) !important;
+    }
+
+        .card-header-custom .btn-light {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
         }
 
-        .info-item p {
-            font-size: 1rem;
-            margin: 0;
-            color: #2C3E50;
-        }
-
-    .precio-compra {
-        color: #E74C3C;
-        font-size: 1.2rem;
-        font-weight: 700;
-    }
-
-    .precio-venta {
-        color: #27AE60;
-        font-size: 1.2rem;
-        font-weight: 700;
-    }
-
-    .precio-oferta {
-        color: #E67E22;
-        font-size: 1.2rem;
-        font-weight: 700;
-    }
-
-    .oferta-section {
-        background: #fff3e0;
-        border-color: #F39C12;
-    }
-
-        .oferta-section .info-title {
-            color: #E67E22;
-        }
-
-    .badge-success {
-        background: #27AE60;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        display: inline-block;
-    }
-
-    .badge-danger {
-        background: #E74C3C;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        display: inline-block;
-    }
-
-    .action-buttons {
-        display: flex;
-        justify-content: flex-end;
-        gap: 15px;
-        margin-top: 20px;
-        padding-top: 20px;
-        border-top: 1px solid #e9ecef;
-    }
-
-    /* Responsive */
-    @@media (max-width: 768px) {
-        .action-buttons {
-            flex-direction: column;
-        }
-
-            .action-buttons a {
-                text-align: center;
-                justify-content: center;
+            .card-header-custom .btn-light:hover {
+                background: rgba(255,255,255,0.3);
             }
+
+    .badge {
+        font-size: 0.8rem;
+        font-weight: 500;
+        border-radius: 20px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #c95a00, #a04700);
+        border: none;
+    }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #a04700, #8b3a00);
+        }
+
+    .alert-warning {
+        background-color: #fff3e0;
+        border-color: #F39C12;
+        color: #E67E22;
     }
 </style>

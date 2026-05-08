@@ -10,33 +10,24 @@ namespace LaMediaCancha.Models
         public class Producto
         {
             public int ProductoId { get; set; }
-            public int SubDepartamentoId { get; set; }
-            public string SubDepartamentoNombre { get; set; }
-            public int DepartamentoId { get; set; }
-            public string DepartamentoNombre { get; set; }
-            public int PresentacionId { get; set; }
-            public string PresentacionNombre { get; set; }
-            public string PresentacionAbreviatura { get; set; }
+            public int? SubDepartamentoId { get; set; }
+            public int? PresentacionId { get; set; }
             public int? MarcaId { get; set; }
-            public string MarcaNombre { get; set; }
             public int? EstanteId { get; set; }
-            public string EstanteCodigo { get; set; }
             public int? ColorId { get; set; }
-            public string ColorNombre { get; set; }
             public int? TallaId { get; set; }
-            public string TallaNombre { get; set; }
             public string Codigo { get; set; }
             public string CodigoBarras { get; set; }
             public string Nombre { get; set; }
             public string Descripcion { get; set; }
-            public decimal PrecioCompra { get; set; }
+            public decimal? PrecioCompra { get; set; }
             public decimal PrecioVenta { get; set; }
-            public bool EstaEnOferta { get; set; }
+            public bool? EstaEnOferta { get; set; }
             public decimal? PrecioOferta { get; set; }
             public DateTime? FechaInicioOferta { get; set; }
             public DateTime? FechaFinOferta { get; set; }
             public bool Activo { get; set; }
-            public DateTime FechaCreacion { get; set; }
+            public DateTime? FechaCreacion { get; set; }
             public DateTime? FechaModificacion { get; set; }
         }
 

@@ -121,27 +121,51 @@ namespace LaMediaCancha.Controllers
                     }
                 }
 
-                string query = @"
-                    INSERT INTO Persona (Nombres, Apellidos, Telefono, Correo, Direccion, Activo)
-                    VALUES (@Nombres, @Apellidos, @Telefono, @Correo, @Direccion, 1);
-                    SELECT SCOPE_IDENTITY();";
-
                 int personaId;
+
+                // Verificar si la persona ya existe por nombre y apellido
+                string checkPersonaQuery = @"
+            SELECT PersonaId FROM Persona 
+            WHERE Nombres = @Nombres AND Apellidos = @Apellidos";
+
                 using (var conn = new SqlConnection(_connectionString))
-                using (var cmd = new SqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@Nombres", proveedor.Nombres);
-                    cmd.Parameters.AddWithValue("@Apellidos", proveedor.Apellidos);
-                    cmd.Parameters.AddWithValue("@Telefono", (object)proveedor.Telefono ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Correo", (object)proveedor.Correo ?? DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Direccion", (object)proveedor.Direccion ?? DBNull.Value);
                     conn.Open();
-                    personaId = Convert.ToInt32(cmd.ExecuteScalar());
+                    using (var cmd = new SqlCommand(checkPersonaQuery, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@Nombres", proveedor.Nombres);
+                        cmd.Parameters.AddWithValue("@Apellidos", proveedor.Apellidos);
+                        var result = cmd.ExecuteScalar();
+
+                        if (result != null && result != DBNull.Value)
+                        {
+                            // La persona ya existe, usar su ID
+                            personaId = Convert.ToInt32(result);
+                        }
+                        else
+                        {
+                            // Insertar nueva persona (NO especificar PersonaId, debe ser autoincremental)
+                            string insertPersona = @"
+                        INSERT INTO Persona (Nombres, Apellidos, Telefono, Correo, Direccion, Activo)
+                        VALUES (@Nombres, @Apellidos, @Telefono, @Correo, @Direccion, 1);
+                        SELECT SCOPE_IDENTITY();";
+
+                            using (var cmdInsert = new SqlCommand(insertPersona, conn))
+                            {
+                                cmdInsert.Parameters.AddWithValue("@Nombres", proveedor.Nombres);
+                                cmdInsert.Parameters.AddWithValue("@Apellidos", proveedor.Apellidos);
+                                cmdInsert.Parameters.AddWithValue("@Telefono", (object)proveedor.Telefono ?? DBNull.Value);
+                                cmdInsert.Parameters.AddWithValue("@Correo", (object)proveedor.Correo ?? DBNull.Value);
+                                cmdInsert.Parameters.AddWithValue("@Direccion", (object)proveedor.Direccion ?? DBNull.Value);
+                                personaId = Convert.ToInt32(cmdInsert.ExecuteScalar());
+                            }
+                        }
+                    }
                 }
 
                 string queryProveedor = @"
-                    INSERT INTO Proveedor (PersonaId, Nit, RazonSocial, Contacto, Telefono, Correo, Direccion, MantenimientoId, PoliticaDevolucion, Activo)
-                    VALUES (@PersonaId, @Nit, @RazonSocial, @Contacto, @Telefono, @Correo, @Direccion, @MantenimientoId, @Politica, 1)";
+            INSERT INTO Proveedor (PersonaId, Nit, RazonSocial, Contacto, Telefono, Correo, Direccion, MantenimientoId, PoliticaDevolucion, Activo)
+            VALUES (@PersonaId, @Nit, @RazonSocial, @Contacto, @Telefono, @Correo, @Direccion, @MantenimientoId, @Politica, 1)";
 
                 using (var conn = new SqlConnection(_connectionString))
                 using (var cmd = new SqlCommand(queryProveedor, conn))

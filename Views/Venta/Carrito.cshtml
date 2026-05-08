@@ -11,13 +11,13 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h2><i class="fas fa-shopping-cart"></i> Carrito de Compras</h2>
-                            <p>Revise los productos seleccionados</p>
+                            <p>Revise los productos seleccionados antes de facturar</p>
                         </div>
-                        <div>
-                            <a href="@Url.Action("Index")" class="btn-custom" style="background: #3498DB; width: auto; padding: 8px 15px;">
+                        <div class="btn-group-header">
+                            <a href="@Url.Action("Index")" class="btn-agregar-mas">
                                 <i class="fas fa-plus"></i> Agregar más
                             </a>
-                            <a href="@Url.Action("Facturar")" class="btn-custom" style="background: #27AE60; width: auto; padding: 8px 15px;">
+                            <a href="@Url.Action("Facturar")" class="btn-facturar">
                                 <i class="fas fa-receipt"></i> Facturar
                             </a>
                         </div>
@@ -32,43 +32,244 @@
 </div>
 
 <style>
-    .table-custom th, .table-custom td {
-        padding: 12px;
-        vertical-align: middle;
+    .btn-group-header {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-agregar-mas {
+        background: #3498DB;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .btn-agregar-mas:hover {
+            background: #2980B9;
+            transform: translateY(-2px);
+            color: white;
+            text-decoration: none;
+        }
+
+    .btn-facturar {
+        background: #27AE60;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .btn-facturar:hover {
+            background: #1E8449;
+            transform: translateY(-2px);
+            color: white;
+            text-decoration: none;
+        }
+
+    .table-carrito {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+        .table-carrito th {
+            background: #8B4513;
+            color: white;
+            padding: 15px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .table-carrito td {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: middle;
+        }
+
+        .table-carrito tbody tr:hover {
+            background: #fef9f0;
+        }
+
+    .producto-nombre {
+        font-weight: 600;
+        font-size: 1rem;
+        color: #2C3E50;
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .producto-codigo {
+        font-size: 0.7rem;
+        color: #888;
+    }
+
+    .cantidad-badge {
+        display: inline-block;
+        background: #f0f0f0;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .precio-unitario {
+        font-size: 0.9rem;
+        color: #555;
+    }
+
+    .subtotal-text {
+        font-weight: 700;
+        font-size: 1rem;
+        color: #D35400;
     }
 
     .btn-eliminar {
         background: #E74C3C;
         color: white;
         border: none;
-        padding: 5px 10px;
-        border-radius: 5px;
+        padding: 8px 14px;
+        border-radius: 6px;
         cursor: pointer;
+        font-size: 0.75rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
     }
 
-    .detalle-lote {
-        font-size: 0.75rem;
-        color: #666;
-        margin-top: 5px;
-        padding: 5px;
+        .btn-eliminar:hover {
+            background: #C0392B;
+            transform: scale(1.02);
+        }
+
+    .btn-vaciar {
+        background: #E74C3C;
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .btn-vaciar:hover {
+            background: #C0392B;
+            transform: translateY(-2px);
+        }
+
+    .total-footer {
         background: #f8f9fa;
-        border-radius: 5px;
+        font-weight: bold;
+    }
+
+        .total-footer td {
+            padding: 15px;
+        }
+
+    .total-label {
+        text-align: right;
+        font-size: 1rem;
+        color: #2C3E50;
+    }
+
+    .total-amount {
+        color: #D35400;
+        font-size: 1.3rem;
+        font-weight: 800;
+    }
+
+    .carrito-vacio {
+        background: #d1ecf1;
+        color: #0c5460;
+        padding: 40px;
+        border-radius: 12px;
+        text-align: center;
+    }
+
+        .carrito-vacio i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .carrito-vacio p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+
+    .btn-agregar-productos {
+        background: #27AE60;
+        color: white;
+        padding: 12px 25px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+    }
+
+        .btn-agregar-productos:hover {
+            background: #1E8449;
+            transform: translateY(-2px);
+            color: white;
+            text-decoration: none;
+        }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .mt-3 {
+        margin-top: 15px;
+    }
+
+    .mt-4 {
+        margin-top: 20px;
     }
 </style>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        function formatearNumero(valor) {
+            return parseFloat(valor) || 0;
+        }
+
         function renderCarrito() {
             var carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
             var container = $('#carrito-container');
 
             if (carrito.length === 0) {
                 container.html(`
-                    <div class="alert alert-info text-center">
-                        <i class="fas fa-info-circle"></i> El carrito está vacío
-                        <br />
-                        <a href="@Url.Action("Index")" class="btn-custom mt-3" style="background: #27AE60; width: auto;">Agregar productos</a>
+                    <div class="carrito-vacio">
+                        <i class="fas fa-shopping-cart"></i>
+                        <p>Tu carrito está vacío</p>
+                        <a href="@Url.Action("Index")" class="btn-agregar-productos">
+                            <i class="fas fa-cart-plus"></i> Agregar productos
+                        </a>
                     </div>
                 `);
                 return;
@@ -76,72 +277,67 @@
 
             var html = `
                 <div class="table-responsive">
-                    <table class="table-custom">
+                    <table class="table-carrito">
                         <thead>
                             <tr>
-                                <th>Código</th>
-                                <th>Producto</th>
-                                <th class="text-center">Cantidad</th>
-                                <th class="text-right">Precio Unit.</th>
-                                <th class="text-right">Descuento</th>
-                                <th class="text-right">Subtotal</th>
-                                <th class="text-center">Acciones</th>
+                                <th style="width: 40%;">Producto</th>
+                                <th style="width: 15%;" class="text-center">Cantidad</th>
+                                <th style="width: 20%;" class="text-right">Precio Unitario</th>
+                                <th style="width: 20%;" class="text-right">Subtotal</th>
+                                <th style="width: 5%;" class="text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
             `;
 
-            var total = 0;
+            var totalGeneral = 0;
 
             for (var i = 0; i < carrito.length; i++) {
                 var item = carrito[i];
-                var subtotal = item.Cantidad * item.PrecioUnitario;
-                total += subtotal;
-
-                // Mostrar lotes utilizados (FIFO)
-                var lotesHtml = '';
-                if (item.LotesSeleccionados && item.LotesSeleccionados.length > 0) {
-                    lotesHtml = '<div class="detalle-lote"><strong>Lotes:</strong><br/>';
-                    for (var j = 0; j < item.LotesSeleccionados.length; j++) {
-                        var lote = item.LotesSeleccionados[j];
-                        lotesHtml += `📦 ${lote.NumeroLote}: ${lote.Cantidad} unds x Q${lote.PrecioUnitario.toFixed(2)} = Q${lote.Subtotal.toFixed(2)}<br/>`;
-                    }
-                    lotesHtml += '</div>';
-                }
+                var cantidad = formatearNumero(item.Cantidad);
+                var precioUnitario = formatearNumero(item.PrecioUnitario);
+                var subtotal = cantidad * precioUnitario;
+                totalGeneral += subtotal;
+                var nombre = escapeHtml(item.Nombre) || 'Producto';
+                var codigo = escapeHtml(item.Codigo) || '---';
 
                 html += `
-                    <tr data-index="${i}">
-                        <td>${item.Codigo}</td
+                    <tr>
                         <td>
-                            <strong>${item.Nombre}</strong>
-                            ${lotesHtml}
-                        </td
-                        <td class="text-center">${item.Cantidad}</td
-                        <td class="text-right">Q ${item.PrecioUnitario.toFixed(2)}</td
-                        <td class="text-right">Q 0.00</td
-                        <td class="text-right"><strong>Q ${subtotal.toFixed(2)}</strong></td
+                            <div class="producto-nombre">${nombre}</div>
+                            <div class="producto-codigo"><i class="fas fa-barcode"></i> ${codigo}</div>
+                        </td>
                         <td class="text-center">
-                            <button class="btn-eliminar" data-index="${i}">
-                                <i class="fas fa-trash"></i> Eliminar
+                            <span class="cantidad-badge">${cantidad}</span>
+                        </td>
+                        <td class="text-right">
+                            <span class="precio-unitario">Q ${precioUnitario.toFixed(2)}</span>
+                        </td>
+                        <td class="text-right">
+                            <span class="subtotal-text">Q ${subtotal.toFixed(2)}</span>
+                        </td>
+                        <td class="text-center">
+                            <button class="btn-eliminar" data-index="${i}" title="Eliminar producto">
+                                <i class="fas fa-trash-alt"></i> Eliminar
                             </button>
-                        </td
-                    </tr
+                        </td>
+                    </tr>
                 `;
             }
 
             html += `
                         </tbody>
                         <tfoot>
-                            <tr style="background: #f8f9fa; font-weight: bold;">
-                                <td colspan="5" class="text-right">TOTAL:</td
-                                <td class="text-right" style="color: #D35400;">Q ${total.toFixed(2)}</td
-                                <td></td
-                            </tr
+                            <tr class="total-footer">
+                                <td colspan="3" class="total-label">TOTAL</td>
+                                <td class="text-right total-amount">Q ${totalGeneral.toFixed(2)}</td>
+                                <td></td>
+                            </tr>
                         </tfoot>
                     </table>
                 </div>
-                <div class="text-right mt-3">
-                    <button id="btnVaciarCarrito" class="btn-custom" style="background: #E74C3C; width: auto; padding: 10px 20px;">
+                <div class="text-right mt-4">
+                    <button id="btnVaciarCarrito" class="btn-vaciar">
                         <i class="fas fa-trash-alt"></i> Vaciar Carrito
                     </button>
                 </div>
@@ -149,32 +345,56 @@
 
             container.html(html);
 
-            // Eventos
-            $('.btn-eliminar').click(function() {
+            $('.btn-eliminar').off('click').on('click', function () {
                 var index = $(this).data('index');
-                carrito.splice(index, 1);
-                localStorage.setItem('carrito', JSON.stringify(carrito));
-                renderCarrito();
+                Swal.fire({
+                    title: '¿Eliminar producto?',
+                    text: `¿Deseas eliminar ${carrito[index].Nombre} del carrito?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#E74C3C'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        carrito.splice(index, 1);
+                        localStorage.setItem('carrito', JSON.stringify(carrito));
+                        renderCarrito();
+                        Swal.fire('Eliminado', 'Producto eliminado del carrito', 'success');
+                    }
+                });
             });
 
-            $('#btnVaciarCarrito').click(function() {
+            $('#btnVaciarCarrito').off('click').on('click', function () {
                 Swal.fire({
-                    title: '¿Vaciar carrito?',
+                    title: '¿Vaciar carrito completo?',
                     text: 'Todos los productos serán eliminados',
                     icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonText: 'Sí, vaciar',
-                    cancelButtonText: 'Cancelar'
+                    confirmButtonText: 'Sí, vaciar todo',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#E74C3C'
                 }).then((result) => {
                     if (result.isConfirmed) {
                         localStorage.setItem('carrito', '[]');
                         renderCarrito();
+                        Swal.fire('Carrito vacío', 'El carrito ha sido vaciado', 'success');
                     }
                 });
             });
         }
 
-        $(document).ready(function() {
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text).replace(/[&<>]/g, function (m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        $(document).ready(function () {
             renderCarrito();
         });
     </script>

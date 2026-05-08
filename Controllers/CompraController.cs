@@ -173,7 +173,7 @@ namespace LaMediaCancha.Controllers
 
             try
             {
-                int empleadoId = ObtenerEmpleadoIdPorUsuario();
+                int empleadoId = ObtenerEmpleadoIdValido();
 
                 decimal subtotal = 0;
                 foreach (var item in model.Productos)
@@ -187,15 +187,15 @@ namespace LaMediaCancha.Controllers
                 decimal total = subtotal + impuesto;
 
                 string query = @"
-                    INSERT INTO EncabezadoCompra (
-                        EmpleadoId, ProveedorId, TipoCompraId, TipoPagoId, 
-                        NumeroDocumento, NumeroFactura, FechaCompra, FechaVencimiento, 
-                        Subtotal, Impuesto, Descuento, Total, Estado, Activo)
-                    VALUES (
-                        @EmpleadoId, @ProveedorId, @TipoCompraId, @TipoPagoId, 
-                        @NumeroDocumento, @NumeroFactura, GETDATE(), @FechaVencimiento, 
-                        @Subtotal, @Impuesto, 0, @Total, 'Aprobada', 1);
-                    SELECT SCOPE_IDENTITY();";
+            INSERT INTO EncabezadoCompra (
+                EmpleadoId, ProveedorId, TipoCompraId, TipoPagoId, 
+                NumeroDocumento, NumeroFactura, FechaCompra, FechaVencimiento, 
+                Subtotal, Impuesto, Descuento, Total, Estado, Activo)
+            VALUES (
+                @EmpleadoId, @ProveedorId, @TipoCompraId, @TipoPagoId, 
+                @NumeroDocumento, @NumeroFactura, GETDATE(), @FechaVencimiento, 
+                @Subtotal, @Impuesto, 0, @Total, 'Aprobada', 1);
+            SELECT SCOPE_IDENTITY();";
 
                 int compraId;
                 using (var conn = new SqlConnection(_connectionString))
@@ -223,12 +223,12 @@ namespace LaMediaCancha.Controllers
                         decimal subtotalItem = item.Cantidad * item.PrecioUnitario * (1 - descuentoAplicado);
 
                         string detalleQuery = @"
-                            INSERT INTO DetalleCompra (
-                                CompraId, ProductoId, Cantidad, PrecioUnitario, 
-                                Descuento, Subtotal, EstabaEnOferta)
-                            VALUES (
-                                @CompraId, @ProductoId, @Cantidad, @PrecioUnitario, 
-                                @Descuento, @Subtotal, 0)";
+                    INSERT INTO DetalleCompra (
+                        CompraId, ProductoId, Cantidad, PrecioUnitario, 
+                        Descuento, Subtotal, EstabaEnOferta)
+                    VALUES (
+                        @CompraId, @ProductoId, @Cantidad, @PrecioUnitario, 
+                        @Descuento, @Subtotal, 0)";
 
                         using (var cmdDetalle = new SqlCommand(detalleQuery, conn))
                         {
@@ -241,29 +241,112 @@ namespace LaMediaCancha.Controllers
                             cmdDetalle.ExecuteNonQuery();
                         }
                     }
+
+                    // ==========================================
+                    // CREAR FACTURA DE COMPRA AUTOMÁTICAMENTE
+                    // ==========================================
+                    string getProveedorQuery = @"
+                SELECT RazonSocial, NIT, Telefono 
+                FROM Proveedor 
+                WHERE ProveedorId = @ProveedorId";
+
+                    string proveedorNombre = "";
+                    string proveedorNIT = "";
+                    string proveedorTelefono = "";
+
+                    using (var cmd = new SqlCommand(getProveedorQuery, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@ProveedorId", model.ProveedorId);
+                        using (var reader = cmd.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                proveedorNombre = reader["RazonSocial"].ToString();
+                                proveedorNIT = reader["NIT"]?.ToString() ?? "";
+                                proveedorTelefono = reader["Telefono"]?.ToString() ?? "";
+                            }
+                        }
+                    }
+
+                    string insertFacturaQuery = @"
+                INSERT INTO Factura (NumeroFactura, NumeroDocumento, FechaEmision, ClienteNombre, ClienteDocumento, ClienteTelefono, TipoPago, Subtotal, Impuesto, Descuento, Total, Estado, FechaCreacion)
+                VALUES (@NumeroFactura, @NumeroDocumento, GETDATE(), @ClienteNombre, @ClienteDocumento, @ClienteTelefono, @TipoPago, @Subtotal, @Impuesto, @Descuento, @Total, 'Vigente', GETDATE())";
+
+                    using (var cmdFactura = new SqlCommand(insertFacturaQuery, conn))
+                    {
+                        cmdFactura.Parameters.AddWithValue("@NumeroFactura", string.IsNullOrEmpty(model.NumeroFactura) ? DBNull.Value : (object)model.NumeroFactura);
+                        cmdFactura.Parameters.AddWithValue("@NumeroDocumento", model.NumeroDocumento);
+                        cmdFactura.Parameters.AddWithValue("@ClienteNombre", proveedorNombre);
+                        cmdFactura.Parameters.AddWithValue("@ClienteDocumento", proveedorNIT);
+                        cmdFactura.Parameters.AddWithValue("@ClienteTelefono", proveedorTelefono);
+                        cmdFactura.Parameters.AddWithValue("@TipoPago", model.TipoPagoId == 1 ? "Contado" : "Crédito");
+                        cmdFactura.Parameters.AddWithValue("@Subtotal", subtotal);
+                        cmdFactura.Parameters.AddWithValue("@Impuesto", impuesto);
+                        cmdFactura.Parameters.AddWithValue("@Descuento", 0);
+                        cmdFactura.Parameters.AddWithValue("@Total", total);
+                        cmdFactura.ExecuteNonQuery();
+                    }
                 }
 
-                // *** CREAR LOTES AUTOMÁTICAMENTE ***
+                // Crear lotes
                 var loteService = new LoteService();
                 loteService.CrearLotesDesdeCompra(compraId);
 
-                // Bitácora
-                int usuarioId = (int)Session["UserId"];
-                var bitacora = new BitacoraService();
-                int cantidadTotal = model.Productos.Sum(p => (int)p.Cantidad);
-                bitacora.RegistrarCompraCreacion(usuarioId, model.NumeroDocumento, total, cantidadTotal);
-
-                return Json(new
-                {
-                    success = true,
-                    message = "Compra registrada exitosamente",
-                    compraId = compraId
-                });
+                return Json(new { success = true, message = "Compra registrada exitosamente", compraId = compraId });
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = ex.Message });
             }
+        }
+
+        private int ObtenerEmpleadoIdValido()
+        {
+            try
+            {
+                // Primero, intentar obtener el empleado asociado al usuario en sesión
+                int usuarioId = Session["UserId"] != null ? (int)Session["UserId"] : 0;
+
+                if (usuarioId > 0)
+                {
+                    using (var conn = new SqlConnection(_connectionString))
+                    {
+                        conn.Open();
+                        string query = "SELECT EmpleadoId FROM Empleado WHERE UsuarioId = @UsuarioId AND Activo = 1";
+                        using (var cmd = new SqlCommand(query, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@UsuarioId", usuarioId);
+                            var result = cmd.ExecuteScalar();
+                            if (result != null && result != DBNull.Value)
+                            {
+                                return Convert.ToInt32(result);
+                            }
+                        }
+                    }
+                }
+
+                // Si no se encuentra, obtener el primer empleado activo
+                using (var conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string query = "SELECT TOP 1 EmpleadoId FROM Empleado WHERE Activo = 1";
+                    using (var cmd = new SqlCommand(query, conn))
+                    {
+                        var result = cmd.ExecuteScalar();
+                        if (result != null && result != DBNull.Value)
+                        {
+                            return Convert.ToInt32(result);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error al obtener EmpleadoId: {ex.Message}");
+            }
+
+            // Valor por defecto
+            return 19;
         }
 
         public JsonResult ListarProductos(string filtro, int? proveedorId = null)
@@ -397,21 +480,6 @@ namespace LaMediaCancha.Controllers
                 }
             }
             return "FAC-001";
-        }
-
-        private int ObtenerEmpleadoIdPorUsuario()
-        {
-            int usuarioId = Session["UserId"] != null ? (int)Session["UserId"] : 1;
-            string query = "SELECT EmpleadoId FROM Empleado WHERE UsuarioId = @UsuarioId AND Activo = 1";
-            using (var conn = new SqlConnection(_connectionString))
-            using (var cmd = new SqlCommand(query, conn))
-            {
-                cmd.Parameters.AddWithValue("@UsuarioId", usuarioId);
-                conn.Open();
-                var result = cmd.ExecuteScalar();
-                if (result != null) return (int)result;
-            }
-            return 1;
         }
     }
 }

@@ -1,356 +1,1128 @@
-﻿@model LaMediaCancha.Models.ViewModels.OrdenViewModel
+﻿@model LaMediaCancha.Models.ViewModels.OrdenTomaPedidoAvanzadaViewModel
+
 @{
     ViewBag.Title = "Tomar Pedido - Mesa " + Model.NumeroMesa;
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container-fluid">
+<div class="container-fluid pedido-container">
     <div class="row">
         <div class="col-12">
             <div class="card-custom card-custom-full">
+                <!-- Header -->
                 <div class="card-header-custom">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div>
-                            <h2><i class="fas fa-clipboard-list"></i> Tomar Pedido</h2>
-                            <p>Mesa @Model.NumeroMesa - @Model.Ubicacion</p>
+                            <h2 class="text-white mb-1">
+                                <i class="fas fa-clipboard-list"></i> Tomar Pedido
+                            </h2>
+                            <p class="mb-0 text-white-50">Mesa @Model.NumeroMesa - @Model.Ubicacion</p>
                         </div>
-                        <div>
-                            <a href="@Url.Action("Index")" class="btn-custom" style="background: #6c757d; width: auto; padding: 8px 15px;">
-                                <i class="fas fa-arrow-left"></i> Regresar
-                            </a>
+                        <a href="@Url.Action("Index")" class="btn btn-light">
+                            <i class="fas fa-arrow-left"></i> Regresar
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card-body-custom p-3">
+                    @Html.HiddenFor(m => m.MesaId)
+                    @Html.HiddenFor(m => m.NumeroMesa)
+                    @Html.HiddenFor(m => m.Ubicacion)
+
+                    <div class="row">
+                        <!-- COLUMNA IZQUIERDA -->
+                        <div class="col-lg-7">
+                            <!-- Modo de orden -->
+                            <div class="card shadow-sm mb-3">
+                                <div class="card-header bg-white">
+                                    <h5 class="mb-0"><i class="fas fa-shopping-cart"></i> Modo de Orden</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input type="radio" name="modoOrden" id="modoNormal" value="normal" class="form-check-input" checked>
+                                                <label class="form-check-label fw-bold" for="modoNormal">
+                                                    <i class="fas fa-user"></i> Orden Normal (una sola cuenta)
+                                                </label>
+                                                <p class="small text-muted ms-4">Toda la mesa paga en una sola cuenta</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-check">
+                                                <input type="radio" name="modoOrden" id="modoCuentasSeparadas" value="separadas" class="form-check-input">
+                                                <label class="form-check-label fw-bold" for="modoCuentasSeparadas">
+                                                    <i class="fas fa-users"></i> Cuentas Separadas
+                                                </label>
+                                                <p class="small text-muted ms-4">Cada persona paga por separado</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Datos del Cliente (solo en modo normal) -->
+                            <div id="datosClienteContainer" class="card shadow-sm mb-3">
+                                <div class="card-header bg-white">
+                                    <h5 class="mb-0"><i class="fas fa-user text-primary"></i> Datos del Cliente</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <label class="form-label">Nombre del Cliente</label>
+                                            @Html.TextBoxFor(m => m.ClienteNombre, new { @class = "form-control", placeholder = "Ingrese el nombre del cliente" })
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Cuentas Separadas Container (se muestra solo cuando se selecciona) -->
+                            <div id="cuentasSeparadasContainer" style="display: none;">
+                                <div class="card shadow-sm mb-3">
+                                    <div class="card-header bg-white">
+                                        <h5 class="mb-0"><i class="fas fa-users text-warning"></i> Personas</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <button type="button" id="agregarPersonaBtn" class="btn btn-primary btn-sm mb-3">
+                                            <i class="fas fa-user-plus"></i> Agregar Persona
+                                        </button>
+                                        <div id="personasContainer" class="row"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Buscador -->
+                            <div class="card shadow-sm mb-3">
+                                <div class="card-header bg-white">
+                                    <h5 class="mb-0"><i class="fas fa-search text-info"></i> Buscar Productos</h5>
+                                </div>
+                                <div class="card-body">
+                                    <input type="text" id="buscarProducto" class="form-control" placeholder="Escriba el nombre del producto...">
+                                </div>
+                            </div>
+
+                            <!-- Productos Disponibles -->
+                            <div class="card shadow-sm mb-3">
+                                <div class="card-header bg-white">
+                                    <h5 class="mb-0"><i class="fas fa-utensils text-success"></i> Productos Disponibles</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="productosList" class="productos-grid">
+                                        <div class="text-center p-3">Cargando productos...</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Combos Especiales -->
+                            <div class="card shadow-sm mb-3">
+                                <div class="card-header bg-white">
+                                    <h5 class="mb-0"><i class="fas fa-layer-group text-danger"></i> Combos Especiales</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="combosList" class="combos-grid">
+                                        <div class="text-center p-3">Cargando combos...</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- COLUMNA DERECHA -->
+                        <div class="col-lg-5">
+                            <div class="cart-section shadow-lg">
+                                <h5 class="section-title border-bottom pb-2">
+                                    <i class="fas fa-shopping-cart"></i> Pedido Actual
+                                </h5>
+
+                                <!-- Carrito Modo Normal -->
+                                <div id="carritoNormal" class="mb-3">
+                                    <div id="carritoLista" class="carrito-container" style="max-height: 300px; overflow-y: auto;">
+                                        <div class="text-center text-muted py-4">No hay productos agregados</div>
+                                    </div>
+                                </div>
+
+                                <!-- Carrito Cuentas Separadas -->
+                                <div id="carritoCuentasSeparadas" style="display: none;">
+                                    <div id="resumenCuentas" class="mb-3"></div>
+                                </div>
+
+                                <!-- Totales Globales -->
+                                <div class="cart-totals bg-light p-3 rounded">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Subtotal:</span>
+                                        <span id="subtotal" class="fw-bold">Q 0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>IVA (12%):</span>
+                                        <span id="impuesto" class="fw-bold">Q 0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between border-top pt-2 mt-2">
+                                        <span class="h5 mb-0">Total:</span>
+                                        <span id="totalGlobal" class="h5 mb-0 text-success fw-bold">Q 0.00</span>
+                                    </div>
+                                </div>
+
+                                <!-- Forma de Pago -->
+                                <div class="mt-3">
+                                    <label class="form-label fw-bold">Forma de Pago</label>
+                                    <select id="formaPago" class="form-select">
+                                        <option value="Efectivo">💵 Efectivo</option>
+                                        <option value="Tarjeta">💳 Tarjeta de Crédito/Débito</option>
+                                        <option value="Transferencia">🏦 Transferencia Bancaria</option>
+                                        <option value="QR">📱 Código QR</option>
+                                    </select>
+                                </div>
+
+                                <div class="mt-3" id="montoEfectivoContainer" style="display: none;">
+                                    <label class="form-label">Monto Recibido</label>
+                                    <input type="number" id="montoRecibido" class="form-control" placeholder="Monto entregado por el cliente">
+                                    <div id="cambioInfo" class="mt-2 fw-bold"></div>
+                                </div>
+
+                                <!-- Observaciones -->
+                                <div class="mt-3">
+                                    <label class="form-label">Observaciones</label>
+                                    @Html.TextAreaFor(m => m.Observaciones, new { @class = "form-control", rows = 2, placeholder = "Notas adicionales para la cocina..." })
+                                </div>
+
+                                <div class="d-grid gap-2 mt-4">
+                                    <button type="button" id="guardarPedidoBtn" class="btn btn-success btn-lg py-3 fw-bold">
+                                        <i class="fas fa-save"></i> GUARDAR PEDIDO
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="card-body-custom">
-
-                    <form id="frmOrden" method="post">
-                        <input type="hidden" id="MesaId" name="MesaId" value="@Model.MesaId" />
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Cliente (Opcional)</label>
-                                    <input type="text" id="ClienteNombre" name="ClienteNombre" class="form-control" placeholder="Nombre del cliente" />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Teléfono (Opcional)</label>
-                                    <input type="text" id="ClienteTelefono" name="ClienteTelefono" class="form-control" placeholder="Teléfono" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Observaciones</label>
-                            <textarea id="Observaciones" name="Observaciones" class="form-control" rows="2" placeholder="Notas adicionales para la cocina"></textarea>
-                        </div>
-
-                        <hr />
-
-                        <!-- Productos -->
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h4><i class="fas fa-boxes"></i> Productos</h4>
-                            <button type="button" class="btn-agregar" id="btnAgregarProducto" style="background: #27AE60; color: white; border: none; padding: 8px 20px; border-radius: 5px;">
-                                <i class="fas fa-plus"></i> Agregar Producto
-                            </button>
-                        </div>
-
-                        <div class="table-responsive">
-                            <table class="table-custom" id="tblProductos">
-                                <thead>
-                                    <tr>
-                                        <th style="width: 35%;">Producto</th>
-                                        <th style="width: 15%;">Cantidad</th>
-                                        <th style="width: 20%;">Precio Unitario (Q)</th>
-                                        <th style="width: 15%;">Nota</th>
-                                        <th style="width: 15%;">Subtotal (Q)</th>
-                                        <th style="width: 5%;"></th>
-                                    </tr>
-                                </thead>
-                                <tbody id="tblProductosBody"></tbody>
-                                <tfoot>
-                                    <tr>
-                                        <td colspan="4" class="text-right"><strong>Total:</strong></td>
-                                        <td colspan="2"><strong id="totalGeneral">Q 0.00</strong></td>
-                                    </tr>
-                                </tfoot>
-                            </table>
-                        </div>
-
-                        <div class="text-right mt-3">
-                            <button type="submit" id="btnGuardar" class="btn-custom" style="background: #D35400; padding: 10px 30px;">
-                                <i class="fas fa-save"></i> Guardar Pedido
-                            </button>
-                        </div>
-                    </form>
-                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Modal para seleccionar producto -->
-<div id="modalProducto" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
-    <div style="background: white; border-radius: 10px; width: 600px; max-width: 90%; overflow: hidden;">
-        <div style="background: linear-gradient(135deg, #8B4513, #D35400); color: white; padding: 15px 20px;">
-            <h5 style="margin: 0;">Seleccionar Producto</h5>
+<!-- Modal personalizado para seleccionar persona (solo cuentas separadas) -->
+<div id="modalPersona" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="background: white; border-radius: 15px; width: 90%; max-width: 400px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: fadeInUp 0.3s ease;">
+        <div style="background: linear-gradient(135deg, #c95a00, #a04700); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+            <h5 class="mb-0"><i class="fas fa-user-friends"></i> Seleccionar persona</h5>
+            <button type="button" onclick="cerrarModalPersona()" style="background: none; border: none; color: white; font-size: 28px; cursor: pointer; line-height: 1;">&times;</button>
         </div>
-        <div style="padding: 20px;">
-            <input type="text" id="buscarProducto" class="form-control" placeholder="Buscar producto..." style="margin-bottom: 15px;" />
-            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                <table class="table-custom" id="tblProductosDisponibles">
-                    <thead>
-                        <tr>
-                            <th>Código</th>
-                            <th>Producto</th>
-                            <th class="text-right">Precio (Q)</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-        </div>
-        <div style="padding: 15px; border-top: 1px solid #eee; text-align: right;">
-            <button type="button" class="btn-cancelar" onclick="cerrarModalProducto()">Cancelar</button>
-        </div>
+        <div id="modalPersonaLista" style="padding: 15px; max-height: 400px; overflow-y: auto;"></div>
     </div>
 </div>
 
-<style>
-    .btn-agregar:hover {
-        background: #1E8449 !important;
-    }
-
-    .btn-cancelar {
-        background: #6c757d;
-        color: white;
-        border: none;
-        padding: 8px 20px;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-
-    .btn-eliminar-producto {
-        background: #E74C3C;
-        color: white;
-        border: none;
-        padding: 5px 10px;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-
-    .table-custom {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-        .table-custom th, .table-custom td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-            vertical-align: middle;
-        }
-
-        .table-custom th {
-            background: #8B4513;
-            color: white;
-        }
-
-        .table-custom input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            text-align: center;
-        }
-
-    .text-right {
-        text-align: right;
-    }
-
-    .form-group {
-        margin-bottom: 15px;
-    }
-
-    .form-control {
-        width: 100%;
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-    }
-</style>
+<!-- Modal para Ticket -->
+<div id="modalTicket" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center;">
+    <div style="background: white; border-radius: 15px; width: 95%; max-width: 400px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: fadeInUp 0.3s ease;">
+        <div style="background: #28a745; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
+            <h5 class="mb-0"><i class="fas fa-receipt"></i> Ticket de Venta</h5>
+            <button type="button" onclick="cerrarModalTicket()" style="background: none; border: none; color: white; font-size: 28px; cursor: pointer; line-height: 1;">&times;</button>
+        </div>
+        <div id="modalTicketContenido" style="padding: 15px; max-height: 500px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 13px;"></div>
+        <div style="padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px;">
+            <button type="button" onclick="cerrarModalTicket()" class="btn btn-secondary flex-grow-1">Cerrar</button>
+            <button type="button" onclick="imprimirTicket()" class="btn btn-primary flex-grow-1">
+                <i class="fas fa-print"></i> Imprimir
+            </button>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
-    <link href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css" rel="stylesheet" />
-    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        var contadorProductos = 0;
-        var productosDisponibles = [];
+        let productosData = [];
+        let combosData = [];
+        let ordenActualId = null;
 
-        function formatearMoneda(valor) {
-            return 'Q ' + valor.toFixed(2);
-        }
+        // Modo normal (carrito simple)
+        let carritoNormal = [];
 
-        function calcularTotal() {
-            let total = 0;
-            $('#tblProductos tbody tr').each(function() {
-                let subtotal = parseFloat($(this).find('.subtotal').data('val')) || 0;
-                total += subtotal;
+        // Modo cuentas separadas
+        let cuentasSeparadasActivo = false;
+        let personas = [];
+        let nextPersonaId = 1;
+        let productoPendiente = null;
+
+        $(document).ready(function () {
+            cargarProductos();
+            cargarCombos();
+
+            $('#buscarProducto').on('keyup', filtrarProductos);
+            $('#guardarPedidoBtn').on('click', guardarPedido);
+
+            $('#formaPago').on('change', function() {
+                $('#montoEfectivoContainer').toggle($(this).val() === 'Efectivo');
+                $('#montoRecibido').val('');
+                $('#cambioInfo').html('');
             });
-            $('#totalGeneral').text(formatearMoneda(total));
+
+            $('#montoRecibido').on('keyup', calcularCambioGlobal);
+
+            // Modo de orden
+            $('#modoNormal').on('change', function() {
+                if ($(this).is(':checked')) {
+                    cuentasSeparadasActivo = false;
+                    $('#datosClienteContainer').show();
+                    $('#cuentasSeparadasContainer').hide();
+                    $('#carritoNormal').show();
+                    $('#carritoCuentasSeparadas').hide();
+                    // Limpiar datos de cuentas separadas
+                    personas = [];
+                    nextPersonaId = 1;
+                    $('#personasContainer').empty();
+                    $('#resumenCuentas').empty();
+                    actualizarTotalesGlobales();
+                }
+            });
+
+            $('#modoCuentasSeparadas').on('change', function() {
+                if ($(this).is(':checked')) {
+                    cuentasSeparadasActivo = true;
+                    $('#datosClienteContainer').hide();
+                    $('#cuentasSeparadasContainer').show();
+                    $('#carritoNormal').hide();
+                    $('#carritoCuentasSeparadas').show();
+                    if (personas.length === 0) {
+                        agregarPersona();
+                    }
+                    actualizarResumenCuentas();
+                    actualizarTotalesGlobales();
+                }
+            });
+
+            $('#agregarPersonaBtn').on('click', function() {
+                agregarPersona();
+            });
+
+            // Cerrar modales al hacer click fuera
+            document.getElementById('modalPersona').addEventListener('click', function(e) {
+                if (e.target === this) cerrarModalPersona();
+            });
+
+            document.getElementById('modalTicket').addEventListener('click', function(e) {
+                if (e.target === this) cerrarModalTicket();
+            });
+        });
+
+        function formatoQ(valor) {
+            return 'Q ' + parseFloat(valor).toFixed(2);
         }
 
-        function calcularSubtotal(fila) {
-            let cantidad = parseFloat(fila.find('.cantidad').val()) || 0;
-            let precio = parseFloat(fila.find('.precio').val()) || 0;
-            let subtotal = cantidad * precio;
-            fila.find('.subtotal').text(formatearMoneda(subtotal)).data('val', subtotal);
-            calcularTotal();
+        function cargarProductos() {
+            $.ajax({
+                url: '@Url.Action("GetProductos", "Orden")',
+                type: 'GET',
+                success: function (data) {
+                    productosData = data || [];
+                    renderizarProductos(productosData);
+                },
+                error: function () {
+                    $('#productosList').html('<div class="alert alert-danger">Error al cargar productos</div>');
+                }
+            });
         }
 
-        function agregarProducto(producto) {
-            if ($('#tblProductos tbody tr[data-id="' + producto.ProductoId + '"]').length > 0) {
-                Swal.fire('Atención', 'El producto ya está en la lista', 'warning');
+        function cargarCombos() {
+            $.ajax({
+                url: '@Url.Action("GetCombos", "Orden")',
+                type: 'GET',
+                success: function (data) {
+                    combosData = data || [];
+                    renderizarCombos(combosData);
+                },
+                error: function () {
+                    $('#combosList').html('<div class="alert alert-danger">Error al cargar combos</div>');
+                }
+            });
+        }
+
+        function renderizarProductos(productos) {
+            if (!productos.length) {
+                $('#productosList').html('<div class="text-center py-4">No hay productos disponibles</div>');
+                return;
+            }
+            let html = '<div class="row g-2">';
+            productos.forEach(p => {
+                let nombreEscaped = (p.Nombre || '').replace(/'/g, "\\'");
+                let precio = p.PrecioVenta || 0;
+                html += `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="producto-card" onclick="seleccionarProducto(${p.ProductoId}, '${nombreEscaped}', ${precio})">
+                            <div class="icon-circle mx-auto">
+                                <i class="fas fa-hamburger"></i>
+                            </div>
+                            <h6 class="mt-2 mb-1">${p.Nombre}</h6>
+                            <span class="badge bg-primary">${formatoQ(precio)}</span>
+                        </div>
+                    </div>`;
+            });
+            html += '</div>';
+            $('#productosList').html(html);
+        }
+
+        function renderizarCombos(combos) {
+            if (!combos.length) {
+                $('#combosList').html('<div class="text-center py-4">No hay combos disponibles</div>');
+                return;
+            }
+            let html = '<div class="row g-2">';
+            combos.forEach(c => {
+                let nombreEscaped = (c.Nombre || '').replace(/'/g, "\\'");
+                let precio = c.PrecioCombo || 0;
+                html += `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="combo-card" onclick="seleccionarCombo(${c.ComboId}, '${nombreEscaped}', ${precio})">
+                            <div class="icon-circle mx-auto">
+                                <i class="fas fa-gift"></i>
+                            </div>
+                            <h6 class="mt-2 mb-1">${c.Nombre}</h6>
+                            <span class="badge bg-warning text-dark">${formatoQ(precio)}</span>
+                            <small class="text-muted d-block">${c.Descripcion || 'Ahorra con este combo'}</small>
+                        </div>
+                    </div>`;
+            });
+            html += '</div>';
+            $('#combosList').html(html);
+        }
+
+        function filtrarProductos() {
+            let texto = $('#buscarProducto').val().toLowerCase();
+            let filtrados = productosData.filter(p => (p.Nombre || '').toLowerCase().includes(texto));
+            renderizarProductos(filtrados);
+        }
+
+        function seleccionarProducto(id, nombre, precio) {
+            if (cuentasSeparadasActivo) {
+                if (personas.length === 0) {
+                    Swal.fire('Aviso', 'Primero agregue al menos una persona', 'warning');
+                    return;
+                }
+                productoPendiente = { id, nombre, precio, esCombo: false };
+                mostrarModalPersonas();
+            } else {
+                // Modo normal - agregar al carrito simple
+                agregarAlCarritoNormal(id, nombre, precio);
+            }
+        }
+
+        function seleccionarCombo(id, nombre, precio) {
+            if (cuentasSeparadasActivo) {
+                if (personas.length === 0) {
+                    Swal.fire('Aviso', 'Primero agregue al menos una persona', 'warning');
+                    return;
+                }
+                productoPendiente = { id, nombre, precio, esCombo: true };
+                mostrarModalPersonas();
+            } else {
+                // Modo normal - agregar combo al carrito simple
+                agregarComboNormal(id, nombre, precio);
+            }
+        }
+
+        // ========== MODO NORMAL ==========
+        function agregarAlCarritoNormal(id, nombre, precio) {
+            let item = carritoNormal.find(x => x.ProductoId === id && !x.EsCombo);
+            if (item) {
+                item.Cantidad++;
+                item.Subtotal = item.Cantidad * item.PrecioUnitario;
+            } else {
+                carritoNormal.push({
+                    ProductoId: id,
+                    NombreProducto: nombre,
+                    Cantidad: 1,
+                    PrecioUnitario: parseFloat(precio),
+                    Subtotal: parseFloat(precio),
+                    EsCombo: false,
+                    Nota: ''
+                });
+            }
+            actualizarCarritoNormal();
+            mostrarNotificacion(`${nombre} agregado al pedido`, 'success');
+        }
+
+        function agregarComboNormal(id, nombre, precio) {
+            let item = carritoNormal.find(x => x.ComboId === id && x.EsCombo);
+            if (item) {
+                item.Cantidad++;
+                item.Subtotal = item.Cantidad * item.PrecioUnitario;
+            } else {
+                carritoNormal.push({
+                    ComboId: id,
+                    NombreProducto: nombre,
+                    Cantidad: 1,
+                    PrecioUnitario: parseFloat(precio),
+                    Subtotal: parseFloat(precio),
+                    EsCombo: true,
+                    Nota: ''
+                });
+            }
+            actualizarCarritoNormal();
+            mostrarNotificacion(`${nombre} agregado al pedido`, 'success');
+        }
+
+        function actualizarCarritoNormal() {
+            if (carritoNormal.length === 0) {
+                $('#carritoLista').html('<div class="text-center text-muted py-4">No hay productos agregados</div>');
+                actualizarTotalesGlobales();
                 return;
             }
 
-            var nuevaFila = `
-                <tr data-id="${producto.ProductoId}">
-                    <td><strong>${producto.NombreProducto}</strong>
-                        <input type="hidden" name="Productos[${contadorProductos}].ProductoId" value="${producto.ProductoId}" />
-                    </td>
-                    <td><input type="number" name="Productos[${contadorProductos}].Cantidad" class="cantidad" min="0.01" step="0.01" value="1" required /></td>
-                    <td><input type="number" name="Productos[${contadorProductos}].PrecioUnitario" class="precio" value="${producto.PrecioUnitario}" readonly style="background:#f5f5f5;" /></td>
-                    <td><input type="text" name="Productos[${contadorProductos}].Nota" class="nota" placeholder="Ej: Sin sal" /></td>
-                    <td class="subtotal" data-val="0">Q 0.00</td
-                    <td><button type="button" class="btn-eliminar-producto"><i class="fas fa-trash"></i></button></td>
-                </tr>
+            let html = '';
+            let subtotal = 0;
+
+            carritoNormal.forEach((item, idx) => {
+                subtotal += item.Subtotal;
+                html += `
+                    <div class="carrito-item border-bottom py-2 mb-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="flex-grow-1">
+                                <strong>${item.NombreProducto}</strong>
+                                <div class="text-muted small">${formatoQ(item.PrecioUnitario)} c/u</div>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="number" class="form-control form-control-sm" style="width: 55px;"
+                                       value="${item.Cantidad}" min="1"
+                                       onchange="actualizarCantidadNormal(${idx}, this.value)">
+                                <button class="btn btn-sm btn-outline-danger" onclick="eliminarProductoNormal(${idx})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="text-end mt-1">Subtotal: ${formatoQ(item.Subtotal)}</div>
+                    </div>
+                `;
+            });
+
+            $('#carritoLista').html(html);
+
+            let iva = subtotal * 0.12;
+            let total = subtotal + iva;
+
+            $('#subtotal').text(formatoQ(subtotal));
+            $('#impuesto').text(formatoQ(iva));
+            $('#totalGlobal').text(formatoQ(total));
+        }
+
+        function actualizarCantidadNormal(index, nuevaCantidad) {
+            nuevaCantidad = parseInt(nuevaCantidad) || 1;
+            if (nuevaCantidad < 1) nuevaCantidad = 1;
+            carritoNormal[index].Cantidad = nuevaCantidad;
+            carritoNormal[index].Subtotal = nuevaCantidad * carritoNormal[index].PrecioUnitario;
+            actualizarCarritoNormal();
+        }
+
+        function eliminarProductoNormal(index) {
+            carritoNormal.splice(index, 1);
+            actualizarCarritoNormal();
+        }
+
+        // ========== MODO CUENTAS SEPARADAS ==========
+        function mostrarModalPersonas() {
+            if (personas.length === 0) return;
+
+            let html = '<div class="list-group">';
+            personas.forEach((p, idx) => {
+                let nombreMostrar = p.nombre && p.nombre.trim() !== '' ? p.nombre : `Persona ${idx + 1}`;
+                let totalItems = p.carrito.reduce((sum, item) => sum + item.Cantidad, 0);
+                html += `
+                    <button type="button" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center mb-2"
+                            style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; background: white; cursor: pointer;"
+                            onclick="asignarAPersona(${idx})">
+                        <span><i class="fas fa-user me-2"></i> ${nombreMostrar}</span>
+                        <span class="badge bg-primary rounded-pill">${totalItems} items</span>
+                    </button>
+                `;
+            });
+            html += '</div>';
+
+            document.getElementById('modalPersonaLista').innerHTML = html;
+            document.getElementById('modalPersona').style.display = 'flex';
+        }
+
+        function cerrarModalPersona() {
+            document.getElementById('modalPersona').style.display = 'none';
+            productoPendiente = null;
+        }
+
+        function asignarAPersona(personaIndex) {
+            if (productoPendiente) {
+                if (productoPendiente.esCombo) {
+                    agregarComboAPersona(personaIndex, productoPendiente.id, productoPendiente.nombre, productoPendiente.precio);
+                } else {
+                    agregarProductoAPersona(personaIndex, productoPendiente.id, productoPendiente.nombre, productoPendiente.precio);
+                }
+                productoPendiente = null;
+            }
+            cerrarModalPersona();
+        }
+
+        function agregarPersona() {
+            let personaId = nextPersonaId++;
+            let nuevaPersona = {
+                id: personaId,
+                nombre: '',
+                carrito: []
+            };
+            personas.push(nuevaPersona);
+
+            let personaHtml = `
+                <div class="col-md-6 col-lg-6 mb-3" id="persona-card-${personaId}">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <strong><i class="fas fa-user"></i> Persona ${personaId}</strong>
+                            <button type="button" class="btn btn-sm btn-light" onclick="eliminarPersona(${personaId})">
+                                <i class="fas fa-trash text-danger"></i>
+                            </button>
+                        </div>
+                        <div class="card-body p-2">
+                            <input type="text" class="form-control form-control-sm mb-2"
+                                   id="persona-nombre-${personaId}"
+                                   placeholder="Nombre del cliente"
+                                   onchange="actualizarNombrePersona(${personaId}, this.value)">
+                            <hr class="my-2">
+                            <div class="persona-carrito" id="persona-carrito-${personaId}" style="max-height: 200px; overflow-y: auto; font-size: 12px;">
+                                <div class="text-muted small text-center py-2">Sin productos</div>
+                            </div>
+                            <div class="mt-2 text-end border-top pt-2">
+                                <strong>Total: </strong><span id="persona-total-${personaId}" class="text-primary">Q 0.00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             `;
-            $('#tblProductos tbody').append(nuevaFila);
-            contadorProductos++;
-            let fila = $('#tblProductos tbody tr:last');
-            fila.find('.cantidad').on('change keyup', function() { calcularSubtotal(fila); });
-            fila.find('.btn-eliminar-producto').click(function() { fila.remove(); calcularTotal(); reindexar(); });
-            calcularSubtotal(fila);
+
+            $('#personasContainer').append(personaHtml);
+            actualizarResumenCuentas();
         }
 
-        function reindexar() {
-            $('#tblProductos tbody tr').each(function(index) {
-                $(this).find('input').each(function() {
-                    var name = $(this).attr('name');
-                    if (name) name = name.replace(/Productos\[\d+\]/, 'Productos[' + index + ']');
-                    $(this).attr('name', name);
-                });
-            });
-            contadorProductos = $('#tblProductos tbody tr').length;
-        }
-
-        function cargarProductosDisponibles() {
-            $.get('@Url.Action("GetProductos", "Orden")', function(data) {
-                productosDisponibles = data;
-                var tbody = $('#tblProductosDisponibles tbody');
-                tbody.empty();
-                $.each(data, function(i, p) {
-                    tbody.append(`
-                        <tr>
-                            <td>${p.Codigo}</td>
-                            <td>${p.NombreProducto}</td>
-                            <td class="text-right">${formatearMoneda(p.PrecioUnitario)}</td
-                            <td><button type="button" class="btn-seleccionar" data-id="${p.ProductoId}" data-nombre="${p.NombreProducto}" data-precio="${p.PrecioUnitario}">Seleccionar</button><td>
-                        </tr>
-                    `);
-                });
+        function eliminarPersona(personaId) {
+            Swal.fire({
+                title: '¿Eliminar persona?',
+                text: 'Se eliminarán todos sus productos',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    personas = personas.filter(p => p.id !== personaId);
+                    $(`#persona-card-${personaId}`).remove();
+                    actualizarResumenCuentas();
+                    actualizarTotalesGlobales();
+                }
             });
         }
 
-        function abrirModalProducto() {
-            $('#modalProducto').css('display', 'flex');
-            cargarProductosDisponibles();
+        function actualizarNombrePersona(personaId, nombre) {
+            let persona = personas.find(p => p.id === personaId);
+            if (persona) {
+                persona.nombre = nombre;
+                actualizarResumenCuentas();
+            }
         }
 
-        function cerrarModalProducto() {
-            $('#modalProducto').hide();
-            $('#buscarProducto').val('');
-        }
+        function agregarProductoAPersona(personaIndex, productoId, nombre, precio) {
+            let persona = personas[personaIndex];
+            let item = persona.carrito.find(x => x.ProductoId === productoId && !x.EsCombo);
 
-        $(document).ready(function() {
-            $('#btnAgregarProducto').click(abrirModalProducto);
-
-            $(document).on('click', '.btn-seleccionar', function() {
-                agregarProducto({
-                    ProductoId: $(this).data('id'),
-                    NombreProducto: $(this).data('nombre'),
-                    PrecioUnitario: $(this).data('precio')
+            if (item) {
+                item.Cantidad++;
+                item.Subtotal = item.Cantidad * item.PrecioUnitario;
+            } else {
+                persona.carrito.push({
+                    ProductoId: productoId,
+                    NombreProducto: nombre,
+                    Cantidad: 1,
+                    PrecioUnitario: parseFloat(precio),
+                    Subtotal: parseFloat(precio),
+                    EsCombo: false,
+                    Nota: ''
                 });
-                cerrarModalProducto();
+            }
+
+            actualizarCarritoPersona(persona);
+            actualizarResumenCuentas();
+            actualizarTotalesGlobales();
+
+            let nombrePersona = persona.nombre || `Persona ${personaIndex + 1}`;
+            mostrarNotificacion(`${nombre} agregado a ${nombrePersona}`, 'success');
+        }
+
+        function agregarComboAPersona(personaIndex, comboId, nombre, precio) {
+            let persona = personas[personaIndex];
+            let item = persona.carrito.find(x => x.ComboId === comboId && x.EsCombo);
+
+            if (item) {
+                item.Cantidad++;
+                item.Subtotal = item.Cantidad * item.PrecioUnitario;
+            } else {
+                persona.carrito.push({
+                    ComboId: comboId,
+                    NombreProducto: nombre,
+                    Cantidad: 1,
+                    PrecioUnitario: parseFloat(precio),
+                    Subtotal: parseFloat(precio),
+                    EsCombo: true,
+                    Nota: ''
+                });
+            }
+
+            actualizarCarritoPersona(persona);
+            actualizarResumenCuentas();
+            actualizarTotalesGlobales();
+
+            let nombrePersona = persona.nombre || `Persona ${personaIndex + 1}`;
+            mostrarNotificacion(`${nombre} agregado a ${nombrePersona}`, 'success');
+        }
+
+        function actualizarCarritoPersona(persona) {
+            if (persona.carrito.length === 0) {
+                $(`#persona-carrito-${persona.id}`).html('<div class="text-muted small text-center py-2">Sin productos</div>');
+                $(`#persona-total-${persona.id}`).text(formatoQ(0));
+                return;
+            }
+
+            let html = '';
+            let total = 0;
+
+            persona.carrito.forEach((item, idx) => {
+                total += item.Subtotal;
+                html += `
+                    <div class="small mb-2 p-1 border-bottom">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="flex-grow-1">
+                                <strong>${item.NombreProducto}</strong>
+                                <div class="text-muted" style="font-size: 10px;">${formatoQ(item.PrecioUnitario)} c/u</div>
+                            </div>
+                            <div class="d-flex align-items-center gap-1">
+                                <input type="number" class="form-control form-control-sm" style="width: 45px;"
+                                       value="${item.Cantidad}" min="1"
+                                       onchange="actualizarCantidadPersona(${persona.id}, ${idx}, this.value)">
+                                <button class="btn btn-sm btn-outline-danger" onclick="eliminarProductoPersona(${persona.id}, ${idx})">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="text-end small">Subtotal: ${formatoQ(item.Subtotal)}</div>
+                    </div>
+                `;
             });
 
-            $('#buscarProducto').on('keyup', function() {
-                var filtro = $(this).val().toLowerCase();
-                var tbody = $('#tblProductosDisponibles tbody');
-                tbody.empty();
-                $.each(productosDisponibles, function(i, p) {
-                    if (p.NombreProducto.toLowerCase().includes(filtro) || p.Codigo.toLowerCase().includes(filtro)) {
-                        tbody.append(`
-                            <tr>
-                                <td>${p.Codigo}</td>
-                                <td>${p.NombreProducto}</td>
-                                <td class="text-right">${formatearMoneda(p.PrecioUnitario)}</td
-                                <td><button type="button" class="btn-seleccionar" data-id="${p.ProductoId}" data-nombre="${p.NombreProducto}" data-precio="${p.PrecioUnitario}">Seleccionar</button></td>
-                            </tr>
-                        `);
+            $(`#persona-carrito-${persona.id}`).html(html);
+            $(`#persona-total-${persona.id}`).text(formatoQ(total));
+        }
+
+        function actualizarCantidadPersona(personaId, itemIndex, nuevaCantidad) {
+            let persona = personas.find(p => p.id === personaId);
+            if (persona) {
+                nuevaCantidad = parseInt(nuevaCantidad) || 1;
+                if (nuevaCantidad < 1) nuevaCantidad = 1;
+                persona.carrito[itemIndex].Cantidad = nuevaCantidad;
+                persona.carrito[itemIndex].Subtotal = nuevaCantidad * persona.carrito[itemIndex].PrecioUnitario;
+                actualizarCarritoPersona(persona);
+                actualizarResumenCuentas();
+                actualizarTotalesGlobales();
+            }
+        }
+
+        function eliminarProductoPersona(personaId, itemIndex) {
+            let persona = personas.find(p => p.id === personaId);
+            if (persona) {
+                let producto = persona.carrito[itemIndex];
+                Swal.fire({
+                    title: '¿Eliminar producto?',
+                    text: `¿Eliminar ${producto.NombreProducto}?`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sí, eliminar',
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        persona.carrito.splice(itemIndex, 1);
+                        actualizarCarritoPersona(persona);
+                        actualizarResumenCuentas();
+                        actualizarTotalesGlobales();
                     }
                 });
-            });
+            }
+        }
 
-            $('#frmOrden').submit(function(e) {
-                e.preventDefault();
-                if ($('#tblProductos tbody tr').length === 0) {
-                    Swal.fire('Atención', 'Debe agregar al menos un producto', 'warning');
+        function actualizarResumenCuentas() {
+            if (personas.length === 0) {
+                $('#resumenCuentas').html('<div class="text-center text-muted py-4">No hay personas agregadas</div>');
+                return;
+            }
+
+            let html = '<div class="row g-2">';
+            personas.forEach((p, idx) => {
+                let total = p.carrito.reduce((sum, item) => sum + item.Subtotal, 0);
+                let nombreMostrar = p.nombre && p.nombre.trim() !== '' ? p.nombre : `Persona ${idx + 1}`;
+                let totalItems = p.carrito.reduce((sum, item) => sum + item.Cantidad, 0);
+                html += `
+                    <div class="col-md-12 mb-2">
+                        <div class="card bg-light">
+                            <div class="card-body p-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <i class="fas fa-user"></i> <strong>${nombreMostrar}</strong>
+                                        <span class="badge bg-secondary ms-1">${totalItems} items</span>
+                                    </div>
+                                    <span class="text-primary fw-bold">${formatoQ(total)}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            $('#resumenCuentas').html(html);
+        }
+
+        function actualizarTotalesGlobales() {
+            let subtotalGlobal = 0;
+
+            if (cuentasSeparadasActivo) {
+                personas.forEach(p => {
+                    subtotalGlobal += p.carrito.reduce((sum, item) => sum + item.Subtotal, 0);
+                });
+            } else {
+                subtotalGlobal = carritoNormal.reduce((sum, item) => sum + item.Subtotal, 0);
+            }
+
+            let iva = subtotalGlobal * 0.12;
+            let total = subtotalGlobal + iva;
+
+            $('#subtotal').text(formatoQ(subtotalGlobal));
+            $('#impuesto').text(formatoQ(iva));
+            $('#totalGlobal').text(formatoQ(total));
+
+            calcularCambioGlobal();
+        }
+
+        function calcularCambioGlobal() {
+            let totalTexto = $('#totalGlobal').text().replace('Q', '').trim();
+            let total = parseFloat(totalTexto) || 0;
+            let recibido = parseFloat($('#montoRecibido').val()) || 0;
+            let cambio = recibido - total;
+            if (cambio >= 0) {
+                $('#cambioInfo').html(`💰 Cambio: ${formatoQ(cambio)}`).css('color', 'green');
+            } else {
+                $('#cambioInfo').html(`⚠️ Faltan: ${formatoQ(Math.abs(cambio))}`).css('color', 'red');
+            }
+        }
+
+        function mostrarNotificacion(mensaje, tipo) {
+            let notificacion = $(`
+                <div style="position: fixed; top: 20px; right: 20px; z-index: 9999;
+                            background: white; border-left: 4px solid #28a745;
+                            padding: 12px 20px; border-radius: 8px;
+                            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                            min-width: 250px; animation: slideIn 0.3s ease;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="background: #28a745; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-check" style="color: white; font-size: 14px;"></i>
+                        </div>
+                        <div>
+                            <div style="font-weight: bold; color: #000;">Producto Agregado</div>
+                            <div style="font-size: 13px; color: #333;">${mensaje}</div>
+                        </div>
+                    </div>
+                </div>
+            `);
+
+            $('body').append(notificacion);
+            setTimeout(() => {
+                notificacion.animate({ opacity: 0 }, 300, function() {
+                    $(this).remove();
+                });
+            }, 3000);
+        }
+
+        function guardarPedido() {
+            // Validaciones
+            if (!cuentasSeparadasActivo && carritoNormal.length === 0) {
+                Swal.fire('Error', 'Debe agregar al menos un producto', 'error');
+                return;
+            }
+
+            if (cuentasSeparadasActivo) {
+                if (personas.length === 0) {
+                    Swal.fire('Error', 'Debe agregar al menos una persona', 'error');
                     return;
                 }
-                reindexar();
+                let tieneProductos = personas.some(p => p.carrito.length > 0);
+                if (!tieneProductos) {
+                    Swal.fire('Error', 'Debe agregar productos a al menos una persona', 'error');
+                    return;
+                }
+            }
 
-                var datos = {
-                    MesaId: $('#MesaId').val(),
-                    ClienteNombre: $('#ClienteNombre').val(),
-                    ClienteTelefono: $('#ClienteTelefono').val(),
-                    Observaciones: $('#Observaciones').val(),
-                    Productos: []
-                };
+            let datos = {
+                MesaId: parseInt($('#MesaId').val()),
+                NumeroMesa: parseInt($('#NumeroMesa').val()),
+                Ubicacion: $('#Ubicacion').val(),
+                ClienteNombre: cuentasSeparadasActivo ? 'Cuentas Separadas' : ($('#ClienteNombre').val() || 'Cliente'),
+                ClienteTelefono: '',
+                Observaciones: $('#Observaciones').val(),
+                UsarCuentasSeparadas: cuentasSeparadasActivo,
+                FormaPago: $('#formaPago').val(),
+                Productos: [],
+                Combos: [],
+                CuentasPorPersona: []
+            };
 
-                $('#tblProductos tbody tr').each(function() {
-                    var producto = {
-                        ProductoId: $(this).find('input[name$=".ProductoId"]').val(),
-                        Cantidad: $(this).find('.cantidad').val(),
-                        PrecioUnitario: $(this).find('.precio').val(),
-                        Nota: $(this).find('.nota').val()
-                    };
-                    datos.Productos.push(producto);
-                });
+            if (cuentasSeparadasActivo) {
+                datos.CuentasPorPersona = personas.map(p => ({
+                    NombreCliente: p.nombre || 'Cliente',
+                    Productos: p.carrito.filter(x => !x.EsCombo).map(x => ({
+                        ProductoId: x.ProductoId,
+                        NombreProducto: x.NombreProducto,
+                        Cantidad: x.Cantidad,
+                        PrecioUnitario: x.PrecioUnitario,
+                        Nota: x.Nota || ''
+                    })),
+                    Combos: p.carrito.filter(x => x.EsCombo).map(x => ({
+                        ComboId: x.ComboId,
+                        NombreCombo: x.NombreProducto,
+                        Cantidad: x.Cantidad,
+                        PrecioCombo: x.PrecioUnitario,
+                        VenderPorSeparado: false,
+                        ProductosSeparados: []
+                    }))
+                }));
+            } else {
+                datos.Productos = carritoNormal.filter(x => !x.EsCombo).map(x => ({
+                    ProductoId: x.ProductoId,
+                    NombreProducto: x.NombreProducto,
+                    Cantidad: x.Cantidad,
+                    PrecioUnitario: x.PrecioUnitario,
+                    Nota: x.Nota || ''
+                }));
+                datos.Combos = carritoNormal.filter(x => x.EsCombo).map(x => ({
+                    ComboId: x.ComboId,
+                    NombreCombo: x.NombreProducto,
+                    Cantidad: x.Cantidad,
+                    PrecioCombo: x.PrecioUnitario,
+                    VenderPorSeparado: false,
+                    ProductosSeparados: []
+                }));
+            }
 
-                $.ajax({
-                    url: '@Url.Action("GuardarOrden", "Orden")',
-                    type: 'POST',
-                    data: JSON.stringify(datos),
-                    contentType: 'application/json',
-                    success: function(r) {
-                        if (r.success) {
-                            Swal.fire('Éxito', r.message, 'success').then(() => {
-                                window.location.href = '@Url.Action("Index")';
-                            });
-                        } else {
-                            Swal.fire('Error', r.message, 'error');
-                        }
-                    },
-                    error: function() {
-                        Swal.fire('Error', 'Error al guardar el pedido', 'error');
+            $.ajax({
+                url: '@Url.Action("GuardarOrdenAvanzada", "Orden")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(datos),
+                success: function (response) {
+                    if (response.success) {
+                        ordenActualId = response.ordenId;
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Pedido guardado!',
+                            text: response.message,
+                            confirmButtonColor: '#28a745'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                Swal.fire({
+                                    title: '¿Desea ver el ticket?',
+                                    text: 'Puede imprimir el ticket de venta',
+                                    icon: 'question',
+                                    showCancelButton: true,
+                                    confirmButtonText: 'Sí, ver ticket',
+                                    cancelButtonText: 'No, salir'
+                                }).then((ticketResult) => {
+                                    if (ticketResult.isConfirmed) {
+                                        mostrarTicket();
+                                    } else {
+                                        window.location.href = '@Url.Action("Index")';
+                                    }
+                                });
+                            }
+                        });
+                    } else {
+                        Swal.fire('Error', response.message, 'error');
                     }
-                });
+                },
+                error: function (xhr) {
+                    Swal.fire('Error', 'Error de comunicación: ' + xhr.statusText, 'error');
+                }
             });
-        });
+        }
+
+        function mostrarTicket() {
+            if (!ordenActualId) {
+                Swal.fire('Aviso', 'Primero guarde el pedido', 'warning');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("GenerarTicket", "Orden")',
+                type: 'GET',
+                data: { ordenId: ordenActualId },
+                success: function (data) {
+                    document.getElementById('modalTicketContenido').innerHTML = data;
+                    document.getElementById('modalTicket').style.display = 'flex';
+                },
+                error: function () {
+                    Swal.fire('Error', 'Error al generar el ticket', 'error');
+                }
+            });
+        }
+
+        function cerrarModalTicket() {
+            document.getElementById('modalTicket').style.display = 'none';
+        }
+
+        function imprimirTicket() {
+            let contenido = document.getElementById('modalTicketContenido').innerHTML;
+            let ventana = window.open('', '_blank');
+            ventana.document.write(`
+                <html>
+                    <head>
+                        <title>Ticket de Venta - La Media Cancha</title>
+                        <style>
+                            body {
+                                font-family: 'Courier New', monospace;
+                                padding: 20px;
+                                margin: 0;
+                                width: 300px;
+                                margin: 0 auto;
+                            }
+                            @@media print {
+                                body { margin: 0; padding: 10px; }
+                            }
+                            .text-center { text-align: center; }
+                            .linea { border-top: 1px dashed #000; margin: 10px 0; }
+                            table { width: 100%; font-size: 12px; border-collapse: collapse; }
+                            th, td { text-align: left; padding: 4px; }
+                            .text-end { text-align: right; }
+                            .total { font-size: 14px; font-weight: bold; }
+                        </style>
+                    </head>
+                    <body>
+                        ${contenido}
+                    </body>
+                </html>
+            `);
+            ventana.document.close();
+            ventana.print();
+            ventana.close();
+        }
     </script>
 }
+
+<style>
+    .pedido-container {
+        padding: 15px;
+        max-width: 100% !important;
+        background-color: #f4f7f6;
+        min-height: 100vh;
+    }
+
+    .card-header-custom {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #c95a00 0%, #a04700 100%) !important;
+        border-radius: 15px 15px 0 0;
+    }
+
+    .section-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #8B4513;
+        margin-bottom: 15px;
+    }
+
+    .productos-grid, .combos-grid {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .producto-card, .combo-card {
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        padding: 12px;
+        border-radius: 10px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        height: 100%;
+    }
+
+    .producto-card:hover, .combo-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border-color: #D35400;
+    }
+
+    .icon-circle {
+        width: 45px;
+        height: 45px;
+        background: #fdf5e6;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 8px;
+    }
+
+    .cart-section {
+        background: white;
+        padding: 20px;
+        border-radius: 15px;
+        border: 1px solid #e9ecef;
+        position: sticky;
+        top: 20px;
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(100px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @@media (max-width: 991px) {
+        .cart-section {
+            position: static;
+            margin-top: 20px;
+        }
+    }
+
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #ccc;
+        border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #999;
+    }
+</style>

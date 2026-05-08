@@ -21,7 +21,6 @@ namespace LaMediaCancha.Controllers
             _connectionString = ConfigurationManager.ConnectionStrings["LaMediaCanchaDB"].ConnectionString;
         }
 
-        // GET: Devolucion/Index
         public ActionResult Index()
         {
             if (Session["UserRol"] == null)
@@ -68,7 +67,6 @@ namespace LaMediaCancha.Controllers
             return View(devoluciones);
         }
 
-        // GET: Devolucion/Detalle/5
         public ActionResult Detalle(int id)
         {
             if (Session["UserRol"] == null)
@@ -182,7 +180,6 @@ namespace LaMediaCancha.Controllers
             return detalles;
         }
 
-        // GET: Devolucion/Registrar
         public ActionResult Registrar(int? compraId = null, string factura = "")
         {
             if (Session["UserRol"] == null)
@@ -205,21 +202,6 @@ namespace LaMediaCancha.Controllers
         {
             System.Diagnostics.Debug.WriteLine("=== REGISTRAR DEVOLUCIÓN ===");
             System.Diagnostics.Debug.WriteLine($"CompraId: {model.CompraId}");
-            System.Diagnostics.Debug.WriteLine($"TipoDevolucion: {model.TipoDevolucion}");
-            System.Diagnostics.Debug.WriteLine($"Motivo: {model.Motivo}");
-            System.Diagnostics.Debug.WriteLine($"Observaciones: {model.Observaciones ?? "Ninguna"}");
-
-            if (model.Productos == null)
-            {
-                System.Diagnostics.Debug.WriteLine("Productos es NULL");
-                return Json(new { success = false, message = "No se recibieron productos" });
-            }
-
-            System.Diagnostics.Debug.WriteLine($"Productos recibidos: {model.Productos.Count}");
-            foreach (var p in model.Productos)
-            {
-                System.Diagnostics.Debug.WriteLine($"ProductoId: {p.ProductoId}, CantidadADevolver: {p.CantidadADevolver}, Precio: {p.PrecioUnitario}");
-            }
 
             if (Session["UserRol"] == null)
             {
@@ -229,7 +211,6 @@ namespace LaMediaCancha.Controllers
             try
             {
                 int empleadoId = ObtenerEmpleadoIdPorUsuario();
-                System.Diagnostics.Debug.WriteLine($"EmpleadoId: {empleadoId}");
 
                 var productosADevolver = model.Productos.Where(p => p.CantidadADevolver > 0).ToList();
 
@@ -252,15 +233,11 @@ namespace LaMediaCancha.Controllers
                     }).ToList()
                 };
 
-                System.Diagnostics.Debug.WriteLine($"Productos en request: {request.Productos.Count}");
-
                 var service = new DevolucionService();
                 int devolucionId = service.RegistrarDevolucion(request);
 
-                System.Diagnostics.Debug.WriteLine($"Devolución creada con ID: {devolucionId}");
-
-                // Cerrar la compra
-                string updateQuery = "UPDATE EncabezadoCompra SET Estado = 'Cerrada' WHERE CompraId = @CompraId";
+                // Marcar compra como Cerrada
+                string updateQuery = "UPDATE EncabezadoCompra SET Estado = 'Cerrada' WHERE CompraId = @CompraId AND Estado = 'Aprobada'";
                 using (var conn = new SqlConnection(_connectionString))
                 using (var cmd = new SqlCommand(updateQuery, conn))
                 {
@@ -268,7 +245,6 @@ namespace LaMediaCancha.Controllers
                     conn.Open();
                     cmd.ExecuteNonQuery();
                 }
-                System.Diagnostics.Debug.WriteLine($"Compra {model.CompraId} marcada como Cerrada");
 
                 return Json(new
                 {
@@ -279,8 +255,6 @@ namespace LaMediaCancha.Controllers
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"ERROR: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"STACKTRACE: {ex.StackTrace}");
                 return Json(new { success = false, message = ex.Message });
             }
         }
@@ -291,22 +265,24 @@ namespace LaMediaCancha.Controllers
             {
                 if (string.IsNullOrEmpty(numeroFactura))
                 {
-                    return Json(new { success = false, message = "Ingrese un número de factura" }, JsonRequestBehavior.AllowGet);
+                    return Json(new { success = false, message = "Ingrese un número de factura o documento de compra" }, JsonRequestBehavior.AllowGet);
                 }
 
                 numeroFactura = numeroFactura.Trim();
 
+                // Buscar por NumeroDocumento (COMP-001) o por NumeroFactura
                 string query = @"
                     SELECT 
                         ec.CompraId,
                         ec.NumeroDocumento,
                         ec.FechaCompra,
                         ec.Estado,
+                        ec.NumeroFactura,
                         ISNULL(p.RazonSocial, 'Proveedor no encontrado') AS ProveedorNombre,
                         ISNULL(p.DiasMaximosDevolucion, 10) AS DiasMaximos
                     FROM EncabezadoCompra ec
                     INNER JOIN Proveedor p ON ec.ProveedorId = p.ProveedorId
-                    WHERE ec.NumeroFactura = @NumeroFactura
+                    WHERE (ec.NumeroDocumento = @NumeroFactura OR ec.NumeroFactura = @NumeroFactura)
                       AND ec.Activo = 1";
 
                 using (var conn = new SqlConnection(_connectionString))
@@ -320,23 +296,22 @@ namespace LaMediaCancha.Controllers
                         {
                             if (reader.Read())
                             {
-                                // *** VALIDAR QUE NO ESTÉ CERRADA ***
-                                string estadoCompra = reader.GetString(reader.GetOrdinal("Estado"));
-                                if (estadoCompra == "Cerrada")
-                                {
-                                    return Json(new
-                                    {
-                                        success = false,
-                                        message = "Esta compra ya tiene una devolución registrada y está cerrada. No se pueden registrar más devoluciones."
-                                    }, JsonRequestBehavior.AllowGet);
-                                }
-                                // *** FIN VALIDACIÓN ***
-
                                 int compraId = reader.GetInt32(reader.GetOrdinal("CompraId"));
                                 string numeroDocumento = reader.GetString(reader.GetOrdinal("NumeroDocumento"));
                                 DateTime fechaCompra = reader.GetDateTime(reader.GetOrdinal("FechaCompra"));
                                 string proveedorNombre = reader.GetString(reader.GetOrdinal("ProveedorNombre"));
                                 int diasMaximos = reader.GetInt32(reader.GetOrdinal("DiasMaximos"));
+                                string estadoCompra = reader.GetString(reader.GetOrdinal("Estado"));
+
+                                // Validar que no esté cerrada
+                                if (estadoCompra == "Cerrada")
+                                {
+                                    return Json(new
+                                    {
+                                        success = false,
+                                        message = "Esta compra ya tiene una devolución registrada. No se pueden registrar más devoluciones."
+                                    }, JsonRequestBehavior.AllowGet);
+                                }
 
                                 int diasTranscurridos = (int)(DateTime.Now.Date - fechaCompra.Date).TotalDays;
                                 bool dentroDePlazo = diasTranscurridos <= diasMaximos;
@@ -361,7 +336,7 @@ namespace LaMediaCancha.Controllers
                                 return Json(new
                                 {
                                     success = false,
-                                    message = $"No se encontró ninguna compra con la factura: {numeroFactura}"
+                                    message = $"No se encontró ninguna compra con el documento: {numeroFactura}"
                                 }, JsonRequestBehavior.AllowGet);
                             }
                         }
@@ -407,18 +382,48 @@ namespace LaMediaCancha.Controllers
 
         private int ObtenerEmpleadoIdPorUsuario()
         {
-            int usuarioId = Session["UserId"] != null ? (int)Session["UserId"] : 1;
-            string query = "SELECT EmpleadoId FROM Empleado WHERE UsuarioId = @UsuarioId AND Activo = 1";
-
-            using (var conn = new SqlConnection(_connectionString))
-            using (var cmd = new SqlCommand(query, conn))
+            try
             {
-                cmd.Parameters.AddWithValue("@UsuarioId", usuarioId);
-                conn.Open();
-                var result = cmd.ExecuteScalar();
-                if (result != null) return (int)result;
+                int usuarioId = Session["UserId"] != null ? (int)Session["UserId"] : 0;
+
+                if (usuarioId > 0)
+                {
+                    using (var conn = new SqlConnection(_connectionString))
+                    {
+                        conn.Open();
+                        string query = "SELECT EmpleadoId FROM Empleado WHERE UsuarioId = @UsuarioId AND Activo = 1";
+                        using (var cmd = new SqlCommand(query, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@UsuarioId", usuarioId);
+                            var result = cmd.ExecuteScalar();
+                            if (result != null && result != DBNull.Value)
+                            {
+                                return Convert.ToInt32(result);
+                            }
+                        }
+                    }
+                }
+
+                using (var conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    string query = "SELECT TOP 1 EmpleadoId FROM Empleado WHERE Activo = 1";
+                    using (var cmd = new SqlCommand(query, conn))
+                    {
+                        var result = cmd.ExecuteScalar();
+                        if (result != null && result != DBNull.Value)
+                        {
+                            return Convert.ToInt32(result);
+                        }
+                    }
+                }
             }
-            return 1;
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error al obtener EmpleadoId: {ex.Message}");
+            }
+
+            return 19;
         }
     }
 }

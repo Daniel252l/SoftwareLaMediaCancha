@@ -5,63 +5,72 @@
 
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card-custom">
+        <div class="col-12">
+            <div class="card-custom card-custom-full">
                 <div class="card-header-custom">
-                    <h2><i class="fas fa-receipt"></i> Facturar Venta</h2>
-                    <p>Complete los datos del cliente y confirme la venta</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h2><i class="fas fa-file-invoice"></i> Facturar Venta</h2>
+                            <p>Complete los datos del cliente y confirme la venta</p>
+                        </div>
+                        <a href="@Url.Action("Carrito")" class="btn-custom" style="background: #6c757d; width: auto; padding: 8px 20px;">
+                            <i class="fas fa-arrow-left"></i> Regresar al Carrito
+                        </a>
+                    </div>
                 </div>
                 <div class="card-body-custom">
                     <form id="frmFacturar">
                         <div class="row">
                             <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Nombre del Cliente</label>
-                                    <input type="text" id="ClienteNombre" class="form-control" placeholder="Consumidor Final" />
+                                <div class="form-group-custom">
+                                    <label><i class="fas fa-user"></i> Nombre del Cliente</label>
+                                    <input type="text" id="ClienteNombre" class="form-control-custom" placeholder="Consumidor Final" />
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Documento (NIT/Cédula)</label>
-                                    <input type="text" id="ClienteDocumento" class="form-control" placeholder="Opcional" />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Teléfono</label>
-                                    <input type="text" id="ClienteTelefono" class="form-control" placeholder="Opcional" />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label>Tipo de Pago</label>
-                                    <select id="TipoPago" class="form-control" required>
-                                        <option value="Efectivo">Efectivo</option>
-                                        <option value="Tarjeta Débito">Tarjeta Débito</option>
-                                        <option value="Tarjeta Crédito">Tarjeta Crédito</option>
-                                        <option value="Transferencia">Transferencia</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="col-md-12">
-                                <div class="form-group">
-                                    <label>Observaciones</label>
-                                    <textarea id="Observaciones" class="form-control" rows="2" placeholder="Notas adicionales"></textarea>
+                                <div class="form-group-custom">
+                                    <label><i class="fas fa-id-card"></i> Documento (NIT/Cédula)</label>
+                                    <input type="text" id="ClienteDocumento" class="form-control-custom" placeholder="Opcional" />
                                 </div>
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label><i class="fas fa-phone"></i> Teléfono</label>
+                                    <input type="text" id="ClienteTelefono" class="form-control-custom" placeholder="Opcional" />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group-custom">
+                                    <label><i class="fas fa-credit-card"></i> Tipo de Pago</label>
+                                    <select id="TipoPago" class="form-control-custom" required>
+                                        <option value="Efectivo">💵 Efectivo</option>
+                                        <option value="Tarjeta Débito">💳 Tarjeta Débito</option>
+                                        <option value="Tarjeta Crédito">💳 Tarjeta Crédito</option>
+                                        <option value="Transferencia">🏦 Transferencia</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group-custom">
+                            <label><i class="fas fa-pen"></i> Observaciones</label>
+                            <textarea id="Observaciones" class="form-control-custom" rows="2" placeholder="Notas adicionales (opcional)"></textarea>
+                        </div>
 
-                        <hr />
+                        <hr style="margin: 25px 0; border-top: 2px solid #f0f0f0;" />
 
-                        <h4>Resumen del Pedido</h4>
+                        <h3 style="color: #8B4513; margin-bottom: 20px;">
+                            <i class="fas fa-shopping-cart"></i> Resumen del Pedido
+                        </h3>
                         <div id="resumen-carrito"></div>
 
-                        <div class="text-right mt-3">
-                            <button type="button" id="btnRegresar" class="btn-custom" style="background: #6c757d; width: auto; padding: 10px 20px;">
+                        <div class="text-right mt-4" style="padding-top: 20px; border-top: 1px solid #eee;">
+                            <button type="button" id="btnRegresar" class="btn-secondary-custom">
                                 <i class="fas fa-arrow-left"></i> Regresar
                             </button>
-                            <button type="submit" id="btnFacturar" class="btn-custom" style="background: #27AE60; width: auto; padding: 10px 20px;">
-                                <i class="fas fa-check"></i> Confirmar Venta
+                            <button type="submit" id="btnFacturar" class="btn-primary-custom">
+                                <i class="fas fa-check-circle"></i> Confirmar Venta
                             </button>
                         </div>
                     </form>
@@ -72,28 +81,140 @@
 </div>
 
 <style>
+    .form-group-custom {
+        margin-bottom: 20px;
+    }
+
+        .form-group-custom label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.85rem;
+        }
+
+    .form-control-custom {
+        width: 100%;
+        padding: 10px 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+        .form-control-custom:focus {
+            outline: none;
+            border-color: #D35400;
+            box-shadow: 0 0 0 3px rgba(211,84,0,0.1);
+        }
+
+    .btn-primary-custom {
+        background: linear-gradient(135deg, #27AE60, #1E8449);
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 1rem;
+        margin-left: 10px;
+        transition: all 0.3s ease;
+    }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(39,174,96,0.3);
+        }
+
+    .btn-secondary-custom {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+        .btn-secondary-custom:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+    .table-custom {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+        .table-custom th, .table-custom td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+
+        .table-custom th {
+            background: #8B4513;
+            color: white;
+            font-weight: 600;
+        }
+
+        .table-custom tbody tr:hover {
+            background: #fdf8f0;
+        }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
     .detalle-lote {
         font-size: 0.7rem;
         color: #666;
-        margin-top: 3px;
+        margin-top: 5px;
+        padding-top: 4px;
+        border-top: 1px dashed #eee;
+    }
+
+    .alert-warning {
+        background: #fff3cd;
+        color: #856404;
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        border: 1px solid #ffeeba;
+    }
+
+    hr {
+        margin: 20px 0;
+        border: none;
+        border-top: 1px solid #eee;
     }
 </style>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        function formatearNumero(valor) {
+            return parseFloat(valor) || 0;
+        }
+
         function calcularTotales() {
             var carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
             var subtotal = 0;
-
             for (var i = 0; i < carrito.length; i++) {
-                subtotal += carrito[i].Cantidad * carrito[i].PrecioUnitario;
+                subtotal += formatearNumero(carrito[i].Cantidad) * formatearNumero(carrito[i].PrecioUnitario);
             }
-
             var impuesto = subtotal * 0.12;
-            var total = subtotal + impuesto;
-
-            return { subtotal: subtotal, impuesto: impuesto, total: total };
+            return { subtotal: subtotal, impuesto: impuesto, total: subtotal + impuesto };
         }
 
         function renderResumen() {
@@ -101,7 +222,15 @@
             var container = $('#resumen-carrito');
 
             if (carrito.length === 0) {
-                container.html('<div class="alert alert-warning">No hay productos en el carrito</div>');
+                container.html(`
+                    <div class="alert-warning">
+                        <i class="fas fa-shopping-cart"></i> No hay productos en el carrito
+                        <br><br>
+                        <a href="@Url.Action("Index")" class="btn-primary-custom" style="text-decoration: none; display: inline-block;">
+                            <i class="fas fa-cart-plus"></i> Agregar productos
+                        </a>
+                    </div>
+                `);
                 $('#btnFacturar').prop('disabled', true);
                 return;
             }
@@ -113,10 +242,10 @@
                     <table class="table-custom">
                         <thead>
                             <tr>
-                                <th>Producto</th>
-                                <th class="text-center">Cantidad</th>
-                                <th class="text-right">Precio</th>
-                                <th class="text-right">Subtotal</th>
+                                <th style="width: 45%;">Producto</th>
+                                <th style="width: 15%;" class="text-center">Cantidad</th>
+                                <th style="width: 20%;" class="text-right">Precio Unitario</th>
+                                <th style="width: 20%;" class="text-right">Subtotal</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -124,15 +253,18 @@
 
             for (var i = 0; i < carrito.length; i++) {
                 var item = carrito[i];
-                var subtotal = item.Cantidad * item.PrecioUnitario;
+                var cantidad = formatearNumero(item.Cantidad);
+                var precio = formatearNumero(item.PrecioUnitario);
+                var subtotal = cantidad * precio;
+                var nombre = item.Nombre || '';
+                var codigo = item.Codigo || '';
 
-                // Mostrar lotes utilizados
                 var lotesHtml = '';
                 if (item.LotesSeleccionados && item.LotesSeleccionados.length > 0) {
-                    lotesHtml = '<div class="detalle-lote">';
+                    lotesHtml = '<div class="detalle-lote"><i class="fas fa-layer-group"></i> ';
                     for (var j = 0; j < item.LotesSeleccionados.length; j++) {
                         var lote = item.LotesSeleccionados[j];
-                        lotesHtml += `📦 Lote ${lote.NumeroLote}: ${lote.Cantidad} x Q${lote.PrecioUnitario.toFixed(2)}<br/>`;
+                        lotesHtml += `Lote ${lote.NumeroLote}: ${lote.Cantidad} x Q${formatearNumero(lote.PrecioUnitario).toFixed(2)} `;
                     }
                     lotesHtml += '</div>';
                 }
@@ -140,13 +272,14 @@
                 html += `
                     <tr>
                         <td>
-                            <strong>${item.Nombre}</strong> (${item.Codigo})
+                            <strong>${escapeHtml(nombre)}</strong>
+                            <br><small style="color: #888;">Código: ${escapeHtml(codigo)}</small>
                             ${lotesHtml}
-                        </td
-                        <td class="text-center">${item.Cantidad}</td
-                        <td class="text-right">Q ${item.PrecioUnitario.toFixed(2)}</td
-                        <td class="text-right">Q ${subtotal.toFixed(2)}</td
-                    </tr
+                        </td>
+                        <td class="text-center"><strong>${cantidad}</strong></td>
+                        <td class="text-right">Q ${precio.toFixed(2)}</td>
+                        <td class="text-right"><strong>Q ${subtotal.toFixed(2)}</strong></td>
+                    </tr>
                 `;
             }
 
@@ -155,18 +288,18 @@
             html += `
                         </tbody>
                         <tfoot>
-                            <tr>
-                                <td colspan="3" class="text-right"><strong>Subtotal:</strong></td
-                                <td class="text-right">Q ${totales.subtotal.toFixed(2)}</td
-                            </tr
-                            <tr>
-                                <td colspan="3" class="text-right"><strong>IVA (12%):</strong></td
-                                <td class="text-right">Q ${totales.impuesto.toFixed(2)}</td
-                            </tr
-                            <tr style="background: #f8f9fa; font-weight: bold;">
-                                <td colspan="3" class="text-right"><strong>TOTAL:</strong></td
-                                <td class="text-right" style="color: #D35400;">Q ${totales.total.toFixed(2)}</td
-                            </tr
+                            <tr style="background: #f8f9fa;">
+                                <td colspan="3" class="text-right"><strong>Subtotal:</strong></td>
+                                <td class="text-right">Q ${totales.subtotal.toFixed(2)}</td>
+                            </tr>
+                            <tr style="background: #f8f9fa;">
+                                <td colspan="3" class="text-right"><strong>IVA (12%):</strong></td>
+                                <td class="text-right">Q ${totales.impuesto.toFixed(2)}</td>
+                            </tr>
+                            <tr style="background: #f0f0f0; font-weight: bold;">
+                                <td colspan="3" class="text-right" style="font-size: 1.1rem;">TOTAL A PAGAR:</td>
+                                <td class="text-right" style="color: #D35400; font-size: 1.2rem;">Q ${totales.total.toFixed(2)}</td>
+                            </tr>
                         </tfoot>
                     </table>
                 </div>
@@ -175,14 +308,24 @@
             container.html(html);
         }
 
-        $(document).ready(function() {
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text).replace(/[&<>]/g, function (m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        $(document).ready(function () {
             renderResumen();
 
-            $('#btnRegresar').click(function() {
+            $('#btnRegresar').click(function () {
                 window.location.href = '@Url.Action("Carrito")';
             });
 
-            $('#frmFacturar').submit(function(e) {
+            $('#frmFacturar').submit(function (e) {
                 e.preventDefault();
 
                 var carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
@@ -192,7 +335,6 @@
                 }
 
                 var totales = calcularTotales();
-
                 var data = {
                     ClienteNombre: $('#ClienteNombre').val() || 'Consumidor Final',
                     ClienteDocumento: $('#ClienteDocumento').val(),
@@ -208,30 +350,44 @@
 
                 Swal.fire({
                     title: 'Confirmar venta',
-                    text: `Total a pagar: Q ${totales.total.toFixed(2)}`,
+                    html: `<strong>Total a pagar:</strong> Q ${totales.total.toFixed(2)}`,
                     icon: 'question',
                     showCancelButton: true,
-                    confirmButtonText: 'Sí, facturar',
-                    cancelButtonText: 'Cancelar'
+                    confirmButtonText: '<i class="fas fa-check"></i> Sí, facturar',
+                    cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+                    confirmButtonColor: '#27AE60',
+                    cancelButtonColor: '#6c757d'
                 }).then((result) => {
                     if (result.isConfirmed) {
+                        $('#btnFacturar').html('<i class="fas fa-spinner fa-spin"></i> Procesando...');
+                        $('#btnFacturar').prop('disabled', true);
+
                         $.ajax({
                             url: '@Url.Action("ProcesarVenta", "Venta")',
                             type: 'POST',
                             data: JSON.stringify(data),
                             contentType: 'application/json',
-                            success: function(response) {
+                            success: function (response) {
                                 if (response.success) {
                                     localStorage.removeItem('carrito');
-                                    Swal.fire('Éxito', response.message, 'success').then(() => {
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: '¡Venta registrada!',
+                                        text: response.message,
+                                        confirmButtonText: 'Ver factura'
+                                    }).then(() => {
                                         window.location.href = '@Url.Action("Factura", "Venta")/' + response.ventaId;
                                     });
                                 } else {
                                     Swal.fire('Error', response.message, 'error');
+                                    $('#btnFacturar').html('<i class="fas fa-check-circle"></i> Confirmar Venta');
+                                    $('#btnFacturar').prop('disabled', false);
                                 }
                             },
-                            error: function() {
+                            error: function () {
                                 Swal.fire('Error', 'Error al procesar la venta', 'error');
+                                $('#btnFacturar').html('<i class="fas fa-check-circle"></i> Confirmar Venta');
+                                $('#btnFacturar').prop('disabled', false);
                             }
                         });
                     }
