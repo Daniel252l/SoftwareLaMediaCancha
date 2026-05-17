@@ -23,19 +23,21 @@ namespace LaMediaCancha.Services
             var productos = new List<VentaModels.ProductoVenta>();
 
             string query = @"
-                SELECT 
-                    p.ProductoId,
-                    p.Codigo,
-                    p.Nombre,
-                    p.PrecioVenta,
-                    ISNULL(SUM(l.CantidadActual), 0) AS StockReal
-                FROM Producto p
-                LEFT JOIN Lote l ON p.ProductoId = l.ProductoId 
-                    AND l.Activo = 1 
-                    AND l.Estado = 'Activo'
-                WHERE p.Activo = 1
-                GROUP BY p.ProductoId, p.Codigo, p.Nombre, p.PrecioVenta
-                ORDER BY p.Nombre";
+        SELECT 
+            p.ProductoId,
+            p.Codigo,
+            p.Nombre,
+            p.PrecioVenta,
+            ISNULL(SUM(l.CantidadActual), 0) AS StockLotes,
+            ISNULL(i.ExistenciaActual, 0) AS StockInventario
+        FROM Producto p
+        LEFT JOIN Lote l ON p.ProductoId = l.ProductoId 
+            AND l.Activo = 1 
+            AND l.Estado = 'Activo'
+        LEFT JOIN Inventario i ON p.ProductoId = i.ProductoId
+        WHERE p.Activo = 1
+        GROUP BY p.ProductoId, p.Codigo, p.Nombre, p.PrecioVenta, i.ExistenciaActual
+        ORDER BY p.Nombre";
 
             using (var conn = new SqlConnection(_connectionString))
             using (var cmd = new SqlCommand(query, conn))
@@ -45,13 +47,27 @@ namespace LaMediaCancha.Services
                 {
                     while (reader.Read())
                     {
+                        decimal stockLotes = 0;
+                        if (reader["StockLotes"] != DBNull.Value)
+                        {
+                            stockLotes = Convert.ToDecimal(reader["StockLotes"]);
+                        }
+
+                        decimal stockInventario = 0;
+                        if (reader["StockInventario"] != DBNull.Value)
+                        {
+                            stockInventario = Convert.ToDecimal(reader["StockInventario"]);
+                        }
+
+                        decimal stockTotal = stockLotes > 0 ? stockLotes : stockInventario;
+
                         var producto = new VentaModels.ProductoVenta
                         {
-                            ProductoId = (int)reader["ProductoId"],
-                            Codigo = reader["Codigo"].ToString().Trim(),
-                            Nombre = reader["Nombre"].ToString().Trim(),
-                            PrecioVenta = (decimal)reader["PrecioVenta"],
-                            StockDisponible = (decimal)reader["StockReal"],
+                            ProductoId = Convert.ToInt32(reader["ProductoId"]),
+                            Codigo = reader["Codigo"]?.ToString()?.Trim() ?? "",
+                            Nombre = reader["Nombre"]?.ToString()?.Trim() ?? "",
+                            PrecioVenta = reader["PrecioVenta"] != DBNull.Value ? Convert.ToDecimal(reader["PrecioVenta"]) : 0,
+                            StockDisponible = stockTotal,
                             Lotes = new List<VentaModels.LoteDisponible>()
                         };
                         productos.Add(producto);
@@ -59,9 +75,14 @@ namespace LaMediaCancha.Services
                 }
             }
 
+            // Cargar lotes para productos con stock
             foreach (var producto in productos.Where(p => p.StockDisponible > 0))
             {
-                producto.Lotes = ObtenerLotesPorProducto(producto.ProductoId);
+                var lotes = ObtenerLotesPorProducto(producto.ProductoId);
+                if (lotes.Any())
+                {
+                    producto.Lotes = lotes;
+                }
             }
 
             return productos;
@@ -70,19 +91,19 @@ namespace LaMediaCancha.Services
         public List<VentaModels.LoteDisponible> ObtenerLotesPorProducto(int productoId)
         {
             string query = @"
-                SELECT 
-                    l.LoteId,
-                    l.NumeroLoteInterno AS NumeroLote,
-                    l.CantidadActual,
-                    l.PrecioUnitario,
-                    l.FechaIngreso,
-                    l.FechaVencimiento
-                FROM Lote l
-                WHERE l.ProductoId = @ProductoId
-                  AND l.Activo = 1
-                  AND l.Estado = 'Activo'
-                  AND l.CantidadActual > 0
-                ORDER BY l.FechaIngreso ASC";
+        SELECT 
+            l.LoteId,
+            ISNULL(l.NumeroLoteInterno, '') AS NumeroLote,
+            ISNULL(l.CantidadActual, 0) AS Cantidad,
+            ISNULL(l.PrecioUnitario, 0) AS PrecioUnitario,
+            l.FechaIngreso,
+            l.FechaVencimiento
+        FROM Lote l
+        WHERE l.ProductoId = @ProductoId
+          AND l.Activo = 1
+          AND l.Estado = 'Activo'
+          AND l.CantidadActual > 0
+        ORDER BY l.FechaIngreso ASC";  // FIFO: más antiguo primero
 
             var lotes = new List<VentaModels.LoteDisponible>();
 
@@ -98,12 +119,12 @@ namespace LaMediaCancha.Services
                     {
                         lotes.Add(new VentaModels.LoteDisponible
                         {
-                            LoteId = (int)reader["LoteId"],
-                            NumeroLote = reader["NumeroLote"].ToString().Trim(),
-                            Cantidad = (decimal)reader["CantidadActual"],
-                            PrecioUnitario = (decimal)reader["PrecioUnitario"],
-                            FechaIngreso = (DateTime)reader["FechaIngreso"],
-                            FechaVencimiento = reader["FechaVencimiento"] as DateTime?
+                            LoteId = Convert.ToInt32(reader["LoteId"]),
+                            NumeroLote = reader["NumeroLote"]?.ToString()?.Trim() ?? "",
+                            Cantidad = reader["Cantidad"] != DBNull.Value ? Convert.ToDecimal(reader["Cantidad"]) : 0,
+                            PrecioUnitario = reader["PrecioUnitario"] != DBNull.Value ? Convert.ToDecimal(reader["PrecioUnitario"]) : 0,
+                            FechaIngreso = reader["FechaIngreso"] != DBNull.Value ? Convert.ToDateTime(reader["FechaIngreso"]) : DateTime.Now,
+                            FechaVencimiento = reader["FechaVencimiento"] != DBNull.Value ? (DateTime?)reader["FechaVencimiento"] : null
                         });
                     }
                 }
@@ -112,16 +133,48 @@ namespace LaMediaCancha.Services
             return lotes;
         }
 
+        private decimal ObtenerPrecioProducto(int productoId)
+        {
+            string query = "SELECT ISNULL(PrecioVenta, 0) FROM Producto WHERE ProductoId = @ProductoId";
+            using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand(query, conn))
+            {
+                cmd.Parameters.AddWithValue("@ProductoId", productoId);
+                conn.Open();
+                var result = cmd.ExecuteScalar();
+                return result != DBNull.Value ? Convert.ToDecimal(result) : 0;
+            }
+        }
+
+        private decimal ObtenerStockInventario(int productoId)
+        {
+            string query = "SELECT ISNULL(ExistenciaActual, 0) FROM Inventario WHERE ProductoId = @ProductoId";
+            using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand(query, conn))
+            {
+                cmd.Parameters.AddWithValue("@ProductoId", productoId);
+                conn.Open();
+                var result = cmd.ExecuteScalar();
+                return result != DBNull.Value ? Convert.ToDecimal(result) : 0;
+            }
+        }
+
         public List<LoteSeleccionado> AplicarFIFO(int productoId, decimal cantidadSolicitada)
         {
-            var lotes = ObtenerLotesPorProducto(productoId);
+            // IMPORTANTE: Ordenar por FechaIngreso ASC (más antiguo primero)
+            var lotes = ObtenerLotesPorProducto(productoId)
+                            .OrderBy(l => l.FechaIngreso)  // ← ASC = más antiguo primero
+                            .ToList();
+
             var lotesSeleccionados = new List<LoteSeleccionado>();
             decimal cantidadRestante = cantidadSolicitada;
+            decimal precioProducto = ObtenerPrecioProducto(productoId);
 
             foreach (var lote in lotes)
             {
                 if (cantidadRestante <= 0) break;
 
+                // Tomar del lote más antiguo primero
                 decimal cantidadTomar = Math.Min(lote.Cantidad, cantidadRestante);
 
                 lotesSeleccionados.Add(new LoteSeleccionado
@@ -138,7 +191,25 @@ namespace LaMediaCancha.Services
 
             if (cantidadRestante > 0)
             {
-                throw new Exception($"No hay suficiente inventario. Disponible: {cantidadSolicitada - cantidadRestante} unidades");
+                decimal stockInventario = ObtenerStockInventario(productoId);
+                if (stockInventario >= cantidadRestante)
+                {
+                    lotesSeleccionados.Add(new LoteSeleccionado
+                    {
+                        LoteId = 0,
+                        NumeroLote = "STOCK_DIRECTO",
+                        Cantidad = cantidadRestante,
+                        PrecioUnitario = precioProducto,
+                        Subtotal = cantidadRestante * precioProducto
+                    });
+                    cantidadRestante = 0;
+                }
+            }
+
+            if (cantidadRestante > 0)
+            {
+                decimal disponible = cantidadSolicitada - cantidadRestante;
+                throw new Exception($"No hay suficiente inventario. Disponible: {disponible} unidades");
             }
 
             return lotesSeleccionados;
@@ -156,7 +227,6 @@ namespace LaMediaCancha.Services
                 {
                     try
                     {
-                        // 1. Insertar encabezado de venta
                         string insertVenta = @"
                             INSERT INTO Venta (NumeroFactura, FechaVenta, ClienteNombre, ClienteDocumento, 
                                                ClienteTelefono, TipoPago, Subtotal, Impuesto, Descuento, Total, 
@@ -183,10 +253,8 @@ namespace LaMediaCancha.Services
                             ventaId = Convert.ToInt32(cmd.ExecuteScalar());
                         }
 
-                        // 2. Insertar detalles y lotes
                         foreach (var item in model.Carrito)
                         {
-                            // Obtener código limpio — si viene vacío desde JS, buscarlo en BD
                             string codigoLimpio = (item.Codigo ?? "").Trim();
                             if (string.IsNullOrEmpty(codigoLimpio))
                             {
@@ -198,7 +266,6 @@ namespace LaMediaCancha.Services
                                 }
                             }
 
-                            // Obtener nombre limpio
                             string nombreLimpio = (item.Nombre ?? "").Trim();
                             if (string.IsNullOrEmpty(nombreLimpio))
                             {
@@ -210,7 +277,6 @@ namespace LaMediaCancha.Services
                                 }
                             }
 
-                            // Insertar detalle venta
                             string insertDetalle = @"
                                 INSERT INTO DetalleVenta (VentaId, ProductoId, ProductoCodigo, ProductoNombre, 
                                                           Cantidad, PrecioUnitario, Descuento, Subtotal)
@@ -232,34 +298,50 @@ namespace LaMediaCancha.Services
                                 detalleVentaId = Convert.ToInt32(cmd.ExecuteScalar());
                             }
 
-                            // Insertar lotes utilizados y actualizar inventario
                             foreach (var lote in item.LotesSeleccionados)
                             {
-                                string insertDetalleLote = @"
-                                    INSERT INTO DetalleVentaLote (DetalleVentaId, LoteId, Cantidad, PrecioUnitario, Subtotal)
-                                    VALUES (@DetalleVentaId, @LoteId, @Cantidad, @PrecioUnitario, @Subtotal)";
-
-                                using (var cmd = new SqlCommand(insertDetalleLote, conn, transaction))
+                                if (lote.LoteId > 0)
                                 {
-                                    cmd.Parameters.AddWithValue("@DetalleVentaId", detalleVentaId);
-                                    cmd.Parameters.AddWithValue("@LoteId", lote.LoteId);
-                                    cmd.Parameters.AddWithValue("@Cantidad", lote.Cantidad);
-                                    cmd.Parameters.AddWithValue("@PrecioUnitario", lote.PrecioUnitario);
-                                    cmd.Parameters.AddWithValue("@Subtotal", lote.Subtotal);
-                                    cmd.ExecuteNonQuery();
+                                    string insertDetalleLote = @"
+                                        INSERT INTO DetalleVentaLote (DetalleVentaId, LoteId, Cantidad, PrecioUnitario, Subtotal)
+                                        VALUES (@DetalleVentaId, @LoteId, @Cantidad, @PrecioUnitario, @Subtotal)";
+
+                                    using (var cmd = new SqlCommand(insertDetalleLote, conn, transaction))
+                                    {
+                                        cmd.Parameters.AddWithValue("@DetalleVentaId", detalleVentaId);
+                                        cmd.Parameters.AddWithValue("@LoteId", lote.LoteId);
+                                        cmd.Parameters.AddWithValue("@Cantidad", lote.Cantidad);
+                                        cmd.Parameters.AddWithValue("@PrecioUnitario", lote.PrecioUnitario);
+                                        cmd.Parameters.AddWithValue("@Subtotal", lote.Subtotal);
+                                        cmd.ExecuteNonQuery();
+                                    }
+
+                                    string updateLote = @"
+                                        UPDATE Lote 
+                                        SET CantidadActual = CantidadActual - @Cantidad,
+                                            Estado = CASE WHEN CantidadActual - @Cantidad <= 0 THEN 'Agotado' ELSE 'Activo' END
+                                        WHERE LoteId = @LoteId";
+
+                                    using (var cmd = new SqlCommand(updateLote, conn, transaction))
+                                    {
+                                        cmd.Parameters.AddWithValue("@Cantidad", lote.Cantidad);
+                                        cmd.Parameters.AddWithValue("@LoteId", lote.LoteId);
+                                        cmd.ExecuteNonQuery();
+                                    }
                                 }
-
-                                string updateLote = @"
-                                    UPDATE Lote 
-                                    SET CantidadActual = CantidadActual - @Cantidad,
-                                        Estado = CASE WHEN CantidadActual - @Cantidad <= 0 THEN 'Agotado' ELSE 'Activo' END
-                                    WHERE LoteId = @LoteId";
-
-                                using (var cmd = new SqlCommand(updateLote, conn, transaction))
+                                else
                                 {
-                                    cmd.Parameters.AddWithValue("@Cantidad", lote.Cantidad);
-                                    cmd.Parameters.AddWithValue("@LoteId", lote.LoteId);
-                                    cmd.ExecuteNonQuery();
+                                    string updateInventario = @"
+                                        UPDATE Inventario 
+                                        SET ExistenciaActual = ExistenciaActual - @Cantidad
+                                        WHERE ProductoId = @ProductoId";
+
+                                    using (var cmd = new SqlCommand(updateInventario, conn, transaction))
+                                    {
+                                        cmd.Parameters.AddWithValue("@Cantidad", lote.Cantidad);
+                                        cmd.Parameters.AddWithValue("@ProductoId", item.ProductoId);
+                                        cmd.ExecuteNonQuery();
+                                    }
                                 }
                             }
                         }
@@ -275,70 +357,7 @@ namespace LaMediaCancha.Services
                 }
             }
         }
-        public List<VentaModels.Venta> BuscarVentas(BuscarVentaViewModel filtro)
-        {
-            var ventas = new List<VentaModels.Venta>();
 
-            string query = @"
-        SELECT 
-            VentaId,
-            NumeroFactura,
-            FechaVenta,
-            ClienteNombre,
-            ClienteDocumento,
-            Total,
-            Estado
-        FROM Venta
-        WHERE 1=1";
-
-            if (!string.IsNullOrEmpty(filtro.NumeroFactura))
-                query += " AND NumeroFactura LIKE @NumeroFactura";
-            if (!string.IsNullOrEmpty(filtro.NumeroDocumento))
-                query += " AND ClienteDocumento LIKE @NumeroDocumento";
-            if (filtro.FechaInicio.HasValue)
-                query += " AND CAST(FechaVenta AS DATE) >= @FechaInicio";
-            if (filtro.FechaFin.HasValue)
-                query += " AND CAST(FechaVenta AS DATE) <= @FechaFin";
-            if (!string.IsNullOrEmpty(filtro.Estado))
-                query += " AND Estado = @Estado";
-
-            query += " ORDER BY FechaVenta DESC";
-
-            using (var conn = new SqlConnection(_connectionString))
-            using (var cmd = new SqlCommand(query, conn))
-            {
-                if (!string.IsNullOrEmpty(filtro.NumeroFactura))
-                    cmd.Parameters.AddWithValue("@NumeroFactura", "%" + filtro.NumeroFactura + "%");
-                if (!string.IsNullOrEmpty(filtro.NumeroDocumento))
-                    cmd.Parameters.AddWithValue("@NumeroDocumento", "%" + filtro.NumeroDocumento + "%");
-                if (filtro.FechaInicio.HasValue)
-                    cmd.Parameters.AddWithValue("@FechaInicio", filtro.FechaInicio.Value);
-                if (filtro.FechaFin.HasValue)
-                    cmd.Parameters.AddWithValue("@FechaFin", filtro.FechaFin.Value);
-                if (!string.IsNullOrEmpty(filtro.Estado))
-                    cmd.Parameters.AddWithValue("@Estado", filtro.Estado);
-
-                conn.Open();
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        ventas.Add(new VentaModels.Venta
-                        {
-                            VentaId = (int)reader["VentaId"],
-                            NumeroFactura = reader["NumeroFactura"].ToString(),
-                            FechaVenta = (DateTime)reader["FechaVenta"],
-                            ClienteNombre = reader["ClienteNombre"].ToString(),
-                            ClienteDocumento = reader["ClienteDocumento"]?.ToString(),
-                            Total = (decimal)reader["Total"],
-                            Estado = reader["Estado"].ToString()
-                        });
-                    }
-                }
-            }
-
-            return ventas;
-        }
         public VentaModels.Venta ObtenerVentaPorId(int ventaId)
         {
             VentaModels.Venta venta = null;
@@ -357,20 +376,20 @@ namespace LaMediaCancha.Services
                     {
                         venta = new VentaModels.Venta
                         {
-                            VentaId = (int)reader["VentaId"],
-                            NumeroFactura = reader["NumeroFactura"].ToString(),
-                            FechaVenta = (DateTime)reader["FechaVenta"],
-                            ClienteNombre = reader["ClienteNombre"].ToString(),
+                            VentaId = Convert.ToInt32(reader["VentaId"]),
+                            NumeroFactura = reader["NumeroFactura"]?.ToString() ?? "",
+                            FechaVenta = reader["FechaVenta"] != DBNull.Value ? Convert.ToDateTime(reader["FechaVenta"]) : DateTime.Now,
+                            ClienteNombre = reader["ClienteNombre"]?.ToString() ?? "",
                             ClienteDocumento = reader["ClienteDocumento"]?.ToString(),
                             ClienteTelefono = reader["ClienteTelefono"]?.ToString(),
-                            TipoPago = reader["TipoPago"].ToString(),
-                            Subtotal = (decimal)reader["Subtotal"],
-                            Impuesto = (decimal)reader["Impuesto"],
-                            Descuento = (decimal)reader["Descuento"],
-                            Total = (decimal)reader["Total"],
-                            Estado = reader["Estado"].ToString(),
+                            TipoPago = reader["TipoPago"]?.ToString() ?? "",
+                            Subtotal = reader["Subtotal"] != DBNull.Value ? Convert.ToDecimal(reader["Subtotal"]) : 0,
+                            Impuesto = reader["Impuesto"] != DBNull.Value ? Convert.ToDecimal(reader["Impuesto"]) : 0,
+                            Descuento = reader["Descuento"] != DBNull.Value ? Convert.ToDecimal(reader["Descuento"]) : 0,
+                            Total = reader["Total"] != DBNull.Value ? Convert.ToDecimal(reader["Total"]) : 0,
+                            Estado = reader["Estado"]?.ToString() ?? "",
                             Observaciones = reader["Observaciones"]?.ToString(),
-                            UsuarioNombre = reader["UsuarioNombre"].ToString(),
+                            UsuarioNombre = reader["UsuarioNombre"]?.ToString() ?? "",
                             Detalles = ObtenerDetallesVenta(ventaId)
                         };
                     }
@@ -403,7 +422,7 @@ namespace LaMediaCancha.Services
                 {
                     while (reader.Read())
                     {
-                        int detalleId = (int)reader["DetalleVentaId"];
+                        int detalleId = Convert.ToInt32(reader["DetalleVentaId"]);
                         var detalle = detalles.FirstOrDefault(d => d.DetalleVentaId == detalleId);
 
                         if (detalle == null)
@@ -411,14 +430,14 @@ namespace LaMediaCancha.Services
                             detalle = new VentaModels.DetalleVenta
                             {
                                 DetalleVentaId = detalleId,
-                                VentaId = (int)reader["VentaId"],
-                                ProductoId = (int)reader["ProductoId"],
-                                ProductoCodigo = reader["ProductoCodigo"].ToString().Trim(),
-                                ProductoNombre = reader["ProductoNombre"].ToString().Trim(),
-                                Cantidad = (decimal)reader["Cantidad"],
-                                PrecioUnitario = (decimal)reader["PrecioUnitario"],
-                                Descuento = (decimal)reader["Descuento"],
-                                Subtotal = (decimal)reader["Subtotal"],
+                                VentaId = Convert.ToInt32(reader["VentaId"]),
+                                ProductoId = Convert.ToInt32(reader["ProductoId"]),
+                                ProductoCodigo = reader["ProductoCodigo"]?.ToString()?.Trim() ?? "",
+                                ProductoNombre = reader["ProductoNombre"]?.ToString()?.Trim() ?? "",
+                                Cantidad = reader["Cantidad"] != DBNull.Value ? Convert.ToDecimal(reader["Cantidad"]) : 0,
+                                PrecioUnitario = reader["PrecioUnitario"] != DBNull.Value ? Convert.ToDecimal(reader["PrecioUnitario"]) : 0,
+                                Descuento = reader["Descuento"] != DBNull.Value ? Convert.ToDecimal(reader["Descuento"]) : 0,
+                                Subtotal = reader["Subtotal"] != DBNull.Value ? Convert.ToDecimal(reader["Subtotal"]) : 0,
                                 LotesUtilizados = new List<VentaModels.DetalleVentaLote>()
                             };
                             detalles.Add(detalle);
@@ -428,11 +447,11 @@ namespace LaMediaCancha.Services
                         {
                             detalle.LotesUtilizados.Add(new VentaModels.DetalleVentaLote
                             {
-                                LoteId = (int)reader["LoteId"],
-                                NumeroLote = reader["NumeroLoteInterno"].ToString().Trim(),
-                                Cantidad = (decimal)reader["CantidadLote"],
-                                PrecioUnitario = (decimal)reader["PrecioLote"],
-                                Subtotal = (decimal)reader["SubtotalLote"]
+                                LoteId = Convert.ToInt32(reader["LoteId"]),
+                                NumeroLote = reader["NumeroLoteInterno"]?.ToString()?.Trim() ?? "",
+                                Cantidad = reader["CantidadLote"] != DBNull.Value ? Convert.ToDecimal(reader["CantidadLote"]) : 0,
+                                PrecioUnitario = reader["PrecioLote"] != DBNull.Value ? Convert.ToDecimal(reader["PrecioLote"]) : 0,
+                                Subtotal = reader["SubtotalLote"] != DBNull.Value ? Convert.ToDecimal(reader["SubtotalLote"]) : 0
                             });
                         }
                     }

@@ -98,8 +98,8 @@
                         <i class="fas fa-cash-register" style="font-size:2.2rem; color:white;"></i>
                     </div>
                     <strong style="font-size:1.4rem; color:var(--text-dark); display:block;
-                                   margin-bottom:8px; font-family:var(--font-title);">Punto de Venta</strong>
-                    <p style="color:var(--text-light); font-size:0.9rem; margin:0;">Ventas con sistema FIFO</p>
+                                   margin-bottom:8px; font-family:var(--font-title);">Mostrador</strong>
+                    <p style="color:var(--text-light); font-size:0.9rem; margin:0;">Gestión de Mostrador</p>
                 </div>
             </a>
 
@@ -119,7 +119,7 @@
             </a>
 
             <!-- Menús -->
-            <a href="#" style="text-decoration:none;">
+            <a href="@Url.Action("Index", "Menu")" style="text-decoration:none;">
                 <div class="modulo-card">
                     <div style="width:90px; height:90px;
                                 background:linear-gradient(135deg,var(--primary),var(--secondary));
@@ -134,7 +134,7 @@
             </a>
 
             <!-- Reservas -->
-            <a href="#" style="text-decoration:none;">
+            <a href="@Url.Action("Index", "Reserva")" style="text-decoration:none;">
                 <div class="modulo-card">
                     <div style="width:90px; height:90px;
                                 background:linear-gradient(135deg,#27AE60,#2ECC71);
@@ -194,6 +194,20 @@
                         <strong style="font-size:1.4rem; color:var(--text-dark); display:block;
                                        margin-bottom:8px; font-family:var(--font-title);">Compras</strong>
                         <p style="color:var(--text-light); font-size:0.9rem; margin:0;">Órdenes de compra</p>
+                    </div>
+                </a>
+                <!--Ventas-->
+                <a href="@Url.Action("Index", "Historial")" style="text-decoration:none;">
+                    <div class="modulo-card">
+                        <div style="width:90px; height:90px;
+                    background:linear-gradient(135deg,#D35400,#E67E22);
+                    border-radius:50%; display:flex; align-items:center;
+                    justify-content:center; margin:0 auto 20px;">
+                            <i class="fas fa-cash-register" style="font-size:2.2rem; color:white;"></i>
+                        </div>
+                        <strong style="font-size:1.4rem; color:var(--text-dark); display:block;
+                       margin-bottom:8px; font-family:var(--font-title);">Ventas</strong>
+                        <p style="color:var(--text-light); font-size:0.9rem; margin:0;">Órdenes de venta</p>
                     </div>
                 </a>
 
@@ -275,6 +289,21 @@
                     </div>
                 </a>
 
+                <!-- Ofertas -->
+                <a href="@Url.Action("Index", "Oferta")" style="text-decoration:none;">
+                    <div class="modulo-card">
+                        <div style="width:90px; height:90px;
+                    background:linear-gradient(135deg,#E74C3C,#C0392B);
+                    border-radius:50%; display:flex; align-items:center;
+                    justify-content:center; margin:0 auto 20px;">
+                            <i class="fas fa-percent" style="font-size:2.2rem; color:white;"></i>
+                        </div>
+                        <strong style="font-size:1.4rem; color:var(--text-dark); display:block;
+                       margin-bottom:8px; font-family:var(--font-title);">Ofertas</strong>
+                        <p style="color:var(--text-light); font-size:0.9rem; margin:0;">Promociones y descuentos</p>
+                    </div>
+                </a>
+
                 <!-- Bitácora -->
                 <a href="@Url.Action("Index", "Bitacora")" style="text-decoration:none;">
                     <div class="modulo-card">
@@ -289,6 +318,22 @@
                         <p style="color:var(--text-light); font-size:0.9rem; margin:0;">Registro de actividad</p>
                     </div>
                 </a>
+
+                <!-- Ofertas -->
+                <a href="@Url.Action("Index", "Combo")" style="text-decoration:none;">
+                    <div class="modulo-card">
+                        <div style="width:90px; height:90px;
+    background:linear-gradient(135deg,#E74C3C,#C0392B);
+    border-radius:50%; display:flex; align-items:center;
+    justify-content:center; margin:0 auto 20px;">
+                            <i class="fas fa-percent" style="font-size:2.2rem; color:white;"></i>
+                        </div>
+                        <strong style="font-size:1.4rem; color:var(--text-dark); display:block;
+       margin-bottom:8px; font-family:var(--font-title);">Combos</strong>
+                        <p style="color:var(--text-light); font-size:0.9rem; margin:0;">Combos especiales</p>
+                    </div>
+                </a>
+
             }
 
         </div>

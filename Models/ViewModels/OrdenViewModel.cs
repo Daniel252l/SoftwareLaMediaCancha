@@ -10,6 +10,7 @@ namespace LaMediaCancha.Models.ViewModels
         public decimal Cantidad { get; set; }
         public decimal PrecioUnitario { get; set; }
         public string Nota { get; set; }
+        public bool EsOferta { get; set; }
     }
 
     public class OrdenDetalleViewModel
@@ -98,7 +99,7 @@ namespace LaMediaCancha.Models.ViewModels
     public class TicketDetalleViewModel
     {
         public string ProductoNombre { get; set; }
-        public decimal Cantidad { get; set; }
+        public int Cantidad { get; set; }
         public decimal PrecioUnitario { get; set; }
         public decimal Subtotal { get; set; }
         public string Nota { get; set; }

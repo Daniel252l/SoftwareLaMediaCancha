@@ -1,21 +1,21 @@
-@model LaMediaCancha.Models.ProductoModels.Producto
+@model LaMediaCancha.Models.ProductoModels.ProductoCompra
 
 @{
-    ViewBag.Title = "Crear Producto";
+    ViewBag.Title = "Crear Materia Prima";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card-custom" style="max-width: 100%;">
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-10">
+            <div class="card-custom">
                 <div class="card-header-custom">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                         <div>
                             <h2 class="text-white mb-1">
-                                <i class="fas fa-plus-circle me-2"></i> Crear Producto
+                                <i class="fas fa-plus-circle me-2"></i> Nueva Materia Prima
                             </h2>
-                            <p class="mb-0 text-white-50">Ingrese los datos del nuevo producto</p>
+                            <p class="mb-0 text-white-50">Ingrese los datos del nuevo insumo o materia prima</p>
                         </div>
                         <a href="@Url.Action("Index", "Producto")" class="btn btn-light">
                             <i class="fas fa-arrow-left me-1"></i> Regresar
@@ -23,154 +23,64 @@
                     </div>
                 </div>
                 <div class="card-body-custom p-4">
-
-                    @if (TempData["SuccessCrear"] != null)
+                    @using (Html.BeginForm("Crear", "Producto", FormMethod.Post))
                     {
-                        <div class="alert alert-success d-flex align-items-center gap-2 mb-4" role="alert"
-                             style="border-radius: 10px; border-left: 4px solid #28a745;">
-                            <i class="fas fa-check-circle text-success" style="font-size: 1.3rem;"></i>
-                            <span class="fw-semibold">@TempData["SuccessCrear"]</span>
-                        </div>
-                    }
-                    @if (TempData["Error"] != null)
-                    {
-                        <div class="alert alert-danger d-flex align-items-center gap-2 mb-4" role="alert"
-                             style="border-radius: 10px; border-left: 4px solid #dc3545;">
-                            <i class="fas fa-times-circle text-danger" style="font-size: 1.3rem;"></i>
-                            <span class="fw-semibold">@TempData["Error"]</span>
-                        </div>
-                    }
-
-                    <form action="@Url.Action("Crear", "Producto")" method="post">
                         @Html.AntiForgeryToken()
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Código <span class="text-danger">*</span></label>
-                                <input type="text" name="Codigo" class="form-control" placeholder="Ej: PROD001" required />
+                                @Html.TextBoxFor(m => m.Codigo, new { @class = "form-control", placeholder = "Ej: CAR001, VER001, ABA001", required = "required" })
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Código de Barras</label>
-                                <input type="text" name="CodigoBarras" class="form-control" placeholder="Opcional" />
+                                <label class="form-label fw-bold">Unidad de Medida <span class="text-danger">*</span></label>
+                                @Html.DropDownListFor(m => m.UnidadMedida, new SelectList(new[]
+                                     {
+                                    new { Value = "Libra", Text = "Libra" },
+                                    new { Value = "Kilogramo", Text = "Kilogramo" },
+                                    new { Value = "Litro", Text = "Litro" },
+                                    new { Value = "Unidad", Text = "Unidad" },
+                                    new { Value = "Caja", Text = "Caja" },
+                                    new { Value = "Paquete", Text = "Paquete" }
+                                }, "Value", "Text"), "Seleccione...", new { @class = "form-select", required = "required" })
                             </div>
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">Nombre <span class="text-danger">*</span></label>
-                            <input type="text" name="Nombre" class="form-control" placeholder="Nombre del producto" required />
+                            @Html.TextBoxFor(m => m.Nombre, new { @class = "form-control", placeholder = "Nombre de la materia prima", required = "required" })
                         </div>
 
                         <div class="mb-3">
                             <label class="form-label fw-bold">Descripción</label>
-                            <textarea name="Descripcion" class="form-control" rows="3" placeholder="Descripción del producto (opcional)"></textarea>
+                            @Html.TextAreaFor(m => m.Descripcion, new { @class = "form-control", rows = 3, placeholder = "Descripción opcional" })
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Departamento <span class="text-danger">*</span></label>
-                                <select id="DepartamentoId" name="DepartamentoId" class="form-select" required>
-                                    <option value="">Seleccione un departamento...</option>
-                                    @if (ViewBag.Departamentos != null)
-                                    {
-                                        var departamentos = ViewBag.Departamentos as IEnumerable<SelectListItem>;
-                                        if (departamentos != null)
-                                        {
-                                            foreach (var item in departamentos)
-                                            {
-                                                <option value="@item.Value">@item.Text</option>
-                                            }
-                                        }
-                                    }
-                                </select>
+                                <label class="form-label fw-bold">Categoría</label>
+                                @Html.DropDownListFor(m => m.CategoriaId, ViewBag.CategoriasCompra as SelectList, "Seleccione una categoría...", new { @class = "form-select" })
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">SubDepartamento <span class="text-danger">*</span></label>
-                                <select id="SubDepartamentoId" class="form-select" disabled>
-                                    <option value="">Primero seleccione un departamento</option>
-                                </select>
-                                <input type="hidden" id="SubDepartamentoIdHidden" name="SubDepartamentoId" value="" />
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Presentación <span class="text-danger">*</span></label>
-                                <select id="PresentacionId" name="PresentacionId" class="form-select" required>
-                                    <option value="">Seleccione una presentación...</option>
-                                    @if (ViewBag.Presentaciones != null)
-                                    {
-                                        var presentaciones = ViewBag.Presentaciones as IEnumerable<SelectListItem>;
-                                        if (presentaciones != null)
-                                        {
-                                            foreach (var item in presentaciones)
-                                            {
-                                                <option value="@item.Value">@item.Text</option>
-                                            }
-                                        }
-                                    }
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Marca</label>
-                                <select id="MarcaId" name="MarcaId" class="form-select">
-                                    <option value="">Seleccione una marca...</option>
-                                    @if (ViewBag.Marcas != null)
-                                    {
-                                        var marcas = ViewBag.Marcas as IEnumerable<SelectListItem>;
-                                        if (marcas != null)
-                                        {
-                                            foreach (var item in marcas)
-                                            {
-                                                <option value="@item.Value">@item.Text</option>
-                                            }
-                                        }
-                                    }
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Precio Compra (Q) <span class="text-danger">*</span></label>
-                                <input type="number" name="PrecioCompra" class="form-control" step="0.01" min="0" placeholder="0.00" required />
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Precio Venta (Q) <span class="text-danger">*</span></label>
-                                <input type="number" name="PrecioVenta" class="form-control" step="0.01" min="0" placeholder="0.00" required />
+                                @Html.TextBoxFor(m => m.PrecioCompra, new { @class = "form-control", type = "number", step = "0.01", min = "0", placeholder = "0.00", required = "required" })
                             </div>
                         </div>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">¿En Oferta?</label>
-                                <select id="EstaEnOferta" name="EstaEnOferta" class="form-select">
-                                    <option value="false">No</option>
-                                    <option value="true">Sí</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3" id="divPrecioOferta" style="display: none;">
-                                <label class="form-label fw-bold">Precio Oferta (Q)</label>
-                                <input type="number" name="PrecioOferta" class="form-control" step="0.01" min="0" placeholder="0.00" />
-                            </div>
-                        </div>
-
-                        <div class="row" id="divFechasOferta" style="display: none;">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Fecha Inicio Oferta</label>
-                                <input type="date" name="FechaInicioOferta" class="form-control" />
+                                <label class="form-label fw-bold">Stock Mínimo</label>
+                                @Html.TextBoxFor(m => m.StockMinimo, new { @class = "form-control", type = "number", step = "0.01", min = "0", value = "0" })
+                                <small class="text-muted">Cuando el stock baje de este nivel, se mostrará una alerta</small>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Fecha Fin Oferta</label>
-                                <input type="date" name="FechaFinOferta" class="form-control" />
+                                <label class="form-label fw-bold">Estado</label>
+                                @Html.DropDownListFor(m => m.Activo, new SelectList(new[]
+                                     {
+                                    new { Value = "true", Text = "Activo" },
+                                    new { Value = "false", Text = "Inactivo" }
+                                }, "Value", "Text", true), new { @class = "form-select" })
                             </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Estado</label>
-                            <select id="Activo" name="Activo" class="form-select">
-                                <option value="true" selected>Activo</option>
-                                <option value="false">Inactivo</option>
-                            </select>
                         </div>
 
                         <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
@@ -178,86 +88,15 @@
                                 <i class="fas fa-times me-1"></i> Cancelar
                             </a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save me-1"></i> Crear Producto
+                                <i class="fas fa-save me-1"></i> Guardar Materia Prima
                             </button>
                         </div>
-                    </form>
+                    }
                 </div>
             </div>
         </div>
     </div>
 </div>
-
-@section Scripts {
-    <script>
-        $(document).ready(function () {
-
-            $('#EstaEnOferta').change(function () {
-                if ($(this).val() === 'true') {
-                    $('#divPrecioOferta').show(300);
-                    $('#divFechasOferta').show(300);
-                } else {
-                    $('#divPrecioOferta').hide(300);
-                    $('#divFechasOferta').hide(300);
-                }
-            });
-
-            $('#SubDepartamentoId').change(function () {
-                $('#SubDepartamentoIdHidden').val($(this).val());
-            });
-
-            function cargarSubDepartamentos(subDepartamentoSeleccionado) {
-                var deptoId = $('#DepartamentoId').val();
-                var select = $('#SubDepartamentoId');
-
-                if (deptoId && deptoId !== '') {
-                    select.prop('disabled', true);
-                    select.html('<option value="">Cargando...</option>');
-
-                    $.ajax({
-                        url: '@Url.Action("GetSubDepartamentos", "Producto")',
-                        type: 'GET',
-                        data: { departamentoId: deptoId },
-                        dataType: 'json',
-                        success: function (data) {
-                            select.empty();
-                            select.append('<option value="">Seleccione un subdepartamento...</option>');
-                            if (data && data.length > 0) {
-                                $.each(data, function (i, item) {
-                                    var isSelected = (subDepartamentoSeleccionado && item.Value == subDepartamentoSeleccionado) ? ' selected="selected"' : '';
-                                    select.append('<option value="' + item.Value + '"' + isSelected + '>' + item.Text + '</option>');
-                                });
-                                select.prop('disabled', false);
-                                $('#SubDepartamentoIdHidden').val(select.val());
-                            } else {
-                                select.append('<option value="">No hay subdepartamentos disponibles</option>');
-                                select.prop('disabled', true);
-                                $('#SubDepartamentoIdHidden').val('');
-                            }
-                        },
-                        error: function () {
-                            select.html('<option value="">Error al cargar subdepartamentos</option>');
-                            select.prop('disabled', true);
-                            $('#SubDepartamentoIdHidden').val('');
-                        }
-                    });
-                } else {
-                    select.prop('disabled', true);
-                    select.html('<option value="">Primero seleccione un departamento</option>');
-                    $('#SubDepartamentoIdHidden').val('');
-                }
-            }
-
-            $('#DepartamentoId').change(function () {
-                cargarSubDepartamentos(null);
-            });
-
-            if ($('#DepartamentoId').val() && $('#DepartamentoId').val() !== '') {
-                cargarSubDepartamentos(null);
-            }
-        });
-    </script>
-}
 
 <style>
     .card-custom {
@@ -265,19 +104,15 @@
         border-radius: 20px;
         overflow: hidden;
         box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-        margin-bottom: 20px;
+        width: 100%;
+        max-width: 1400px;
+        margin: auto;
     }
 
     .card-header-custom {
         padding: 1.5rem;
         background: linear-gradient(135deg, #c95a00 0%, #a04700 100%) !important;
     }
-
-        .card-header-custom h2 {
-            margin-bottom: 5px;
-            font-weight: 600;
-            letter-spacing: -0.5px;
-        }
 
         .card-header-custom .btn-light {
             background: rgba(255,255,255,0.2);
@@ -293,45 +128,49 @@
                 transform: translateY(-2px);
             }
 
+    .card-body-custom {
+        background: #fff;
+    }
+
     .form-control, .form-select {
-        border-radius: 8px;
+        border-radius: 10px;
         border: 1px solid #ddd;
-        padding: 10px 12px;
+        padding: 12px;
         transition: all 0.2s ease;
     }
 
         .form-control:focus, .form-select:focus {
             border-color: #c95a00;
-            box-shadow: 0 0 0 3px rgba(201, 90, 0, 0.1);
+            box-shadow: 0 0 0 3px rgba(201,90,0,0.15);
             outline: none;
         }
 
     .form-label {
-        font-size: 0.85rem;
+        font-size: 0.9rem;
         font-weight: 600;
         color: #495057;
-        margin-bottom: 5px;
+        margin-bottom: 6px;
     }
 
     .btn-primary {
         background: linear-gradient(135deg, #c95a00, #a04700);
         border: none;
         padding: 10px 25px;
-        border-radius: 8px;
+        border-radius: 10px;
         transition: all 0.2s ease;
     }
 
         .btn-primary:hover {
             background: linear-gradient(135deg, #a04700, #8b3a00);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(201, 90, 0, 0.3);
+            box-shadow: 0 4px 12px rgba(201,90,0,0.3);
         }
 
     .btn-secondary {
         background: #6c757d;
         border: none;
         padding: 10px 25px;
-        border-radius: 8px;
+        border-radius: 10px;
         transition: all 0.2s ease;
     }
 
@@ -339,10 +178,6 @@
             background: #5a6268;
             transform: translateY(-2px);
         }
-
-    .text-danger {
-        color: #dc3545 !important;
-    }
 
     .border-top {
         border-top: 1px solid #e9ecef !important;
@@ -358,7 +193,11 @@
             }
 
         .btn-primary, .btn-secondary {
-            padding: 8px 16px;
+            width: 100%;
+        }
+
+        .d-flex.justify-content-end {
+            flex-direction: column;
         }
     }
 </style>

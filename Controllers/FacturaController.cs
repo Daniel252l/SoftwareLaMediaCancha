@@ -55,30 +55,38 @@ namespace LaMediaCancha.Controllers
             var facturas = _facturaService.ObtenerFacturas(filtro);
 
             if (facturas == null || !facturas.Any())
-                return Content("<tr><td colspan='8' class='text-center'>No se encontraron facturas de compras</td></tr>");
+                return Content("<tr><td colspan='8' class='text-center text-muted py-4'><i class='fas fa-info-circle fa-2x mb-2 d-block'></i>No se encontraron facturas de compras</td></tr>");
 
             var html = new System.Text.StringBuilder();
 
             foreach (var factura in facturas)
             {
                 string rowClass = factura.Estado == "Anulada" ? "factura-anulada" : "";
-
                 string estadoBadge = factura.Estado == "Vigente"
                     ? "<span class='badge-vigente'>Vigente</span>"
                     : "<span class='badge-anulada'>Anulada</span>";
 
                 string notaCredito = !string.IsNullOrEmpty(factura.NumeroNotaCredito)
-                    ? $"<span class='badge-info'>{factura.NumeroNotaCredito}</span>"
-                    : "<span style='color:#999;'>—</span>";
+                    ? $"<span class='badge-nc'>{factura.NumeroNotaCredito}</span>"
+                    : "<span class='badge-nc-vacio'>—</span>";
 
-                string acciones =
-                    $"<a href='{Url.Action("Detalle", new { id = factura.FacturaId })}' class='btn-ver' title='Ver detalle'><i class='fas fa-eye'></i></a>" +
-                    $"<a href='{Url.Action("Imprimir", new { id = factura.FacturaId })}' class='btn-imprimir' title='Imprimir' target='_blank'><i class='fas fa-print'></i></a>";
+                // ── Botones de acción ──────────────────────────────────────────
+                string btnVer = $"<a href='{Url.Action("Detalle", new { id = factura.FacturaId })}' class='btn-ver' title='Ver detalle'><i class='fas fa-eye'></i> Ver</a>";
+                string btnImprimir = $"<a href='{Url.Action("Imprimir", new { id = factura.FacturaId })}' class='btn-imprimir' title='Imprimir' target='_blank'><i class='fas fa-print'></i> Imprimir</a>";
 
+                string btnNC = "";
                 if (factura.Estado == "Vigente")
-                    acciones += $"<a href='javascript:void(0)' onclick='abrirModalNCProveedor({factura.CompraId}, \"{factura.NumeroFactura}\")' class='btn-nc-proveedor' title='Registrar NC Proveedor'><i class='fas fa-file-invoice'></i> NC</a>";
+                {
+                    // Factura vigente → registrar NC del proveedor
+                    btnNC = $"<a href='javascript:void(0)' onclick='abrirModalNCProveedor({factura.FacturaId}, \"{factura.NumeroFactura}\")' class='btn-nc' title='Registrar NC Proveedor'><i class='fas fa-file-invoice'></i> NC</a>";
+                }
                 else if (factura.Estado == "Anulada" && factura.NotaCreditoId.HasValue)
-                    acciones += $"<a href='javascript:void(0)' onclick='verNotaCredito({factura.NotaCreditoId})' class='btn-ver-nc' title='Ver NC'><i class='fas fa-file-invoice'></i> NC</a>";
+                {
+                    // Factura anulada con NC → ver la NC
+                    btnNC = $"<a href='javascript:void(0)' onclick='verNotaCredito({factura.NotaCreditoId})' class='btn-nc' title='Ver NC'><i class='fas fa-file-invoice'></i> NC</a>";
+                }
+
+                string acciones = $"<div class='acciones-btns'>{btnVer}{btnImprimir}{btnNC}</div>";
 
                 html.Append($@"
                     <tr class='{rowClass}'>
@@ -86,8 +94,8 @@ namespace LaMediaCancha.Controllers
                         <td>{factura.FechaEmision:dd/MM/yyyy HH:mm}</td>
                         <td>{factura.ClienteNombre}</td>
                         <td>{factura.NumeroDocumento ?? "—"}</td>
-                        <td class='text-right'>{factura.Total:N2}</td>
-                        <td>{estadoBadge}</td>
+                        <td class='text-end'>{factura.Total:N2}</td>
+                        <td class='text-center'>{estadoBadge}</td>
                         <td class='text-center'>{notaCredito}</td>
                         <td class='text-center'>{acciones}</td>
                     </tr>
@@ -99,7 +107,7 @@ namespace LaMediaCancha.Controllers
 
         [HttpPost]
         public ActionResult BuscarVentas(string NumeroFactura, string NumeroDocumento,
-                                         DateTime? FechaInicio, DateTime? FechaFin, string Estado)
+                                 DateTime? FechaInicio, DateTime? FechaFin, string Estado)
         {
             if (Session["UserRol"] == null)
                 return Json(new { success = false, message = "Sesión expirada" });
@@ -116,23 +124,33 @@ namespace LaMediaCancha.Controllers
             var ventas = _facturaService.BuscarVentas(filtro);
 
             if (ventas == null || !ventas.Any())
-                return Content("<tr><td colspan='8' class='text-center'>No se encontraron facturas de ventas</td></tr>");
+                return Content("<tr><td colspan='8' class='text-center text-muted py-4'><i class='fas fa-info-circle fa-2x mb-2 d-block'></i>No se encontraron facturas de ventas</td></tr>");
 
             var html = new System.Text.StringBuilder();
 
             foreach (var venta in ventas)
             {
                 string rowClass = venta.Estado == "Anulada" ? "factura-anulada" : "";
-
                 string estadoBadge = venta.Estado == "Completada"
                     ? "<span class='badge-vigente'>Completada</span>"
                     : "<span class='badge-anulada'>Anulada</span>";
 
-                string acciones =
-                    $"<a href='{Url.Action("Factura", "Venta", new { id = venta.VentaId })}' class='btn-ver' title='Ver detalle' target='_blank'><i class='fas fa-eye'></i></a>";
+                string notaCredito = "<span class='badge-nc-vacio'>—</span>";
 
+                // Botón Ver – DetalleVenta en VentaController
+                string btnVer = $"<a href='{Url.Action("DetalleVenta", "Venta", new { id = venta.VentaId })}' class='btn-ver' title='Ver detalle'><i class='fas fa-eye'></i> Ver</a>";
+
+                // Botón Imprimir – ImprimirFactura en VentaController
+                string btnImprimir = $"<a href='{Url.Action("Factura", "Venta", new { id = venta.VentaId })}' class='btn-imprimir' title='Imprimir' target='_blank'><i class='fas fa-print'></i> Imprimir</a>";
+
+                // Botón Anular – solo si está Completada
+                string btnAnular = "";
                 if (venta.Estado == "Completada")
-                    acciones += $"<a href='javascript:void(0)' onclick='anularFactura({venta.VentaId}, \"{venta.NumeroFactura}\", \"venta\")' class='btn-anular' title='Anular'><i class='fas fa-ban'></i></a>";
+                {
+                    btnAnular = $"<a href='javascript:void(0)' onclick='anularFacturaVenta({venta.VentaId}, \"{venta.NumeroFactura}\")' class='btn-anular' title='Anular'><i class='fas fa-ban'></i> Anular</a>";
+                }
+
+                string acciones = $"<div class='acciones-btns'>{btnVer}{btnImprimir}{btnAnular}</div>";
 
                 html.Append($@"
                     <tr class='{rowClass}'>
@@ -140,9 +158,9 @@ namespace LaMediaCancha.Controllers
                         <td>{venta.FechaVenta:dd/MM/yyyy HH:mm}</td>
                         <td>{venta.ClienteNombre}</td>
                         <td>{venta.ClienteDocumento ?? "—"}</td>
-                        <td class='text-right'>{venta.Total:N2}</td>
-                        <td>{estadoBadge}</td>
-                        <td class='text-center'><span style='color:#999;'>—</span></td>
+                        <td class='text-end fw-bold'>{venta.Total:N2}</td>
+                        <td class='text-center'>{estadoBadge}</td>
+                        <td class='text-center'>{notaCredito}</td>
                         <td class='text-center'>{acciones}</td>
                     </tr>
                 ");
@@ -151,6 +169,7 @@ namespace LaMediaCancha.Controllers
             return Content(html.ToString());
         }
 
+        // Detalle para compras
         public ActionResult Detalle(int id)
         {
             if (Session["UserRol"] == null)
@@ -162,6 +181,7 @@ namespace LaMediaCancha.Controllers
             return View(factura);
         }
 
+        // Imprimir para compras
         public ActionResult Imprimir(int id)
         {
             if (Session["UserRol"] == null)
@@ -170,7 +190,31 @@ namespace LaMediaCancha.Controllers
             var factura = _facturaService.ObtenerFacturaPorId(id);
             if (factura == null) return HttpNotFound();
 
-            return View(factura);
+            return View("ImprimirFactura", factura);
+        }
+
+        // Anular Venta
+        [HttpPost]
+        public JsonResult AnularVenta(int facturaId, string motivoAnulacion)
+        {
+            if (Session["UserRol"] == null)
+                return Json(new { success = false, message = "Sesión expirada" });
+
+            try
+            {
+                int usuarioId = (int)Session["UserId"];
+                string usuarioNombre = Session["UserNombre"]?.ToString() ?? "Usuario";
+
+                bool resultado = _facturaService.AnularVenta(facturaId, motivoAnulacion, usuarioId, usuarioNombre);
+                if (resultado)
+                    return Json(new { success = true, message = "Factura anulada exitosamente" });
+                else
+                    return Json(new { success = false, message = "Error al anular la factura" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         public JsonResult ObtenerNotaCredito(int id)
@@ -207,12 +251,25 @@ namespace LaMediaCancha.Controllers
         [HttpPost]
         public JsonResult RegistrarNCProveedor()
         {
-            if (Session["UserRol"] == null)
-                return Json(new { success = false, message = "Sesión expirada" });
-
             try
             {
-                int compraId = Convert.ToInt32(Request.Form["CompraId"]);
+                int facturaId = Convert.ToInt32(Request.Form["CompraId"]);
+
+                // Obtener el CompraId real desde la Factura
+                int compraId = 0;
+                using (var conn = new System.Data.SqlClient.SqlConnection(
+                    System.Configuration.ConfigurationManager.ConnectionStrings["LaMediaCanchaDB"].ConnectionString))
+                {
+                    conn.Open();
+                    var cmd = new System.Data.SqlClient.SqlCommand(
+                        "SELECT ISNULL(CompraId, 0) FROM Factura WHERE FacturaId = @FacturaId", conn);
+                    cmd.Parameters.AddWithValue("@FacturaId", facturaId);
+                    compraId = Convert.ToInt32(cmd.ExecuteScalar());
+                }
+
+                if (compraId == 0)
+                    return Json(new { success = false, message = "No se encontró la compra asociada a esta factura" });
+
                 string numeroNC = Request.Form["NumeroNCProveedor"];
                 DateTime fechaEmision = Convert.ToDateTime(Request.Form["FechaEmision"]);
                 decimal montoTotal = Convert.ToDecimal(Request.Form["MontoTotal"]);
@@ -256,40 +313,11 @@ namespace LaMediaCancha.Controllers
                 int ncId = _facturaService.RegistrarNotaCreditoProveedor(
                     model, usuarioId, usuarioNombre, documentoRuta, documentoNombre);
 
-                return Json(new { success = true, message = "Nota de Crédito del proveedor registrada correctamente.", ncId = ncId });
+                return Json(new { success = true, message = "Nota de Crédito registrada correctamente.", ncId = ncId });
             }
             catch (Exception ex)
             {
                 return Json(new { success = false, message = "Error: " + ex.Message });
-            }
-        }
-
-        public JsonResult ObtenerNCProveedor(int compraId)
-        {
-            if (Session["UserRol"] == null)
-                return Json(new { success = false, message = "Sesión expirada" }, JsonRequestBehavior.AllowGet);
-
-            try
-            {
-                var nc = _facturaService.ObtenerNCProveedorPorCompra(compraId);
-                if (nc == null)
-                    return Json(new { success = false, message = "No se encontró NC para esta compra" }, JsonRequestBehavior.AllowGet);
-
-                return Json(new
-                {
-                    success = true,
-                    NumeroNCProveedor = nc.NumeroNCProveedor,
-                    FechaEmision = nc.FechaEmision.ToString("dd/MM/yyyy"),
-                    MontoTotal = nc.MontoTotal,
-                    Motivo = nc.Motivo,
-                    NumeroFactura = nc.NumeroFacturaCompra,
-                    DocumentoRuta = nc.DocumentoRuta,
-                    DocumentoNombre = nc.DocumentoNombre
-                }, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
     }

@@ -1,0 +1,390 @@
+﻿@model LaMediaCancha.Models.ComboModels.ComboViewModel
+
+@{
+    ViewBag.Title = "Detalle de Combo";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="detalle-wrapper">
+    <div class="detalle-container">
+
+        <div class="card-custom detalle-card">
+
+            <!-- HEADER -->
+            <div class="card-header-custom">
+                <div class="header-flex">
+                    <div>
+                        <h2>
+                            <i class="fas fa-layer-group me-2"></i>
+                            Detalle de Combo
+                        </h2>
+                        <p>Información completa del combo especial</p>
+                    </div>
+                    <a href="@Url.Action("Index")" class="btn-regresar">
+                        <i class="fas fa-arrow-left"></i>
+                        Regresar
+                    </a>
+                </div>
+            </div>
+
+            <!-- BODY -->
+            <div class="card-body-custom">
+
+                <div class="detalle-grid">
+
+                    <!-- LADO IZQUIERDO -->
+                    <div>
+
+                        <div class="combo-header">
+                            <div class="combo-icono">
+                                <i class="fas fa-gift"></i>
+                            </div>
+                            <div>
+                                <h1 class="combo-titulo">@Model.Nombre</h1>
+                                <div class="combo-badge-info">
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-layer-group"></i> Combo Especial
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- DESCRIPCIÓN -->
+                        <div class="descripcion-box">
+                            <label>DESCRIPCIÓN</label>
+                            <p>@(string.IsNullOrWhiteSpace(Model.Descripcion) ? "Sin descripción" : Model.Descripcion)</p>
+                        </div>
+
+                        <!-- PRODUCTOS DEL COMBO -->
+                        <div class="productos-combo-box">
+                            <label>
+                                <i class="fas fa-list-ul me-2"></i>
+                                PRODUCTOS INCLUIDOS
+                            </label>
+                            <div class="tabla-productos-combo">
+                                <table class="table-combo">
+                                    <thead>
+                                        <tr>
+                                            <th>Código</th>
+                                            <th>Producto</th>
+                                            <th class="text-center">Cantidad</th>
+                                            <th class="text-end">Precio Unitario</th>
+                                            <th class="text-end">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var item in Model.Productos)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    @item.ProductoCodigo
+                                            </td>
+                                            <td>
+                                                @item.ProductoNombre
+                                        </td>
+                                        <td class="text-center">@item.CantidadIncluida
+                                    </td>
+                                    <td class="text-end">Q @item.PrecioIndividual.ToString("N2")
+                    </td>
+                    <td class="text-end">Q @item.Subtotal.ToString("N2")
+    </td>
+</tr>
+                        }
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="4" class="text-end fw-bold">
+                                                Valor regular:
+                                            </td>
+                                            <td class="text-end text-muted">
+                                                Q @Model.PrecioRegularTotal.ToString("N2")
+                                            </td>
+                                        </tr>
+                                        <tr class="ahorro-row">
+                                            <td colspan="4" class="text-end fw-bold text-success">
+                                                Ahorro:
+                                            </td>
+                                            <td class="text-end text-success fw-bold">
+                                                Q @Model.Ahorro.ToString("N2")
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- ESTADO -->
+                        <div class="estado-box">
+                            <label>ESTADO</label>
+                            @if (Model.Activo)
+                            {
+                                <span class="estado disponible">Disponible</span>
+                            }
+                            else
+                            {
+                                <span class="estado nodisponible">No disponible</span>
+                            }
+                        </div>
+
+                    </div>
+
+                    <!-- PRECIO -->
+                    <div>
+                        <div class="precio-card">
+                            <div class="precio-label">PRECIO DEL COMBO</div>
+                            <div class="precio-anterior">
+                                <span class="small">Valor regular:</span>
+                                Q @Model.PrecioRegularTotal.ToString("N2")
+                            </div>
+                            <div class="precio-oferta">
+                                Q @Model.PrecioCombo.ToString("N2")
+                            </div>
+                            <div class="ahorro-total">
+                                <i class="fas fa-tag"></i>
+                                Ahorras Q @Model.Ahorro.ToString("N2")
+                            </div>
+                            <div class="productos-count">
+                                <i class="fas fa-boxes"></i>
+                                @Model.TotalProductos productos incluidos
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<style>
+    .main-content {
+        display: block !important;
+        padding: 0 !important;
+    }
+
+    .detalle-wrapper {
+        width: 100%;
+        padding: 40px;
+    }
+
+    .detalle-container {
+        width: 100%;
+        max-width: 1400px;
+        margin: auto;
+    }
+
+    .detalle-card {
+        width: 100%;
+        max-width: 100% !important;
+    }
+
+    .header-flex {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .card-header-custom h2 {
+        color: white;
+        margin: 0;
+    }
+
+    .card-header-custom p {
+        color: rgba(255,255,255,.8);
+        margin-top: 5px;
+    }
+
+    .btn-regresar {
+        border: 1px solid white;
+        color: white;
+        padding: 10px 18px;
+        border-radius: 10px;
+        text-decoration: none;
+        transition: .3s;
+    }
+
+        .btn-regresar:hover {
+            background: rgba(255,255,255,.15);
+            color: white;
+        }
+
+    .card-body-custom {
+        padding: 40px;
+    }
+
+    .detalle-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 40px;
+        align-items: start;
+    }
+
+    .combo-header {
+        display: flex;
+        gap: 25px;
+        align-items: center;
+        margin-bottom: 35px;
+    }
+
+    .combo-icono {
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        background: #FFF8E7;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+        .combo-icono i {
+            font-size: 70px;
+            color: #F39C12;
+        }
+
+    .combo-titulo {
+        font-size: 3rem;
+        font-weight: 800;
+        margin: 0;
+        color: #1F2937;
+    }
+
+    .descripcion-box, .productos-combo-box, .estado-box {
+        background: #F9FAFB;
+        border-radius: 16px;
+        padding: 25px;
+        border: 1px solid #E5E7EB;
+        margin-bottom: 20px;
+    }
+
+        .descripcion-box label, .productos-combo-box label, .estado-box label {
+            display: block;
+            margin-bottom: 15px;
+            font-weight: 700;
+            color: #6B7280;
+            font-size: 0.9rem;
+        }
+
+        .descripcion-box p {
+            margin: 0;
+            font-size: 1.05rem;
+        }
+
+    .table-combo {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .table-combo th,
+        .table-combo td {
+            padding: 12px 8px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .table-combo th {
+            text-align: left;
+            font-weight: 600;
+            color: #6B7280;
+            font-size: 0.8rem;
+        }
+
+        .table-combo tfoot td {
+            border-bottom: none;
+            padding-top: 15px;
+        }
+
+    .ahorro-row td {
+        border-top: 2px solid #E5E7EB;
+        padding-top: 15px;
+    }
+
+    .estado {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 30px;
+        font-weight: 700;
+        color: white;
+    }
+
+    .disponible {
+        background: #22C55E;
+    }
+
+    .nodisponible {
+        background: #EF4444;
+    }
+
+    .precio-card {
+        background: linear-gradient(135deg, #1F2937, #111827);
+        border-radius: 24px;
+        padding: 40px 30px;
+        text-align: center;
+        color: white;
+        position: sticky;
+        top: 20px;
+    }
+
+    .precio-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: #9CA3AF;
+        margin-bottom: 20px;
+    }
+
+    .precio-anterior {
+        text-decoration: line-through;
+        color: #9CA3AF;
+        font-size: 1.2rem;
+        margin-bottom: 15px;
+    }
+
+    .precio-oferta {
+        font-size: 4rem;
+        font-weight: 900;
+        color: #F59E0B;
+        margin-bottom: 20px;
+    }
+
+    .ahorro-total {
+        background: rgba(245, 158, 11, 0.2);
+        padding: 12px;
+        border-radius: 12px;
+        color: #F59E0B;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .productos-count {
+        color: #9CA3AF;
+        font-size: 0.9rem;
+    }
+
+    @@media (max-width: 992px) {
+        .detalle-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .combo-header {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .combo-titulo {
+            font-size: 2rem;
+        }
+
+        .precio-card {
+            position: static;
+            margin-top: 20px;
+        }
+
+        .precio-oferta {
+            font-size: 3rem;
+        }
+    }
+</style>

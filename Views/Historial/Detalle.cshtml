@@ -1,0 +1,471 @@
+﻿@model LaMediaCancha.Models.VentaModels.HistorialVenta
+
+@{
+    ViewBag.Title = "Detalle de Venta";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid px-4 py-4">
+
+    <div class="row justify-content-center">
+
+        <div class="col-12">
+
+            <div class="card-custom card-custom-full">
+
+                <!-- HEADER -->
+                <div class="card-header-custom">
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <div>
+                            <h2 class="text-white mb-1">
+                                <i class="fas fa-receipt me-2"></i>
+                                Detalle de Venta
+                            </h2>
+
+                            <p class="mb-0 text-white-50">
+                                Información completa de la orden
+                            </p>
+                        </div>
+
+                        <div>
+
+                            @if (Model.Estado == "Abierta")
+                            {
+                                <button type="button"
+                                        id="btnCerrarOrden"
+                                        class="btn btn-success me-2"
+                                        onclick="cerrarOrden()">
+
+                                    <i class="fas fa-check-circle me-1"></i>
+                                    Cerrar Orden
+                                </button>
+                            }
+
+                            <a href="@Url.Action("Index")"
+                               class="btn btn-outline-light">
+
+                                <i class="fas fa-arrow-left me-1"></i>
+                                Regresar
+                            </a>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- BODY -->
+                <div class="card-body-custom p-4">
+
+                    <!-- INFORMACIÓN -->
+                    <div class="info-venta">
+
+                        <div class="row">
+
+                            <div class="col-md-3">
+                                <div class="info-box">
+
+                                    <label class="text-muted small">
+                                        NÚMERO ORDEN
+                                    </label>
+
+                                    <p class="fw-bold fs-5">
+                                        @Model.NumeroOrden
+                                    </p>
+
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="info-box">
+
+                                    <label class="text-muted small">
+                                        FECHA
+                                    </label>
+
+                                    <p class="fw-bold">
+                                        @Model.FechaApertura.ToString("dd/MM/yyyy HH:mm")
+                                    </p>
+
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="info-box">
+
+                                    <label class="text-muted small">
+                                        USUARIO
+                                    </label>
+
+                                    <p class="fw-bold">
+                                        @Model.UsuarioNombre
+                                    </p>
+
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="info-box">
+
+                                    <label class="text-muted small">
+                                        ESTADO
+                                    </label>
+
+                                    <p>
+
+                                        @if (Model.Estado == "Cerrada")
+                                        {
+                                            <span class="badge bg-success px-3 py-2">
+                                                Cerrada
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-warning px-3 py-2">
+                                                Abierta
+                                            </span>
+                                        }
+
+                                    </p>
+
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="row mt-3">
+
+                            <div class="col-md-3">
+                                <div class="info-box">
+
+                                    <label class="text-muted small">
+                                        CLIENTE
+                                    </label>
+
+                                    <p class="fw-bold">
+                                        @Model.ClienteNombre
+                                    </p>
+
+                                </div>
+                            </div>
+
+                            <div class="col-md-3">
+                                <div class="info-box">
+
+                                    <label class="text-muted small">
+                                        TIPO / MESA
+                                    </label>
+
+                                    <p class="fw-bold">
+                                        @Model.TipoVenta
+                                        @(Model.NumeroMesa.HasValue
+                                            ? $" - Mesa {Model.NumeroMesa}"
+                                            : "")
+                                    </p>
+
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <hr />
+
+                    <!-- TABLA -->
+                    <h4 class="mb-3">Productos</h4>
+
+                    <div class="table-responsive">
+
+                        <table class="table table-hover">
+
+                            <thead class="table-dark">
+
+                                <tr>
+
+                                    <th>Código</th>
+
+                                    <th>Producto</th>
+
+                                    <th class="text-center">
+                                        Cantidad
+                                    </th>
+
+                                    <th class="text-end">
+                                        Precio Unitario
+                                    </th>
+
+                                    <th class="text-end">
+                                        Subtotal
+                                    </th>
+
+                                </tr>
+
+                            </thead>
+
+                            <tbody>
+
+                                @foreach (var item in Model.Detalles)
+                                {
+                                    <tr id="fila-@item.DetalleOrdenId">
+
+                                        <td>
+
+                                            <span class="badge bg-light text-dark">
+
+                                                @(!string.IsNullOrEmpty(item.ProductoCodigo)
+                                                    ? item.ProductoCodigo
+                                                    : "N/A")
+
+                                            </span>
+
+                                        </td>
+
+                                        <td>
+
+                                            @item.ProductoNombre
+
+                                            @if (item.EsDeCombo &&
+                                                !string.IsNullOrEmpty(item.ComboNombre))
+                                            {
+                                                <br />
+
+                                                <small class="text-muted">
+                                                    [Combo: @item.ComboNombre]
+                                                </small>
+                                            }
+
+                                            @if (!string.IsNullOrEmpty(item.Nota))
+                                            {
+                                                <br />
+
+                                                <small class="text-info">
+                                                    Nota: @item.Nota
+                                                </small>
+                                            }
+
+                                        </td>
+
+                                        <td class="text-center fw-bold">
+                                            @Convert.ToInt32(item.Cantidad)
+                                        </td>
+
+                                        <td class="text-end">
+                                            Q @item.PrecioUnitario.ToString("N2")
+                                        </td>
+
+                                        <td class="text-end text-success fw-bold">
+                                            Q @item.Subtotal.ToString("N2")
+                                        </td>
+
+                                    </tr>
+                                }
+
+                            </tbody>
+
+                            <tfoot class="table-light">
+
+                                <tr>
+
+                                    <td colspan="4"
+                                        class="text-end fw-bold">
+
+                                        SUBTOTAL:
+
+                                    </td>
+
+                                    <td class="text-end fw-bold">
+                                        Q @Model.Subtotal.ToString("N2")
+                                    </td>
+
+                                </tr>
+
+                                <tr>
+
+                                    <td colspan="4"
+                                        class="text-end fw-bold">
+
+                                        IVA (12%):
+
+                                    </td>
+
+                                    <td class="text-end fw-bold">
+                                        Q @Model.Impuesto.ToString("N2")
+                                    </td>
+
+                                </tr>
+
+                                <tr class="bg-success text-white">
+
+                                    <td colspan="4"
+                                        class="text-end fw-bold fs-5">
+
+                                        TOTAL:
+
+                                    </td>
+
+                                    <td class="text-end fw-bold fs-5">
+                                        Q @Model.Total.ToString("N2")
+                                    </td>
+
+                                </tr>
+
+                            </tfoot>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <style>
+
+        .info-venta {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .info-box {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            border-left: 3px solid #c95a00;
+        }
+
+            .info-box label {
+                font-size: 0.7rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .info-box p {
+                margin: 0;
+                font-weight: 600;
+            }
+
+        .container-fluid {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding-left: 30px !important;
+            padding-right: 30px !important;
+        }
+
+        .card-custom {
+            width: 100%;
+            background: #fff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        .card-custom-full {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        .card-header-custom {
+            padding: 1.5rem 2rem;
+            background: linear-gradient(135deg, #c95a00 0%, #a04700 100%);
+        }
+
+        .card-body-custom {
+            padding: 20px;
+        }
+
+        .table th {
+            padding: 12px;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+
+        function cerrarOrden() {
+
+            Swal.fire({
+
+                title: '¿Cerrar orden?',
+                text: '¿Está seguro de cerrar esta orden? No se podrán hacer más cambios.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, cerrar',
+                cancelButtonText: 'Cancelar'
+
+            }).then((result) => {
+
+                if (result.isConfirmed) {
+
+                    $.ajax({
+
+                        url: '@Url.Action("CerrarOrden", "Historial")',
+
+                        type: 'POST',
+
+                        data: {
+                            ordenId: @Model.OrdenId
+                        },
+
+                        success: function (response) {
+
+                            if (response.success) {
+
+                                Swal.fire(
+                                    'Éxito',
+                                    response.message,
+                                    'success'
+                                ).then(() => {
+
+                                    location.reload();
+
+                                });
+
+                            } else {
+
+                                Swal.fire(
+                                    'Error',
+                                    response.message,
+                                    'error'
+                                );
+
+                            }
+
+                        },
+
+                        error: function () {
+
+                            Swal.fire(
+                                'Error',
+                                'Error al cerrar la orden',
+                                'error'
+                            );
+
+                        }
+
+                    });
+
+                }
+
+            });
+
+        }
+
+    </script>
+
+}

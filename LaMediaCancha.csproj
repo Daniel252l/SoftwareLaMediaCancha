@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="packages\EntityFramework.6.5.1\build\EntityFramework.props" Condition="Exists('packages\EntityFramework.6.5.1\build\EntityFramework.props')" />
+  <Import Project="packages\EntityFramework.6.5.2\build\EntityFramework.props" Condition="Exists('packages\EntityFramework.6.5.2\build\EntityFramework.props')" />
   <Import Project="packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
@@ -47,12 +47,39 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>packages\EntityFramework.6.5.1\lib\net45\EntityFramework.dll</HintPath>
+      <HintPath>packages\EntityFramework.6.5.2\lib\net45\EntityFramework.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
-      <HintPath>packages\EntityFramework.6.5.1\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <HintPath>packages\EntityFramework.6.5.2\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Microsoft.ReportViewer.Common, Version=15.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.ReportingServices.ReportViewerControl.Winforms.150.1652.0\lib\net40\Microsoft.ReportViewer.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.DataVisualization, Version=15.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.ReportingServices.ReportViewerControl.Winforms.150.1652.0\lib\net40\Microsoft.ReportViewer.DataVisualization.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.Design, Version=15.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.ReportingServices.ReportViewerControl.Winforms.150.1652.0\lib\net40\Microsoft.ReportViewer.Design.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.ProcessingObjectModel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.ReportingServices.ReportViewerControl.Winforms.150.1652.0\lib\net40\Microsoft.ReportViewer.ProcessingObjectModel.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.WebDesign, Version=15.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.ReportingServices.ReportViewerControl.WebForms.150.1652.0\lib\net40\Microsoft.ReportViewer.WebDesign.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.WebForms, Version=15.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.ReportingServices.ReportViewerControl.WebForms.150.1652.0\lib\net40\Microsoft.ReportViewer.WebForms.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.ReportViewer.WinForms, Version=15.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.ReportingServices.ReportViewerControl.Winforms.150.1652.0\lib\net40\Microsoft.ReportViewer.WinForms.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.SqlServer.Types, Version=14.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <HintPath>packages\Microsoft.SqlServer.Types.14.0.314.76\lib\net40\Microsoft.SqlServer.Types.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>packages\Newtonsoft.Json.13.0.4\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
@@ -100,9 +127,6 @@
     <Reference Include="System.Web.Optimization">
       <HintPath>packages\Microsoft.AspNet.Web.Optimization.1.1.3\lib\net40\System.Web.Optimization.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json">
-      <HintPath>packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="WebGrease">
       <Private>True</Private>
       <HintPath>packages\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
@@ -124,17 +148,37 @@
     <Compile Include="Controllers\AccountController.cs" />
     <Compile Include="Controllers\AdminController.cs" />
     <Compile Include="Controllers\BitacoraController.cs" />
+    <Compile Include="Controllers\ComboController.cs" />
     <Compile Include="Controllers\CompraController.cs" />
     <Compile Include="Controllers\DevolucionController.cs" />
     <Compile Include="Controllers\FacturaController.cs" />
+    <Compile Include="Controllers\HistorialController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\InventarioController.cs" />
     <Compile Include="Controllers\LoteController.cs" />
+    <Compile Include="Controllers\MenuController.cs" />
+    <Compile Include="Controllers\OfertaController.cs" />
     <Compile Include="Controllers\OrdenController.cs" />
     <Compile Include="Controllers\ProductoController.cs" />
     <Compile Include="Controllers\ProveedorController.cs" />
     <Compile Include="Controllers\ReporteController.cs" />
+    <Compile Include="Controllers\ReservaController.cs" />
     <Compile Include="Controllers\VentaController.cs" />
+    <Compile Include="DataSets\CajaDiaria.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CajaDiaria.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="DataSets\Inventario.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Inventario.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="DataSets\Ventas.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Ventas.xsd</DependentUpon>
+    </Compile>
     <Compile Include="Filters\RolAuthorizeAttribute.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -149,27 +193,35 @@
     <Compile Include="Models\InventarioModels.cs" />
     <Compile Include="Models\MantenimientoModels.cs" />
     <Compile Include="Models\Menu.cs" />
+    <Compile Include="Models\MenuModels.cs" />
     <Compile Include="Models\MenuRol.cs" />
     <Compile Include="Models\MenuUsuario.cs" />
     <Compile Include="Models\OrdenModels.cs" />
     <Compile Include="Models\ProductoModels.cs" />
     <Compile Include="Models\Proveedor.cs" />
+    <Compile Include="Models\ReservaModels.cs" />
     <Compile Include="Models\Rol.cs" />
     <Compile Include="Models\Usuario.cs" />
     <Compile Include="Models\VentaModels.cs" />
+    <Compile Include="Models\ViewModels\BuscarVentaViewModel.cs" />
     <Compile Include="Models\ViewModels\CambiarPasswordViewModel.cs" />
+    <Compile Include="Models\ComboModel.cs" />
     <Compile Include="Models\ViewModels\CompraViewModel.cs" />
     <Compile Include="Models\ViewModels\CrearUsuarioViewModel.cs" />
     <Compile Include="Models\ViewModels\DevolucionViewModel.cs" />
+    <Compile Include="Models\ViewModels\EditarUsuarioViewModel.cs" />
     <Compile Include="Models\ViewModels\FacturaViewModel.cs" />
     <Compile Include="Models\ViewModels\LoginViewModel.cs" />
     <Compile Include="Models\LoteViewModel.cs" />
     <Compile Include="Models\ViewModels\MesaViewModel.cs" />
+    <Compile Include="Models\ViewModels\NotaCreditoProveedorViewModel.cs" />
     <Compile Include="Models\ViewModels\NotaCreditoViewModel.cs" />
+    <Compile Include="Models\ViewModels\OfertaViewModel.cs" />
     <Compile Include="Models\ViewModels\OrdenViewModel.cs" />
     <Compile Include="Models\ViewModels\RecuperarPasswordViewModel.cs" />
     <Compile Include="Models\ViewModels\RegistrarCompraViewModel.cs" />
     <Compile Include="Models\ViewModels\RegistrarDevolucionViewModel.cs" />
+    <Compile Include="Models\ViewModels\ReporteViewModels.cs" />
     <Compile Include="Models\ViewModels\ResetPasswordViewModel.cs" />
     <Compile Include="Models\ViewModels\VentaViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -187,8 +239,10 @@
     <Compile Include="Services\InventarioService.cs" />
     <Compile Include="Services\LoteService.cs" />
     <Compile Include="Services\OrdenService.cs" />
+    <Compile Include="Services\ReporteService.cs" />
     <Compile Include="Services\SoundexService.cs" />
     <Compile Include="Services\VentaService.cs" />
+    <Compile Include="SqlServerTypes\Loader.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap-grid.css" />
@@ -207,8 +261,11 @@
     <Content Include="Content\bootstrap.min.css" />
     <Content Include="Content\bootstrap.rtl.css" />
     <Content Include="Content\bootstrap.rtl.min.css" />
+    <Content Include="Content\font-awesome.css" />
+    <Content Include="Content\font-awesome.min.css" />
     <Content Include="Content\images\logo.png" />
     <Content Include="favicon.ico" />
+    <Content Include="fonts\fontawesome-webfont.svg" />
     <Content Include="Global.asax" />
     <Content Include="Content\Site.css" />
     <Content Include="Scripts\bootstrap.bundle.js" />
@@ -217,6 +274,44 @@
     <Content Include="Scripts\bootstrap.esm.min.js" />
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\bootstrap.min.js" />
+    <Content Include="DataSets\Ventas.xsc">
+      <DependentUpon>Ventas.xsd</DependentUpon>
+    </Content>
+    <Content Include="DataSets\Inventario.xsc">
+      <DependentUpon>Inventario.xsd</DependentUpon>
+    </Content>
+    <Content Include="DataSets\CajaDiaria.xsc">
+      <DependentUpon>CajaDiaria.xsd</DependentUpon>
+    </Content>
+    <None Include="DataSets\CajaDiaria.xsd">
+      <SubType>Designer</SubType>
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>CajaDiaria.Designer.cs</LastGenOutput>
+    </None>
+    <Content Include="DataSets\CajaDiaria.xss">
+      <DependentUpon>CajaDiaria.xsd</DependentUpon>
+    </Content>
+    <None Include="DataSets\Inventario.xsd">
+      <SubType>Designer</SubType>
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>Inventario.Designer.cs</LastGenOutput>
+    </None>
+    <Content Include="DataSets\Inventario.xss">
+      <DependentUpon>Inventario.xsd</DependentUpon>
+    </Content>
+    <None Include="DataSets\Ventas.xsd">
+      <SubType>Designer</SubType>
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>Ventas.Designer.cs</LastGenOutput>
+    </None>
+    <Content Include="DataSets\Ventas.xss">
+      <DependentUpon>Ventas.xsd</DependentUpon>
+    </Content>
+    <Content Include="fonts\FontAwesome.otf" />
+    <Content Include="fonts\fontawesome-webfont.woff2" />
+    <Content Include="fonts\fontawesome-webfont.woff" />
+    <Content Include="fonts\fontawesome-webfont.ttf" />
+    <Content Include="fonts\fontawesome-webfont.eot" />
     <None Include="Scripts\jquery-3.7.0.intellisense.js" />
     <Content Include="Scripts\jquery-3.7.0.js" />
     <Content Include="Scripts\jquery-3.7.0.min.js" />
@@ -228,6 +323,19 @@
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
+    <Content Include="SqlServerTypes\readme.htm" />
+    <Content Include="SqlServerTypes\x64\msvcr120.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SqlServerTypes\x64\SqlServerSpatial140.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SqlServerTypes\x86\msvcr120.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="SqlServerTypes\x86\SqlServerSpatial140.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -266,10 +374,6 @@
     <Content Include="Views\Proveedor\Editar.cshtml" />
     <Content Include="Views\Proveedor\Detalle.cshtml" />
     <Content Include="Views\Reporte\Index.cshtml" />
-    <Content Include="Views\Reporte\BajoStock.cshtml" />
-    <Content Include="Views\Reporte\Movimientos.cshtml" />
-    <Content Include="Views\Reporte\DevolucionesPorProducto.cshtml" />
-    <Content Include="Views\Reporte\ComprasPorProveedor.cshtml" />
     <Content Include="Views\Bitacora\Index.cshtml" />
     <Content Include="Views\Bitacora\Detalle.cshtml" />
     <Content Include="Views\Admin\ListaUsuarios.cshtml" />
@@ -277,7 +381,7 @@
     <Content Include="Views\Lote\ProximosAVencer.cshtml" />
     <Content Include="Views\Factura\Index.cshtml" />
     <Content Include="Views\Factura\Detalle.cshtml" />
-    <Content Include="Views\Factura\Imprimir.cshtml" />
+    <Content Include="Views\Factura\ImprimirFactura.cshtml" />
     <Content Include="Views\Orden\Index.cshtml" />
     <Content Include="Views\Orden\Ordenar.cshtml" />
     <Content Include="Views\Orden\Cuenta.cshtml" />
@@ -285,6 +389,26 @@
     <Content Include="Views\Venta\Index.cshtml" />
     <Content Include="Views\Venta\Carrito.cshtml" />
     <Content Include="Views\Venta\Facturar.cshtml" />
+    <Content Include="Views\Orden\_TicketPartial.cshtml" />
+    <Content Include="Views\Venta\Factura.cshtml" />
+    <Content Include="Views\Oferta\Index.cshtml" />
+    <Content Include="Views\Oferta\Crear.cshtml" />
+    <Content Include="Views\Oferta\Editar.cshtml" />
+    <Content Include="Views\Orden\GenerarTicket.cshtml" />
+    <Content Include="Views\Venta\DetalleVenta.cshtml" />
+    <Content Include="Views\Reporte\VerReporte.cshtml" />
+    <Content Include="Views\Reporte\Filtros.cshtml" />
+    <Content Include="Views\Producto\Lotes.cshtml" />
+    <Content Include="Views\Producto\CrearLote.cshtml" />
+    <Content Include="Views\Historial\Index.cshtml" />
+    <Content Include="Views\Historial\Detalle.cshtml" />
+    <Content Include="Views\Menu\Index.cshtml" />
+    <Content Include="Views\Reserva\Index.cshtml" />
+    <Content Include="Views\Menu\Detalle.cshtml" />
+    <Content Include="Views\Combo\Index.cshtml" />
+    <Content Include="Views\Combo\Detalle.cshtml" />
+    <Content Include="Views\Combo\Crear.cshtml" />
+    <Content Include="Views\Combo\Editar.cshtml" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
@@ -313,6 +437,14 @@
     <Content Include="Scripts\bootstrap.bundle.js.map" />
     <Content Include="Scripts\jquery-3.7.0.slim.min.map" />
     <Content Include="Scripts\jquery-3.7.0.min.map" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Reports\Reportes\CajaDiaria.rdlc" />
+    <EmbeddedResource Include="Reports\Reportes\Compras.rdlc" />
+    <EmbeddedResource Include="Reports\Reportes\Inventario.rdlc" />
+    <EmbeddedResource Include="Reports\Reportes\Utilidad.rdlc" />
+    <EmbeddedResource Include="Reports\Reportes\Ventas.rdlc" />
+    <EmbeddedResource Include="Reports\Reportes\VentasPorProducto.rdlc" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -353,8 +485,8 @@
       <ErrorText>Este proyecto hace referencia a los paquetes NuGet que faltan en este equipo. Use la restauración de paquetes NuGet para descargarlos. Para obtener más información, consulte http://go.microsoft.com/fwlink/?LinkID=322105. El archivo que falta es {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
-    <Error Condition="!Exists('packages\EntityFramework.6.5.1\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.5.1\build\EntityFramework.props'))" />
-    <Error Condition="!Exists('packages\EntityFramework.6.5.1\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.5.1\build\EntityFramework.targets'))" />
+    <Error Condition="!Exists('packages\EntityFramework.6.5.2\build\EntityFramework.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.5.2\build\EntityFramework.props'))" />
+    <Error Condition="!Exists('packages\EntityFramework.6.5.2\build\EntityFramework.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\EntityFramework.6.5.2\build\EntityFramework.targets'))" />
   </Target>
-  <Import Project="packages\EntityFramework.6.5.1\build\EntityFramework.targets" Condition="Exists('packages\EntityFramework.6.5.1\build\EntityFramework.targets')" />
+  <Import Project="packages\EntityFramework.6.5.2\build\EntityFramework.targets" Condition="Exists('packages\EntityFramework.6.5.2\build\EntityFramework.targets')" />
 </Project>

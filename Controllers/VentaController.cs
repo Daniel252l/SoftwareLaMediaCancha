@@ -20,7 +20,7 @@ namespace LaMediaCancha.Controllers
         {
             if (Session["UserRol"] == null)
             {
-                return RedirectToAction("Venta", "Index");
+                return RedirectToAction("Login", "Account");
             }
 
             var productos = _ventaService.ObtenerProductosConLotes();
@@ -31,7 +31,7 @@ namespace LaMediaCancha.Controllers
         {
             if (Session["UserRol"] == null)
             {
-                return RedirectToAction("Venta", "Carrito");
+                return RedirectToAction("Login", "Account");
             }
             return View();
         }
@@ -40,14 +40,18 @@ namespace LaMediaCancha.Controllers
         {
             if (Session["UserRol"] == null)
             {
-                return RedirectToAction("Venta", "Facturar");
+                return RedirectToAction("Login", "Account");
             }
             return View();
         }
-
         [HttpPost]
         public JsonResult AplicarFIFO(int productoId, decimal cantidad)
         {
+            if (Session["UserRol"] == null)
+            {
+                return Json(new { success = false, message = "Sesión expirada" });
+            }
+
             try
             {
                 var lotes = _ventaService.AplicarFIFO(productoId, cantidad);
@@ -82,20 +86,46 @@ namespace LaMediaCancha.Controllers
             }
         }
 
+        // Ver detalle de factura (sin impresión automática)
         public ActionResult Factura(int id)
         {
             if (Session["UserRol"] == null)
-            {
                 return RedirectToAction("Login", "Account");
-            }
 
             var venta = _ventaService.ObtenerVentaPorId(id);
             if (venta == null)
-            {
                 return HttpNotFound();
-            }
 
             return View(venta);
         }
+
+        // Imprimir factura (con impresión automática)
+        public ActionResult ImprimirFactura(int id)
+        {
+            if (Session["UserRol"] == null)
+                return RedirectToAction("Login", "Account");
+
+            var venta = _ventaService.ObtenerVentaPorId(id);
+            if (venta == null)
+                return HttpNotFound();
+
+            return View("ImprimirFactura", venta);
+        }
+
+        // Ver detalle de venta (sin impresión automática)
+        public ActionResult DetalleVenta(int id)
+        {
+            if (Session["UserRol"] == null)
+                return RedirectToAction("Login", "Account");
+
+            var venta = _ventaService.ObtenerVentaPorId(id);
+            if (venta == null)
+                return HttpNotFound();
+
+            return View(venta);
+        }
+
+        
+
     }
 }

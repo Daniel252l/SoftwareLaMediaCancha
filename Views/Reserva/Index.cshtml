@@ -1,0 +1,493 @@
+﻿@model IEnumerable<LaMediaCancha.Models.ReservaModels.Reserva>
+@{
+    ViewBag.Title = "Reservas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card-custom">
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div>
+                            <h2 class="text-white mb-1">
+                                <i class="fas fa-calendar-check me-2"></i> Reservas
+                            </h2>
+                            <p class="mb-0 text-white-50">Gestión y seguimiento de reservaciones</p>
+                        </div>
+                        <a href="@Url.Action("Dashboard", "Home")" class="btn btn-light">
+                            <i class="fas fa-arrow-left me-1"></i> Regresar
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card-body-custom p-3">
+
+                    <!-- Filtros -->
+                    <div class="filtros-busqueda">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold"><i class="fas fa-calendar-alt"></i> Fecha</label>
+                                <input type="date" id="txtFecha" class="form-control"
+                                       value="@ViewBag.FechaSeleccionada" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold"><i class="fas fa-filter"></i> Estado</label>
+                                <select id="cmbEstado" class="form-select">
+                                    <option value="">Todos</option>
+                                    <option value="Pendiente" @(ViewBag.EstadoSeleccionado == "Pendiente" ? "selected" : "")>Pendiente</option>
+                                    <option value="Confirmada" @(ViewBag.EstadoSeleccionado == "Confirmada" ? "selected" : "")>Confirmada</option>
+                                    <option value="Cancelada" @(ViewBag.EstadoSeleccionado == "Cancelada" ? "selected" : "")>Cancelada</option>
+                                    <option value="Completada" @(ViewBag.EstadoSeleccionado == "Completada" ? "selected" : "")>Completada</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <button type="button" id="btnBuscar" class="btn btn-success px-4">
+                                    <i class="fas fa-search me-1"></i> Buscar
+                                </button>
+                                <button type="button" id="btnHoy" class="btn btn-secondary px-4 ms-2">
+                                    <i class="fas fa-calendar-day me-1"></i> Hoy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr />
+
+                    <!-- Resumen de totales -->
+                    <div class="row g-3 mb-3" id="resumenEstados">
+                        <div class="col-6 col-md-3">
+                            <div class="resumen-card resumen-total">
+                                <div class="resumen-numero" id="totalReservas">@Model.Count()</div>
+                                <div class="resumen-label">Total</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="resumen-card resumen-pendiente">
+                                <div class="resumen-numero">@Model.Count(r => r.Estado == "Pendiente")</div>
+                                <div class="resumen-label">Pendientes</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="resumen-card resumen-confirmada">
+                                <div class="resumen-numero">@Model.Count(r => r.Estado == "Confirmada")</div>
+                                <div class="resumen-label">Confirmadas</div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="resumen-card resumen-cancelada">
+                                <div class="resumen-numero">@Model.Count(r => r.Estado == "Cancelada")</div>
+                                <div class="resumen-label">Canceladas</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tabla -->
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Código</th>
+                                    <th>Cliente</th>
+                                    <th>Teléfono</th>
+                                    <th class="text-center">Hora</th>
+                                    <th class="text-center">Personas</th>
+                                    <th class="text-center">Mesa</th>
+                                    <th class="text-center">Estado</th>
+                                    <th>Registrado por</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyReservas">
+                                @if (!Model.Any())
+                                {
+                                    <tr>
+                                        <td colspan="9" class="text-center text-muted py-5">
+                                            <i class="fas fa-calendar-times fa-2x mb-2 d-block"></i>
+                                            No hay reservas para la fecha seleccionada
+                                        </td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    foreach (var r in Model)
+                                    {
+                                        string badgeClass = r.Estado == "Confirmada" ? "badge-confirmada"
+                                                          : r.Estado == "Pendiente" ? "badge-pendiente"
+                                                          : r.Estado == "Cancelada" ? "badge-cancelada"
+                                                          : "badge-completada";
+
+                                        <tr>
+                                            <td><strong>@r.CodigoReserva</strong></td>
+                                            <td>@r.ClienteNombre</td>
+                                            <td>@(r.ClienteTelefono ?? "—")</td>
+                                            <td class="text-center">
+                                                <span class="hora-badge">
+                                                    <i class="fas fa-clock me-1"></i>
+                                                    @r.HoraReserva.ToString(@"hh\:mm")
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="personas-badge">
+                                                    <i class="fas fa-users me-1"></i>@r.NumeroPersonas
+                                                </span>
+                                            </td>
+                                            <td class="text-center">
+                                                @if (r.MesaNumero.HasValue)
+                                                {
+                                                    <span class="mesa-badge">Mesa @r.MesaNumero</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">—</span>
+                                                }
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="@badgeClass">@r.Estado</span>
+                                            </td>
+                                            <td>@(r.UsuarioNombre ?? "—")</td>
+                                            <td class="text-center">
+                                                <div class="acciones-btns">
+                                                    <a href="@Url.Action("Detalle", new { id = r.ReservaId })"
+                                                       class="btn-ver" title="Ver detalle">
+                                                        <i class="fas fa-eye"></i> Ver
+                                                    </a>
+                                                    @if (r.Estado == "Pendiente")
+                                                    {
+                                                        <button type="button"
+                                                                onclick="cambiarEstado(@r.ReservaId, 'Confirmada')"
+                                                                class="btn-confirmar" title="Confirmar reserva">
+                                                            <i class="fas fa-check"></i> Confirmar
+                                                        </button>
+                                                        <button type="button"
+                                                                onclick="cambiarEstado(@r.ReservaId, 'Cancelada')"
+                                                                class="btn-cancelar" title="Cancelar reserva">
+                                                            <i class="fas fa-times"></i> Cancelar
+                                                        </button>
+                                                    }
+                                                    @if (r.Estado == "Confirmada")
+                                                    {
+                                                        <button type="button"
+                                                                onclick="cambiarEstado(@r.ReservaId, 'Completada')"
+                                                                class="btn-completar" title="Marcar como completada">
+                                                            <i class="fas fa-flag-checkered"></i> Completar
+                                                        </button>
+                                                        <button type="button"
+                                                                onclick="cambiarEstado(@r.ReservaId, 'Cancelada')"
+                                                                class="btn-cancelar" title="Cancelar reserva">
+                                                            <i class="fas fa-times"></i> Cancelar
+                                                        </button>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        // ── Buscar con filtros ──────────────────────────────────────────
+        $('#btnBuscar').click(function () {
+            var fecha  = $('#txtFecha').val();
+            var estado = $('#cmbEstado').val();
+            window.location.href = '@Url.Action("Index", "Reserva")' +
+                '?fecha=' + fecha + '&estado=' + estado;
+        });
+
+        $('#btnHoy').click(function () {
+            var hoy = new Date().toISOString().split('T')[0];
+            $('#txtFecha').val(hoy);
+            $('#cmbEstado').val('');
+            window.location.href = '@Url.Action("Index", "Reserva")' + '?fecha=' + hoy;
+        });
+
+        // Enter en fecha dispara búsqueda
+        $('#txtFecha').keypress(function (e) {
+            if (e.which === 13) $('#btnBuscar').click();
+        });
+
+        // ── Cambiar estado ──────────────────────────────────────────────
+        function cambiarEstado(reservaId, nuevoEstado) {
+            var mensajes = {
+                'Confirmada': { titulo: '¿Confirmar reserva?',  icono: 'question', btnColor: '#27AE60', btnTexto: 'Sí, confirmar' },
+                'Cancelada':  { titulo: '¿Cancelar reserva?',   icono: 'warning',  btnColor: '#dc3545', btnTexto: 'Sí, cancelar'  },
+                'Completada': { titulo: '¿Marcar como completada?', icono: 'question', btnColor: '#2980B9', btnTexto: 'Sí, completar' }
+            };
+
+            var cfg = mensajes[nuevoEstado];
+
+            Swal.fire({
+                title: cfg.titulo,
+                icon: cfg.icono,
+                showCancelButton: true,
+                confirmButtonColor: cfg.btnColor,
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: cfg.btnTexto,
+                cancelButtonText: 'No, volver'
+            }).then(function (result) {
+                if (!result.isConfirmed) return;
+
+                Swal.fire({ title: 'Procesando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+                $.ajax({
+                    url: '@Url.Action("CambiarEstado", "Reserva")',
+                    type: 'POST',
+                    data: { id: reservaId, estado: nuevoEstado },
+                    success: function (response) {
+                        if (response.success) {
+                            Swal.fire('Éxito', response.message, 'success').then(function () {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    },
+                    error: function () {
+                        Swal.fire('Error', 'No se pudo actualizar el estado', 'error');
+                    }
+                });
+            });
+        }
+    </script>
+}
+
+<style>
+    /* ── Card principal ── */
+    .card-custom {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        max-width: 100%;
+    }
+
+    .card-header-custom {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #27AE60 0%, #1E8449 100%) !important;
+    }
+
+    /* ── Filtros ── */
+    .filtros-busqueda {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: #555;
+    }
+
+    /* ── Resumen cards ── */
+    .resumen-card {
+        border-radius: 14px;
+        padding: 16px 10px;
+        text-align: center;
+        color: white;
+    }
+
+    .resumen-numero {
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .resumen-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 4px;
+        opacity: 0.9;
+    }
+
+    .resumen-total {
+        background: linear-gradient(135deg, #2C3E50, #4A5568);
+    }
+
+    .resumen-pendiente {
+        background: linear-gradient(135deg, #E67E22, #F39C12);
+    }
+
+    .resumen-confirmada {
+        background: linear-gradient(135deg, #27AE60, #1E8449);
+    }
+
+    .resumen-cancelada {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+    }
+
+    /* ── Tabla ── */
+    .table-dark th {
+        background-color: #2c3e30;
+        color: white;
+        font-weight: 600;
+        font-size: 0.76rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 12px 10px;
+        vertical-align: middle;
+    }
+
+    .table td {
+        vertical-align: middle;
+        padding: 11px 10px;
+        font-size: 0.83rem;
+    }
+
+    /* ── Badges de estado ── */
+    .badge-pendiente, .badge-confirmada, .badge-cancelada, .badge-completada {
+        display: inline-block;
+        padding: 5px 14px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: white;
+    }
+
+    .badge-pendiente {
+        background: linear-gradient(135deg, #E67E22, #F39C12);
+    }
+
+    .badge-confirmada {
+        background: linear-gradient(135deg, #27AE60, #1E8449);
+    }
+
+    .badge-cancelada {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+    }
+
+    .badge-completada {
+        background: linear-gradient(135deg, #2980B9, #3498DB);
+    }
+
+    /* ── Badges de hora / personas / mesa ── */
+    .hora-badge {
+        background: #eef2ff;
+        color: #3730a3;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+
+    .personas-badge {
+        background: #f0fdf4;
+        color: #166534;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+
+    .mesa-badge {
+        background: #fff7ed;
+        color: #9a3412;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+
+    /* ── Botones de acción ── */
+    .acciones-btns {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .btn-ver, .btn-confirmar, .btn-cancelar, .btn-completar {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        border: none;
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 0.68rem;
+        font-weight: 600;
+        text-decoration: none !important;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        min-width: 72px;
+        height: 32px;
+    }
+
+    .btn-ver {
+        background: #17a2b8;
+        color: white !important;
+    }
+
+        .btn-ver:hover {
+            background: #138496;
+            transform: translateY(-1px);
+        }
+
+    .btn-confirmar {
+        background: #27AE60;
+        color: white;
+    }
+
+        .btn-confirmar:hover {
+            background: #1e8449;
+            transform: translateY(-1px);
+        }
+
+    .btn-cancelar {
+        background: #dc3545;
+        color: white;
+    }
+
+        .btn-cancelar:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+
+    .btn-completar {
+        background: #2980B9;
+        color: white;
+    }
+
+        .btn-completar:hover {
+            background: #1a6fa0;
+            transform: translateY(-1px);
+        }
+
+    /* ── Botones generales ── */
+    .btn-success {
+        background: #27AE60;
+        border: none;
+    }
+
+        .btn-success:hover {
+            background: #1e8449;
+        }
+
+    /* ── Responsive ── */
+    @@media (max-width: 768px) {
+        .table {
+            min-width: 900px;
+        }
+
+        .acciones-btns {
+            flex-wrap: wrap;
+        }
+    }
+</style>

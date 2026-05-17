@@ -61,5 +61,33 @@ namespace LaMediaCancha.Controllers
             var lotes = _loteService.ObtenerLotesPorProducto(productoId);
             return Json(lotes, JsonRequestBehavior.AllowGet);
         }
+        [HttpPost]
+        public JsonResult CrearLote(int productoId, string numeroLoteInterno, string numeroLoteProveedor,
+                            decimal cantidad, decimal precioUnitario, string fechaIngreso, string fechaVencimiento)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(numeroLoteInterno))
+                    return Json(new { success = false, message = "El número de lote interno es requerido" });
+
+                if (cantidad <= 0)
+                    return Json(new { success = false, message = "La cantidad debe ser mayor a 0" });
+
+                if (precioUnitario <= 0)
+                    return Json(new { success = false, message = "El precio unitario debe ser mayor a 0" });
+
+                bool resultado = _loteService.CrearLote(productoId, numeroLoteInterno, numeroLoteProveedor,
+                                                        cantidad, precioUnitario, fechaIngreso, fechaVencimiento);
+
+                if (resultado)
+                    return Json(new { success = true, message = "Lote creado exitosamente" });
+                else
+                    return Json(new { success = false, message = "Error al crear el lote" });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
     }
 }

@@ -423,8 +423,8 @@ namespace LaMediaCancha.Services
         // ==================== NOTA DE CRÉDITO DEL PROVEEDOR ====================
 
         public int RegistrarNotaCreditoProveedor(NotaCreditoProveedorViewModel model,
-                                          int usuarioId, string usuarioNombre,
-                                          string documentoRuta, string documentoNombre)
+                                  int usuarioId, string usuarioNombre,
+                                  string documentoRuta, string documentoNombre)
         {
             using (var conn = new SqlConnection(_connectionString))
             {
@@ -460,13 +460,13 @@ namespace LaMediaCancha.Services
                             ncProveedorId = Convert.ToInt32(cmd.ExecuteScalar());
                         }
 
-                        // 2. Actualizar estado de la Factura a Anulada y guardar número de NC
+                        // 2. Actualizar estado de la Factura a Anulada
                         string updateFactura = @"
                     UPDATE Factura 
-                    SET Estado           = 'Anulada',
-                        MotivoAnulacion  = @Motivo,
-                        UsuarioAnulacion = @UsuarioNombre,
-                        FechaAnulacion   = GETDATE(),
+                    SET Estado            = 'Anulada',
+                        MotivoAnulacion   = @Motivo,
+                        UsuarioAnulacion  = @UsuarioNombre,
+                        FechaAnulacion    = GETDATE(),
                         NumeroNotaCredito = @NumeroNCProveedor
                     WHERE CompraId = @CompraId";
 
@@ -491,12 +491,12 @@ namespace LaMediaCancha.Services
                             cmd.ExecuteNonQuery();
                         }
 
-                        // 4. Restar stock de los productos
+                        // 4. Restar stock del Inventario
                         string updateStock = @"
-                    UPDATE p
-                    SET p.Stock = p.Stock - dc.Cantidad
-                    FROM Producto p
-                    INNER JOIN DetalleCompra dc ON p.ProductoId = dc.ProductoId
+                    UPDATE i
+                    SET i.ExistenciaActual = i.ExistenciaActual - dc.Cantidad
+                    FROM Inventario i
+                    INNER JOIN DetalleCompra dc ON i.ProductoId = dc.ProductoId
                     WHERE dc.CompraId = @CompraId";
 
                         using (var cmd = new SqlCommand(updateStock, conn, transaction))
@@ -511,7 +511,7 @@ namespace LaMediaCancha.Services
                     catch (Exception ex)
                     {
                         transaction.Rollback();
-                        throw new Exception("Error: " + ex.Message);
+                        throw new Exception("Error en RegistrarNCProveedor: " + ex.Message);
                     }
                 }
             }
@@ -553,6 +553,76 @@ namespace LaMediaCancha.Services
             }
 
             return nc;
+        }
+
+        // ==================== ANULAR VENTA ====================
+        public bool AnularVenta(int ventaId, string motivo, int usuarioId, string usuarioNombre)
+        {
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var transaction = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        // 1. Obtener datos de la venta
+                        decimal totalVenta = 0;
+                        string queryVenta = "SELECT Total FROM Venta WHERE VentaId = @VentaId";
+                        using (var cmd = new SqlCommand(queryVenta, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@VentaId", ventaId);
+                            totalVenta = (decimal)cmd.ExecuteScalar();
+                        }
+
+                        // 2. Generar número de nota de crédito
+                        string numeroNotaCredito = $"NCV-{DateTime.Now:yyyyMMddHHmmss}";
+
+                        // 3. Insertar Nota de Crédito
+                        string insertNC = @"
+                    INSERT INTO NotaCreditoVenta (VentaId, NumeroNotaCredito, FechaEmision, Motivo, MontoTotal, Estado, UsuarioId, UsuarioNombre)
+                    VALUES (@VentaId, @NumeroNotaCredito, GETDATE(), @Motivo, @MontoTotal, 'Activa', @UsuarioId, @UsuarioNombre);
+                    SELECT SCOPE_IDENTITY();";
+
+                        int notaCreditoId = 0;
+                        using (var cmd = new SqlCommand(insertNC, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@VentaId", ventaId);
+                            cmd.Parameters.AddWithValue("@NumeroNotaCredito", numeroNotaCredito);
+                            cmd.Parameters.AddWithValue("@Motivo", motivo);
+                            cmd.Parameters.AddWithValue("@MontoTotal", totalVenta);
+                            cmd.Parameters.AddWithValue("@UsuarioId", usuarioId);
+                            cmd.Parameters.AddWithValue("@UsuarioNombre", usuarioNombre);
+                            notaCreditoId = Convert.ToInt32(cmd.ExecuteScalar());
+                        }
+
+                        // 4. Actualizar estado de la venta
+                        string updateVenta = @"
+                    UPDATE Venta 
+                    SET Estado = 'Anulada', 
+                        FechaAnulacion = GETDATE(),
+                        UsuarioAnulacion = @UsuarioNombre,
+                        MotivoAnulacion = @Motivo,
+                        NotaCreditoId = @NotaCreditoId
+                    WHERE VentaId = @VentaId";
+                        using (var cmd = new SqlCommand(updateVenta, conn, transaction))
+                        {
+                            cmd.Parameters.AddWithValue("@VentaId", ventaId);
+                            cmd.Parameters.AddWithValue("@UsuarioNombre", usuarioNombre);
+                            cmd.Parameters.AddWithValue("@Motivo", motivo);
+                            cmd.Parameters.AddWithValue("@NotaCreditoId", notaCreditoId);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        transaction.Commit();
+                        return true;
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+            }
         }
     }
 }

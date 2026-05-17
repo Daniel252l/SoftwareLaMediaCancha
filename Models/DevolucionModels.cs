@@ -13,7 +13,8 @@ namespace LaMediaCancha.Models
             public int CompraId { get; set; }
             public string NumeroDocCompra { get; set; }
             public int EmpleadoId { get; set; }
-            public string EmpleadoNombre { get; set; }  // ← Agregar esta propiedad
+            public string EmpleadoNombre { get; set; }
+            public string ProveedorNombre { get; set; }  // ← AGREGAR ESTA PROPIEDAD
             public DateTime FechaCompraRef { get; set; }
             public bool TeniaProductosEnOferta { get; set; }
             public DateTime FechaDevolucion { get; set; }
@@ -25,7 +26,7 @@ namespace LaMediaCancha.Models
             public bool Activo { get; set; }
             public DateTime FechaCreacion { get; set; }
             public DateTime? FechaModificacion { get; set; }
-            public List<DetalleDevolucion> Detalles { get; set; }  // ← Agregar esta propiedad
+            public List<DetalleDevolucion> Detalles { get; set; }
         }
 
         public class DetalleDevolucion
@@ -34,7 +35,7 @@ namespace LaMediaCancha.Models
             public int DevolucionId { get; set; }
             public int ProductoId { get; set; }
             public string ProductoNombre { get; set; }
-            public string ProductoCodigo { get; set; }  // ← Agregar esta propiedad
+            public string ProductoCodigo { get; set; }
             public decimal Cantidad { get; set; }
             public decimal PrecioReferencia { get; set; }
             public decimal Subtotal { get; set; }

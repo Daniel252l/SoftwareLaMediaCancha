@@ -1,0 +1,461 @@
+﻿@model LaMediaCancha.Models.ViewModels.OfertaViewModel
+
+@{
+    ViewBag.Title = "Editar Oferta";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid px-4 mt-4">
+    <div class="row justify-content-center">
+        <div class="col-12">
+
+            <div class="card-custom card-custom-full">
+
+                <!-- HEADER -->
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+                        <div>
+                            <h2 class="text-white mb-1">
+                                <i class="fas fa-edit me-2"></i> Editar Oferta
+                            </h2>
+
+                            <p class="mb-0 text-white-50">
+                                Modifique la promoción
+                            </p>
+                        </div>
+
+                        <a href="@Url.Action("Index")"
+                           class="btn btn-light">
+                            <i class="fas fa-arrow-left me-1"></i>
+                            Regresar
+                        </a>
+
+                    </div>
+                </div>
+
+                <!-- BODY -->
+                <div class="card-body-custom p-4">
+
+                    @if (TempData["SuccessOferta"] != null)
+                    {
+                        <div class="alert alert-success d-flex align-items-center gap-2 mb-3"
+                             role="alert">
+
+                            <i class="fas fa-check-circle"></i>
+
+                            <span class="fw-semibold">
+                                @TempData["SuccessOferta"]
+                            </span>
+
+                        </div>
+                    }
+
+                    @if (TempData["ErrorOferta"] != null)
+                    {
+                        <div class="alert alert-danger d-flex align-items-center gap-2 mb-3"
+                             role="alert">
+
+                            <i class="fas fa-times-circle"></i>
+
+                            <span class="fw-semibold">
+                                @TempData["ErrorOferta"]
+                            </span>
+
+                        </div>
+                    }
+
+                    @using (Html.BeginForm())
+                    {
+                        @Html.AntiForgeryToken()
+
+                        @Html.HiddenFor(m => m.OfertaId)
+
+                        <!-- NOMBRE -->
+                        <div class="mb-3">
+
+                            <label class="form-label fw-bold">
+                                Nombre de la Oferta
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            @Html.TextBoxFor(
+                                m => m.Nombre,
+                                new
+                                {
+                                    @class = "form-control",
+                                    placeholder = "Ej: Martes de Hamburguesa"
+                                })
+
+                            @Html.ValidationMessageFor(
+                                m => m.Nombre,
+                                "",
+                                new { @class = "text-danger small" })
+
+                        </div>
+
+                        <!-- DESCRIPCIÓN -->
+                        <div class="mb-3">
+
+                            <label class="form-label fw-bold">
+                                Descripción
+                            </label>
+
+                            @Html.TextAreaFor(
+                                m => m.Descripcion,
+                                new
+                                {
+                                    @class = "form-control",
+                                    rows = 3,
+                                    placeholder = "Descripción de la oferta..."
+                                })
+
+                        </div>
+
+                        <!-- PRODUCTO -->
+                        <div class="mb-3">
+
+                            <label class="form-label fw-bold">
+                                Producto
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            @Html.DropDownListFor(
+                                m => m.ProductoId,
+                                (SelectList)ViewBag.Productos,
+                                "Seleccione un producto...",
+                                new
+                                {
+                                    @class = "form-select",
+                                    id = "ProductoId"
+                                })
+
+                            @Html.ValidationMessageFor(
+                                m => m.ProductoId,
+                                "",
+                                new { @class = "text-danger small" })
+
+                        </div>
+
+                        <!-- DESCUENTO -->
+                        <div class="row">
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold">
+                                    Descuento (%)
+                                    <span class="text-danger">*</span>
+                                </label>
+
+                                @Html.TextBoxFor(
+                                    m => m.DescuentoPorcentaje,
+                                    new
+                                    {
+                                        @class = "form-control",
+                                        type = "number",
+                                        step = "1",
+                                        min = "0",
+                                        max = "100",
+                                        placeholder = "0-100"
+                                    })
+
+                                @Html.ValidationMessageFor(
+                                    m => m.DescuentoPorcentaje,
+                                    "",
+                                    new { @class = "text-danger small" })
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold"
+                                       id="precioFinalLabel">
+
+                                    Precio con descuento
+
+                                </label>
+
+                                <input type="text"
+                                       id="precioFinal"
+                                       class="form-control bg-light"
+                                       readonly
+                                       value="Q @Model.PrecioOferta.ToString("F2")" />
+
+                            </div>
+
+                        </div>
+
+                        <!-- FECHAS -->
+                        <div class="row">
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold">
+                                    Fecha Inicio
+                                    <span class="text-danger">*</span>
+                                </label>
+
+                                @Html.TextBoxFor(
+                                    m => m.FechaInicio,
+                                    "{0:yyyy-MM-dd}",
+                                    new
+                                    {
+                                        @class = "form-control",
+                                        type = "date"
+                                    })
+
+                                @Html.ValidationMessageFor(
+                                    m => m.FechaInicio,
+                                    "",
+                                    new { @class = "text-danger small" })
+
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+
+                                <label class="form-label fw-bold">
+                                    Fecha Fin
+                                    <span class="text-danger">*</span>
+                                </label>
+
+                                @Html.TextBoxFor(
+                                    m => m.FechaFin,
+                                    "{0:yyyy-MM-dd}",
+                                    new
+                                    {
+                                        @class = "form-control",
+                                        type = "date"
+                                    })
+
+                                @Html.ValidationMessageFor(
+                                    m => m.FechaFin,
+                                    "",
+                                    new { @class = "text-danger small" })
+
+                            </div>
+
+                        </div>
+
+                        <!-- BOTONES -->
+                        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+
+                            <a href="@Url.Action("Index")"
+                               class="btn btn-secondary">
+
+                                <i class="fas fa-times me-1"></i>
+                                Cancelar
+
+                            </a>
+
+                            <button type="submit"
+                                    class="btn btn-primary">
+
+                                <i class="fas fa-save me-1"></i>
+                                Guardar Cambios
+
+                            </button>
+
+                        </div>
+                    }
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+
+    <script>
+        $(document).ready(function () {
+
+            function calcularPrecioFinal() {
+
+                var productoId = $('#ProductoId').val();
+                var descuento = parseFloat($('#DescuentoPorcentaje').val()) || 0;
+
+                if (productoId) {
+
+                    $.ajax({
+
+                        url: '@Url.Action("GetPrecioProducto", "Oferta")',
+                        type: 'GET',
+
+                        data: {
+                            productoId: productoId
+                        },
+
+                        success: function (data) {
+
+                            if (data.success) {
+
+                                var precioOriginal = data.precio;
+
+                                if (descuento > 0) {
+
+                                    var precioFinal =
+                                        precioOriginal -
+                                        (precioOriginal * descuento / 100);
+
+                                    $('#precioFinalLabel')
+                                        .text('Precio con descuento (' + descuento + '%)');
+
+                                    $('#precioFinal')
+                                        .val('Q ' + precioFinal.toFixed(2));
+
+                                } else {
+
+                                    $('#precioFinalLabel')
+                                        .text('Precio original');
+
+                                    $('#precioFinal')
+                                        .val('Q ' + precioOriginal.toFixed(2));
+                                }
+                            }
+                        }
+                    });
+
+                } else {
+
+                    $('#precioFinalLabel')
+                        .text('Precio con descuento');
+
+                    $('#precioFinal')
+                        .val('');
+                }
+            }
+
+            $('#ProductoId').on('change', calcularPrecioFinal);
+
+            $('#DescuentoPorcentaje')
+                .on('keyup change', calcularPrecioFinal);
+
+            if ($('#ProductoId').val()) {
+                calcularPrecioFinal();
+            }
+        });
+    </script>
+}
+
+<style>
+
+    .card-custom {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    .card-custom-full {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .card-header-custom {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #c95a00 0%, #a04700 100%);
+    }
+
+        .card-header-custom .btn-light {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            border-radius: 10px;
+            padding: 8px 18px;
+            transition: all 0.2s ease;
+        }
+
+            .card-header-custom .btn-light:hover {
+                background: rgba(255,255,255,0.3);
+                transform: translateY(-2px);
+            }
+
+    .form-control,
+    .form-select {
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        padding: 11px 14px;
+        transition: all 0.2s ease;
+    }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #c95a00;
+            box-shadow: 0 0 0 3px rgba(201, 90, 0, 0.15);
+            outline: none;
+        }
+
+    .form-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 6px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #c95a00, #a04700);
+        border: none;
+        padding: 10px 25px;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #a04700, #8b3a00);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(201, 90, 0, 0.3);
+        }
+
+    .btn-secondary {
+        background: #6c757d;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+    .alert-success {
+        border-radius: 12px;
+        border-left: 4px solid #28a745;
+    }
+
+    .alert-danger {
+        border-radius: 12px;
+        border-left: 4px solid #dc3545;
+    }
+
+    @@media (max-width: 768px) {
+
+        .container-fluid {
+            padding-left: 10px !important;
+            padding-right: 10px !important;
+        }
+
+        .card-header-custom {
+            padding: 1rem;
+        }
+
+            .card-header-custom h2 {
+                font-size: 1.3rem;
+            }
+
+        .card-body-custom {
+            padding: 1rem !important;
+        }
+
+        .btn-primary,
+        .btn-secondary {
+            width: 100%;
+        }
+
+        .d-flex.justify-content-end {
+            flex-direction: column;
+        }
+    }
+</style>

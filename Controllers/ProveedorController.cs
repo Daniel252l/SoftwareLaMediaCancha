@@ -1,10 +1,9 @@
 ﻿using LaMediaCancha.Models;
-using LaMediaCancha.Services;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
 using System.Web.Mvc;
 
 namespace LaMediaCancha.Controllers
@@ -40,8 +39,8 @@ namespace LaMediaCancha.Controllers
                     p.Activo,
                     p.MantenimientoId,
                     m.Nombre AS PoliticaNombre,
-                    m.Valor AS DiasMaximosDevolucion,
                     p.PoliticaDevolucion,
+                    p.DiasMaximosDevolucion,
                     pe.Nombres,
                     pe.Apellidos
                 FROM Proveedor p
@@ -60,19 +59,19 @@ namespace LaMediaCancha.Controllers
                         proveedores.Add(new Proveedor
                         {
                             ProveedorId = (int)reader["ProveedorId"],
-                            Nit = reader["Nit"].ToString(),
-                            RazonSocial = reader["RazonSocial"].ToString(),
+                            Nit = reader["Nit"]?.ToString() ?? "",
+                            RazonSocial = reader["RazonSocial"]?.ToString() ?? "",
                             Contacto = reader["Contacto"]?.ToString(),
                             Telefono = reader["Telefono"]?.ToString(),
                             Correo = reader["Correo"]?.ToString(),
                             Direccion = reader["Direccion"]?.ToString(),
-                            Activo = (bool)reader["Activo"],
+                            Activo = reader["Activo"] != DBNull.Value && (bool)reader["Activo"],
                             MantenimientoId = reader["MantenimientoId"] != DBNull.Value ? (int?)reader["MantenimientoId"] : null,
                             PoliticaNombre = reader["PoliticaNombre"]?.ToString(),
-                            DiasMaximosDevolucion = reader["DiasMaximosDevolucion"] != DBNull.Value ? (int)reader["DiasMaximosDevolucion"] : 10,
                             PoliticaDevolucion = reader["PoliticaDevolucion"]?.ToString(),
-                            Nombres = reader["Nombres"].ToString(),
-                            Apellidos = reader["Apellidos"].ToString()
+                            DiasMaximosDevolucion = reader["DiasMaximosDevolucion"] != DBNull.Value ? Convert.ToInt32(reader["DiasMaximosDevolucion"]) : 0,
+                            Nombres = reader["Nombres"]?.ToString() ?? "",
+                            Apellidos = reader["Apellidos"]?.ToString() ?? ""
                         });
                     }
                 }
@@ -96,12 +95,22 @@ namespace LaMediaCancha.Controllers
         // POST: Proveedor/Crear
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Crear(Proveedor proveedor)
+        public ActionResult Crear(Proveedor proveedor, int? DiasPersonalizados)
         {
             if (Session["UserRol"] == null)
             {
                 return RedirectToAction("Login", "Account");
             }
+
+            // Validaciones
+            if (string.IsNullOrEmpty(proveedor.Nit))
+                ModelState.AddModelError("Nit", "El NIT es requerido");
+            if (string.IsNullOrEmpty(proveedor.RazonSocial))
+                ModelState.AddModelError("RazonSocial", "La razón social es requerida");
+            if (string.IsNullOrEmpty(proveedor.Nombres))
+                ModelState.AddModelError("Nombres", "Los nombres son requeridos");
+            if (string.IsNullOrEmpty(proveedor.Apellidos))
+                ModelState.AddModelError("Apellidos", "Los apellidos son requeridos");
 
             if (ModelState.IsValid)
             {
@@ -121,12 +130,19 @@ namespace LaMediaCancha.Controllers
                     }
                 }
 
+                // Si se ingresaron días personalizados
+                if (DiasPersonalizados.HasValue && DiasPersonalizados.Value > 0)
+                {
+                    proveedor.PoliticaDevolucion = $"Se aceptan devoluciones hasta {DiasPersonalizados.Value} días después de la compra";
+                    proveedor.DiasMaximosDevolucion = DiasPersonalizados.Value;
+                }
+
                 int personaId;
 
-                // Verificar si la persona ya existe por nombre y apellido
+                // Verificar si la persona ya existe
                 string checkPersonaQuery = @"
-            SELECT PersonaId FROM Persona 
-            WHERE Nombres = @Nombres AND Apellidos = @Apellidos";
+                    SELECT PersonaId FROM Persona 
+                    WHERE Nombres = @Nombres AND Apellidos = @Apellidos";
 
                 using (var conn = new SqlConnection(_connectionString))
                 {
@@ -139,16 +155,14 @@ namespace LaMediaCancha.Controllers
 
                         if (result != null && result != DBNull.Value)
                         {
-                            // La persona ya existe, usar su ID
                             personaId = Convert.ToInt32(result);
                         }
                         else
                         {
-                            // Insertar nueva persona (NO especificar PersonaId, debe ser autoincremental)
                             string insertPersona = @"
-                        INSERT INTO Persona (Nombres, Apellidos, Telefono, Correo, Direccion, Activo)
-                        VALUES (@Nombres, @Apellidos, @Telefono, @Correo, @Direccion, 1);
-                        SELECT SCOPE_IDENTITY();";
+                                INSERT INTO Persona (Nombres, Apellidos, Telefono, Correo, Direccion, Activo)
+                                VALUES (@Nombres, @Apellidos, @Telefono, @Correo, @Direccion, 1);
+                                SELECT SCOPE_IDENTITY();";
 
                             using (var cmdInsert = new SqlCommand(insertPersona, conn))
                             {
@@ -164,8 +178,8 @@ namespace LaMediaCancha.Controllers
                 }
 
                 string queryProveedor = @"
-            INSERT INTO Proveedor (PersonaId, Nit, RazonSocial, Contacto, Telefono, Correo, Direccion, MantenimientoId, PoliticaDevolucion, Activo)
-            VALUES (@PersonaId, @Nit, @RazonSocial, @Contacto, @Telefono, @Correo, @Direccion, @MantenimientoId, @Politica, 1)";
+                    INSERT INTO Proveedor (PersonaId, Nit, RazonSocial, Contacto, Telefono, Correo, Direccion, MantenimientoId, PoliticaDevolucion, DiasMaximosDevolucion, Activo)
+                    VALUES (@PersonaId, @Nit, @RazonSocial, @Contacto, @Telefono, @Correo, @Direccion, @MantenimientoId, @Politica, @DiasMaximos, 1)";
 
                 using (var conn = new SqlConnection(_connectionString))
                 using (var cmd = new SqlCommand(queryProveedor, conn))
@@ -179,6 +193,7 @@ namespace LaMediaCancha.Controllers
                     cmd.Parameters.AddWithValue("@Direccion", (object)proveedor.Direccion ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@MantenimientoId", proveedor.MantenimientoId.HasValue ? (object)proveedor.MantenimientoId.Value : DBNull.Value);
                     cmd.Parameters.AddWithValue("@Politica", (object)proveedor.PoliticaDevolucion ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@DiasMaximos", proveedor.DiasMaximosDevolucion > 0 ? (object)proveedor.DiasMaximosDevolucion : DBNull.Value);
                     conn.Open();
                     cmd.ExecuteNonQuery();
                 }
@@ -213,6 +228,7 @@ namespace LaMediaCancha.Controllers
                     p.Activo,
                     p.MantenimientoId,
                     p.PoliticaDevolucion,
+                    p.DiasMaximosDevolucion,
                     pe.PersonaId,
                     pe.Nombres,
                     pe.Apellidos
@@ -233,17 +249,18 @@ namespace LaMediaCancha.Controllers
                         {
                             ProveedorId = (int)reader["ProveedorId"],
                             PersonaId = (int)reader["PersonaId"],
-                            Nit = reader["Nit"].ToString(),
-                            RazonSocial = reader["RazonSocial"].ToString(),
+                            Nit = reader["Nit"]?.ToString() ?? "",
+                            RazonSocial = reader["RazonSocial"]?.ToString() ?? "",
                             Contacto = reader["Contacto"]?.ToString(),
                             Telefono = reader["Telefono"]?.ToString(),
                             Correo = reader["Correo"]?.ToString(),
                             Direccion = reader["Direccion"]?.ToString(),
-                            Activo = (bool)reader["Activo"],
+                            Activo = reader["Activo"] != DBNull.Value && (bool)reader["Activo"],
                             MantenimientoId = reader["MantenimientoId"] != DBNull.Value ? (int?)reader["MantenimientoId"] : null,
                             PoliticaDevolucion = reader["PoliticaDevolucion"]?.ToString(),
-                            Nombres = reader["Nombres"].ToString(),
-                            Apellidos = reader["Apellidos"].ToString()
+                            DiasMaximosDevolucion = reader["DiasMaximosDevolucion"] != DBNull.Value ? Convert.ToInt32(reader["DiasMaximosDevolucion"]) : 0,
+                            Nombres = reader["Nombres"]?.ToString() ?? "",
+                            Apellidos = reader["Apellidos"]?.ToString() ?? ""
                         };
                     }
                 }
@@ -258,10 +275,10 @@ namespace LaMediaCancha.Controllers
             return View(proveedor);
         }
 
-        // POST: Proveedor/Editar/5
+        // POST: Proveedor/Editar
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Editar(Proveedor proveedor)
+        public ActionResult Editar(Proveedor proveedor, int? DiasPersonalizados)
         {
             if (Session["UserRol"] == null)
             {
@@ -287,6 +304,14 @@ namespace LaMediaCancha.Controllers
                     }
                 }
 
+                // Si se ingresaron días personalizados
+                if (DiasPersonalizados.HasValue && DiasPersonalizados.Value > 0)
+                {
+                    proveedor.PoliticaDevolucion = $"Se aceptan devoluciones hasta {DiasPersonalizados.Value} días después de la compra";
+                    proveedor.DiasMaximosDevolucion = DiasPersonalizados.Value;
+                }
+
+                // Actualizar Persona
                 string updatePersona = @"
                     UPDATE Persona 
                     SET Nombres = @Nombres, 
@@ -309,6 +334,7 @@ namespace LaMediaCancha.Controllers
                     cmd.ExecuteNonQuery();
                 }
 
+                // Actualizar Proveedor
                 string updateProveedor = @"
                     UPDATE Proveedor 
                     SET Nit = @Nit,
@@ -318,7 +344,8 @@ namespace LaMediaCancha.Controllers
                         Correo = @Correo,
                         Direccion = @Direccion,
                         MantenimientoId = @MantenimientoId,
-                        PoliticaDevolucion = @Politica
+                        PoliticaDevolucion = @Politica,
+                        DiasMaximosDevolucion = @DiasMaximos
                     WHERE ProveedorId = @ProveedorId";
 
                 using (var conn = new SqlConnection(_connectionString))
@@ -333,6 +360,7 @@ namespace LaMediaCancha.Controllers
                     cmd.Parameters.AddWithValue("@Direccion", (object)proveedor.Direccion ?? DBNull.Value);
                     cmd.Parameters.AddWithValue("@MantenimientoId", proveedor.MantenimientoId.HasValue ? (object)proveedor.MantenimientoId.Value : DBNull.Value);
                     cmd.Parameters.AddWithValue("@Politica", (object)proveedor.PoliticaDevolucion ?? DBNull.Value);
+                    cmd.Parameters.AddWithValue("@DiasMaximos", proveedor.DiasMaximosDevolucion > 0 ? (object)proveedor.DiasMaximosDevolucion : DBNull.Value);
                     conn.Open();
                     cmd.ExecuteNonQuery();
                 }
@@ -345,22 +373,24 @@ namespace LaMediaCancha.Controllers
             return View(proveedor);
         }
 
-        // POST: Proveedor/Inactivar
+        // POST: Proveedor/CambiarEstado
         [HttpPost]
-        public JsonResult Inactivar(int id)
+        public JsonResult CambiarEstado(int id, bool activo)
         {
             try
             {
-                string query = "UPDATE Proveedor SET Activo = 0 WHERE ProveedorId = @ProveedorId";
+                string query = "UPDATE Proveedor SET Activo = @Activo WHERE ProveedorId = @ProveedorId";
                 using (var conn = new SqlConnection(_connectionString))
                 using (var cmd = new SqlCommand(query, conn))
                 {
                     cmd.Parameters.AddWithValue("@ProveedorId", id);
+                    cmd.Parameters.AddWithValue("@Activo", activo);
                     conn.Open();
                     cmd.ExecuteNonQuery();
                 }
 
-                return Json(new { success = true, message = "Proveedor inactivado exitosamente" });
+                string mensaje = activo ? "Proveedor activado exitosamente" : "Proveedor inactivado exitosamente";
+                return Json(new { success = true, message = mensaje });
             }
             catch (Exception ex)
             {
@@ -390,8 +420,8 @@ namespace LaMediaCancha.Controllers
                     p.Activo,
                     p.MantenimientoId,
                     m.Nombre AS PoliticaNombre,
-                    m.Valor AS DiasMaximosDevolucion,
                     p.PoliticaDevolucion,
+                    p.DiasMaximosDevolucion,
                     pe.Nombres,
                     pe.Apellidos
                 FROM Proveedor p
@@ -411,19 +441,19 @@ namespace LaMediaCancha.Controllers
                         proveedor = new Proveedor
                         {
                             ProveedorId = (int)reader["ProveedorId"],
-                            Nit = reader["Nit"].ToString(),
-                            RazonSocial = reader["RazonSocial"].ToString(),
+                            Nit = reader["Nit"]?.ToString() ?? "",
+                            RazonSocial = reader["RazonSocial"]?.ToString() ?? "",
                             Contacto = reader["Contacto"]?.ToString(),
                             Telefono = reader["Telefono"]?.ToString(),
                             Correo = reader["Correo"]?.ToString(),
                             Direccion = reader["Direccion"]?.ToString(),
-                            Activo = (bool)reader["Activo"],
+                            Activo = reader["Activo"] != DBNull.Value && (bool)reader["Activo"],
                             MantenimientoId = reader["MantenimientoId"] != DBNull.Value ? (int?)reader["MantenimientoId"] : null,
                             PoliticaNombre = reader["PoliticaNombre"]?.ToString(),
-                            DiasMaximosDevolucion = reader["DiasMaximosDevolucion"] != DBNull.Value ? (int)reader["DiasMaximosDevolucion"] : 10,
                             PoliticaDevolucion = reader["PoliticaDevolucion"]?.ToString(),
-                            Nombres = reader["Nombres"].ToString(),
-                            Apellidos = reader["Apellidos"].ToString()
+                            DiasMaximosDevolucion = reader["DiasMaximosDevolucion"] != DBNull.Value ? Convert.ToInt32(reader["DiasMaximosDevolucion"]) : 0,
+                            Nombres = reader["Nombres"]?.ToString() ?? "",
+                            Apellidos = reader["Apellidos"]?.ToString() ?? ""
                         };
                     }
                 }
@@ -440,7 +470,7 @@ namespace LaMediaCancha.Controllers
         private SelectList ObtenerPoliticas(int? selectedValue = null)
         {
             var politicas = new List<SelectListItem>();
-            string query = "SELECT MantenimientoId, Nombre, Valor FROM Mantenimiento WHERE Activo = 1 ORDER BY Valor";
+            string query = "SELECT MantenimientoId, Nombre FROM Mantenimiento WHERE Activo = 1 ORDER BY Nombre";
 
             using (var conn = new SqlConnection(_connectionString))
             using (var cmd = new SqlCommand(query, conn))
@@ -453,7 +483,7 @@ namespace LaMediaCancha.Controllers
                         politicas.Add(new SelectListItem
                         {
                             Value = reader["MantenimientoId"].ToString(),
-                            Text = $"{reader["Nombre"]} ({reader["Valor"]} días)"
+                            Text = reader["Nombre"].ToString()
                         });
                     }
                 }

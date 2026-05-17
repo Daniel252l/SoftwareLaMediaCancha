@@ -1,82 +1,252 @@
 ﻿@model LaMediaCancha.Models.ViewModels.TicketViewModel
 
-<div style="text-align: center;">
-    <h3 style="margin-bottom: 5px; color: #000;">🏟️ LA MEDIA CANCHA</h3>
-    <p style="margin: 0; font-size: 11px; color: #000;">Tel: 1234-5678 | NIT: 123456-7</p>
-    <p style="margin: 0; font-size: 11px; color: #000;">Zona 1, Ciudad</p>
-</div>
+<div class="ticket-container">
 
-<div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
-
-@if (Model.EsCuentaSeparada && !string.IsNullOrEmpty(Model.NombrePersona))
-{
-    <div style="text-align: center; margin-bottom: 10px;">
-        <strong style="color: #000;">Cuenta de: @Model.NombrePersona</strong>
+    <!-- ENCABEZADO -->
+    <div class="ticket-header">
+        <h2>LA MEDIA CANCHA</h2>
+        <p>Tel: 1234-5678</p>
+        <p>NIT: 123456-7</p>
+        <p>Zona 1, Ciudad</p>
     </div>
-}
 
-<table style="width: 100%; font-size: 12px; margin-bottom: 10px; color: #000;">
-    <tr>
-        <td><strong>Mesa:</strong> @Model.NumeroMesa</td>
-        <td><strong>Fecha:</strong> @Model.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
-    </tr>
-    <tr>
-        <td><strong>Orden #:</strong> @Model.NumeroOrden</td>
-        <td><strong>Cliente:</strong> @Model.ClienteNombre</td>
-    </tr>
-</table>
+    <hr class="ticket-divider" />
 
-<div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
+    <!-- CUENTA SEPARADA -->
+    @if (Model.EsCuentaSeparada && !string.IsNullOrEmpty(Model.NombrePersona))
+    {
+        <div class="ticket-persona">
+            Cuenta de: @Model.NombrePersona
+        </div>
 
-<table style="width: 100%; font-size: 12px; border-collapse: collapse; color: #000;">
-    <thead>
-        <tr style="border-bottom: 1px solid #000;">
-            <th style="text-align: left;">Cant</th>
-            <th style="text-align: left;">Producto</th>
-            <th style="text-align: right;">Precio</th>
-            <th style="text-align: right;">Subtotal</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (Model.Detalles != null && Model.Detalles.Any())
-        {
-            foreach (var item in Model.Detalles)
+        <hr class="ticket-divider-light" />
+    }
+
+    <!-- DATOS -->
+    <div class="ticket-info">
+        <div>
+            <strong>Mesa:</strong> @Model.NumeroMesa
+        </div>
+
+        <div>
+            <strong>Orden:</strong> @Model.NumeroOrden
+        </div>
+
+        <div>
+            <strong>Cliente:</strong> @Model.ClienteNombre
+        </div>
+
+        <div>
+            <strong>Fecha:</strong>
+            @Model.Fecha.ToString("dd/MM/yyyy HH:mm")
+        </div>
+    </div>
+
+    <hr class="ticket-divider" />
+
+    <!-- PRODUCTOS -->
+    <table class="ticket-table">
+        <thead>
+            <tr>
+                <th>Cant</th>
+                <th>Producto</th>
+                <th>P/U</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @if (Model.Detalles != null && Model.Detalles.Any())
+            {
+                foreach (var item in Model.Detalles)
+                {
+                    <tr>
+                        <td>@item.Cantidad</td>
+
+                        <td>
+                            @item.ProductoNombre
+
+                            @if (item.EsDeCombo && !string.IsNullOrEmpty(item.ComboNombre))
+                            {
+                                <div class="ticket-combo">
+                                    Combo: @item.ComboNombre
+                                </div>
+                            }
+
+                            @if (!string.IsNullOrEmpty(item.Nota))
+                            {
+                                <div class="ticket-nota">
+                                    Nota: @item.Nota
+                                </div>
+                            }
+                        </td>
+
+                        <td class="text-end">
+                            @item.PrecioUnitario.ToString("C")
+                        </td>
+
+                        <td class="text-end">
+                            @item.Subtotal.ToString("C")
+                        </td>
+                    </tr>
+                }
+            }
+            else
             {
                 <tr>
-                    <td style="text-align: left;">@item.Cantidad</td>
-                    <td style="text-align: left;">
-                        @item.ProductoNombre
-                        @if (item.EsDeCombo && !string.IsNullOrEmpty(item.ComboNombre))
-                        {
-                            <span style="font-size: 9px; color: #006600;"> [@item.ComboNombre]</span>
-                        }
+                    <td colspan="4" class="text-center">
+                        No hay productos
                     </td>
-                    <td style="text-align: right;">@item.PrecioUnitario.ToString("C")</td>
-                    <td style="text-align: right;">@item.Subtotal.ToString("C")</td>
                 </tr>
             }
-        }
-        else
-        {
-            <tr>
-                <td colspan="4" style="text-align: center; padding: 10px;">No hay productos registrados</td>
-            </tr>
-        }
-    </tbody>
-</table>
+        </tbody>
+    </table>
 
-<div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
+    <hr class="ticket-divider" />
 
-<div style="text-align: right; color: #000;">
-    <p style="margin: 3px 0;"><strong>Subtotal:</strong> @Model.Subtotal.ToString("C")</p>
-    <p style="margin: 3px 0;"><strong>IVA (12%):</strong> @Model.Impuesto.ToString("C")</p>
-    <p style="margin: 10px 0; font-size: 14px;"><strong>TOTAL:</strong> @Model.Total.ToString("C")</p>
+    <!-- TOTALES -->
+    <div class="ticket-totales">
+
+        <div class="ticket-row">
+            <span>Subtotal:</span>
+            <span>@Model.Subtotal.ToString("C")</span>
+        </div>
+
+        <div class="ticket-row">
+            <span>IVA (12%):</span>
+            <span>@Model.Impuesto.ToString("C")</span>
+        </div>
+
+        <div class="ticket-row total">
+            <span>TOTAL:</span>
+            <span>@Model.Total.ToString("C")</span>
+        </div>
+
+    </div>
+
+    <hr class="ticket-divider" />
+
+    <!-- PIE -->
+    <div class="ticket-footer">
+        <p>¡Gracias por su visita!</p>
+        <p>*** Ticket de Venta ***</p>
+    </div>
+
 </div>
 
-<div style="border-top: 1px dashed #000; margin: 10px 0;"></div>
+<style>
+    .ticket-container {
+        width: 100%;
+        max-width: 320px;
+        margin: auto;
+        font-family: 'Courier New', monospace;
+        color: #000;
+        font-size: 12px;
+    }
 
-<div style="text-align: center; color: #000;">
-    <p style="margin: 5px 0;">Forma de pago: @ViewBag.FormaPago</p>
-    <p style="margin: 5px 0;">¡Gracias por su visita!</p>
-    <p style="margin: 5px 0; font-size: 10px;">*** Ticket de Venta ***</p>
-</div>
+    .ticket-header {
+        text-align: center;
+    }
+
+        .ticket-header h2 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .ticket-header p {
+            margin: 2px 0;
+            font-size: 11px;
+        }
+
+    .ticket-divider {
+        border: none;
+        border-top: 1px dashed #000;
+        margin: 10px 0;
+    }
+
+    .ticket-divider-light {
+        border: none;
+        border-top: 1px dotted #666;
+        margin: 8px 0;
+    }
+
+    .ticket-persona {
+        text-align: center;
+        font-weight: bold;
+        font-size: 13px;
+    }
+
+    .ticket-info div {
+        margin-bottom: 3px;
+    }
+
+    .ticket-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 11px;
+    }
+
+        .ticket-table th {
+            border-bottom: 1px solid #000;
+            padding-bottom: 4px;
+            text-align: left;
+        }
+
+        .ticket-table td {
+            padding: 5px 2px;
+            vertical-align: top;
+        }
+
+    .ticket-combo {
+        font-size: 9px;
+        color: green;
+    }
+
+    .ticket-nota {
+        font-size: 9px;
+        color: #666;
+    }
+
+    .text-end {
+        text-align: right;
+    }
+
+    .text-center {
+        text-align: center;
+    }
+
+    .ticket-totales {
+        margin-top: 10px;
+    }
+
+    .ticket-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 4px;
+    }
+
+        .ticket-row.total {
+            font-size: 15px;
+            font-weight: bold;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+            margin-top: 5px;
+        }
+
+    .ticket-footer {
+        text-align: center;
+        font-size: 11px;
+    }
+
+    @@media print {
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        .ticket-container {
+            width: 80mm;
+        }
+    }
+</style>

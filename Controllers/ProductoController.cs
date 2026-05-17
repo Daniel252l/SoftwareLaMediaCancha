@@ -5,9 +5,6 @@ using System.Configuration;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Web.Mvc;
-using static LaMediaCancha.Models.ProductoModels;
-using Producto = LaMediaCancha.Models.ProductoModels.Producto;
-using InventarioProducto = LaMediaCancha.Models.ProductoModels.InventarioProducto;
 
 namespace LaMediaCancha.Controllers
 {
@@ -20,20 +17,32 @@ namespace LaMediaCancha.Controllers
             _connectionString = ConfigurationManager.ConnectionStrings["LaMediaCanchaDB"].ConnectionString;
         }
 
-        // GET: Producto/Index
+        // ==================== PRODUCTOS DE COMPRA (MATERIAS PRIMAS) ====================
+
+        // GET: Producto/Index - Muestra TODOS los productos (activos e inactivos)
         public ActionResult Index()
         {
             if (Session["UserRol"] == null)
                 return RedirectToAction("Login", "Account");
 
-            var productos = new List<Producto>();
+            var productos = new List<ProductoModels.ProductoCompra>();
 
             string query = @"
                 SELECT 
-                    ProductoId, Codigo, Nombre, Descripcion, 
-                    PrecioCompra, PrecioVenta, Activo, FechaCreacion
-                FROM Producto 
-                ORDER BY Activo DESC, Nombre";
+                    pc.ProductoCompraId, 
+                    pc.Codigo, 
+                    pc.Nombre, 
+                    pc.Descripcion,
+                    pc.UnidadMedida,
+                    pc.PrecioCompra,
+                    pc.StockActual,
+                    pc.StockMinimo,
+                    ISNULL(cc.Nombre, 'Sin categoría') AS Categoria,
+                    pc.Activo,
+                    pc.FechaCreacion
+                FROM ProductoCompra pc
+                LEFT JOIN CategoriaCompra cc ON pc.CategoriaId = cc.CategoriaCompraId
+                ORDER BY pc.Activo DESC, pc.Nombre";
 
             using (var conn = new SqlConnection(_connectionString))
             using (var cmd = new SqlCommand(query, conn))
@@ -43,20 +52,24 @@ namespace LaMediaCancha.Controllers
                 {
                     while (reader.Read())
                     {
-                        productos.Add(new Producto
+                        productos.Add(new ProductoModels.ProductoCompra
                         {
-                            ProductoId = (int)reader["ProductoId"],
-                            Codigo = reader["Codigo"]?.ToString() ?? "",
-                            Nombre = reader["Nombre"]?.ToString() ?? "",
+                            ProductoCompraId = (int)reader["ProductoCompraId"],
+                            Codigo = reader["Codigo"].ToString(),
+                            Nombre = reader["Nombre"].ToString(),
                             Descripcion = reader["Descripcion"]?.ToString(),
-                            PrecioCompra = reader["PrecioCompra"] as decimal?,
-                            PrecioVenta = reader["PrecioVenta"] != DBNull.Value ? (decimal)reader["PrecioVenta"] : 0,
+                            UnidadMedida = reader["UnidadMedida"].ToString(),
+                            PrecioCompra = (decimal)reader["PrecioCompra"],
+                            StockActual = (decimal)reader["StockActual"],
+                            StockMinimo = (decimal)reader["StockMinimo"],
+                            Categoria = reader["Categoria"].ToString(),
                             Activo = (bool)reader["Activo"],
                             FechaCreacion = (DateTime)reader["FechaCreacion"]
                         });
                     }
                 }
             }
+
             return View(productos);
         }
 
@@ -66,44 +79,41 @@ namespace LaMediaCancha.Controllers
             if (Session["UserRol"] == null)
                 return RedirectToAction("Login", "Account");
 
-            Producto producto = null;
+            ProductoModels.ProductoCompra producto = null;
 
             string query = @"
                 SELECT 
-                    p.ProductoId, p.Codigo, p.CodigoBarras, p.Nombre, p.Descripcion,
-                    p.PrecioCompra, p.PrecioVenta, p.EstaEnOferta, p.PrecioOferta,
-                    p.FechaInicioOferta, p.FechaFinOferta, p.Activo, p.FechaCreacion, p.FechaModificacion,
-                    p.SubDepartamentoId
-                FROM Producto p
-                WHERE p.ProductoId = @ProductoId";
+                    pc.ProductoCompraId, pc.Codigo, pc.Nombre, pc.Descripcion,
+                    pc.UnidadMedida, pc.PrecioCompra, pc.StockActual, pc.StockMinimo,
+                    pc.CategoriaId, ISNULL(cc.Nombre, 'Sin categoría') AS Categoria, pc.Activo,
+                    pc.FechaCreacion
+                FROM ProductoCompra pc
+                LEFT JOIN CategoriaCompra cc ON pc.CategoriaId = cc.CategoriaCompraId
+                WHERE pc.ProductoCompraId = @ProductoCompraId";
 
             using (var conn = new SqlConnection(_connectionString))
             using (var cmd = new SqlCommand(query, conn))
             {
-                cmd.Parameters.AddWithValue("@ProductoId", id);
+                cmd.Parameters.AddWithValue("@ProductoCompraId", id);
                 conn.Open();
-
                 using (var reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
                     {
-                        producto = new Producto
+                        producto = new ProductoModels.ProductoCompra
                         {
-                            ProductoId = (int)reader["ProductoId"],
-                            Codigo = reader["Codigo"]?.ToString() ?? "",
-                            CodigoBarras = reader["CodigoBarras"]?.ToString(),
-                            Nombre = reader["Nombre"]?.ToString() ?? "",
+                            ProductoCompraId = (int)reader["ProductoCompraId"],
+                            Codigo = reader["Codigo"].ToString(),
+                            Nombre = reader["Nombre"].ToString(),
                             Descripcion = reader["Descripcion"]?.ToString(),
-                            PrecioCompra = reader["PrecioCompra"] as decimal?,
-                            PrecioVenta = reader["PrecioVenta"] != DBNull.Value ? (decimal)reader["PrecioVenta"] : 0,
-                            EstaEnOferta = reader["EstaEnOferta"] as bool?,
-                            PrecioOferta = reader["PrecioOferta"] as decimal?,
-                            FechaInicioOferta = reader["FechaInicioOferta"] as DateTime?,
-                            FechaFinOferta = reader["FechaFinOferta"] as DateTime?,
+                            UnidadMedida = reader["UnidadMedida"].ToString(),
+                            PrecioCompra = (decimal)reader["PrecioCompra"],
+                            StockActual = (decimal)reader["StockActual"],
+                            StockMinimo = (decimal)reader["StockMinimo"],
+                            CategoriaId = reader["CategoriaId"] as int?,
+                            Categoria = reader["Categoria"].ToString(),
                             Activo = (bool)reader["Activo"],
-                            FechaCreacion = (DateTime)reader["FechaCreacion"],
-                            FechaModificacion = reader["FechaModificacion"] as DateTime?,
-                            SubDepartamentoId = reader["SubDepartamentoId"] as int?
+                            FechaCreacion = (DateTime)reader["FechaCreacion"]
                         };
                     }
                 }
@@ -111,6 +121,9 @@ namespace LaMediaCancha.Controllers
 
             if (producto == null)
                 return HttpNotFound();
+
+            // Obtener los lotes del producto
+            producto.Lotes = ObtenerLotesPorProducto(id);
 
             return View(producto);
         }
@@ -121,112 +134,70 @@ namespace LaMediaCancha.Controllers
             if (Session["UserRol"] == null)
                 return RedirectToAction("Login", "Account");
 
-            CargarCombos();
-            return View(new Producto());
+            CargarCategoriasCompra();
+            return View(new ProductoModels.ProductoCompra());
         }
 
         // POST: Producto/Crear
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Crear(FormCollection form)
+        public ActionResult Crear(ProductoModels.ProductoCompra model)
         {
             if (Session["UserRol"] == null)
                 return RedirectToAction("Login", "Account");
 
-            var producto = new Producto
+            if (!ModelState.IsValid)
             {
-                Codigo = form["Codigo"],
-                CodigoBarras = form["CodigoBarras"],
-                Nombre = form["Nombre"],
-                Descripcion = form["Descripcion"],
-                PresentacionId = string.IsNullOrEmpty(form["PresentacionId"]) ? (int?)null : Convert.ToInt32(form["PresentacionId"]),
-                MarcaId = string.IsNullOrEmpty(form["MarcaId"]) ? (int?)null : Convert.ToInt32(form["MarcaId"]),
-                PrecioCompra = string.IsNullOrEmpty(form["PrecioCompra"]) ? (decimal?)null : Convert.ToDecimal(form["PrecioCompra"]),
-                PrecioVenta = string.IsNullOrEmpty(form["PrecioVenta"]) ? 0 : Convert.ToDecimal(form["PrecioVenta"]),
-                EstaEnOferta = form["EstaEnOferta"] == "true",
-                PrecioOferta = string.IsNullOrEmpty(form["PrecioOferta"]) ? (decimal?)null : Convert.ToDecimal(form["PrecioOferta"]),
-                FechaInicioOferta = string.IsNullOrEmpty(form["FechaInicioOferta"]) ? (DateTime?)null : Convert.ToDateTime(form["FechaInicioOferta"]),
-                FechaFinOferta = string.IsNullOrEmpty(form["FechaFinOferta"]) ? (DateTime?)null : Convert.ToDateTime(form["FechaFinOferta"]),
-                Activo = form["Activo"] == "true"
-            };
+                CargarCategoriasCompra(model.CategoriaId);
+                return View(model);
+            }
 
-            int? subDepartamentoId = null;
-            if (!string.IsNullOrEmpty(form["SubDepartamentoId"]))
-                subDepartamentoId = Convert.ToInt32(form["SubDepartamentoId"]);
-
-            producto.SubDepartamentoId = subDepartamentoId;
-
-            if (producto.PrecioCompra < 0)
-                ModelState.AddModelError("PrecioCompra", "El precio de compra debe ser mayor o igual a 0");
-            if (producto.PrecioVenta < 0)
-                ModelState.AddModelError("PrecioVenta", "El precio de venta debe ser mayor o igual a 0");
-
-            if (!string.IsNullOrEmpty(producto.Codigo))
+            try
             {
-                string checkQuery = "SELECT COUNT(*) FROM Producto WHERE Codigo = @Codigo";
+                // Verificar si el código ya existe
+                string checkQuery = "SELECT COUNT(*) FROM ProductoCompra WHERE Codigo = @Codigo";
                 using (var conn = new SqlConnection(_connectionString))
                 using (var cmd = new SqlCommand(checkQuery, conn))
                 {
-                    cmd.Parameters.AddWithValue("@Codigo", producto.Codigo);
+                    cmd.Parameters.AddWithValue("@Codigo", model.Codigo);
                     conn.Open();
                     int existe = (int)cmd.ExecuteScalar();
                     if (existe > 0)
                     {
-                        ModelState.AddModelError("Codigo", "Ya existe un producto con este código");
-                        CargarCombos();
-                        return View(producto);
+                        TempData["Error"] = "Ya existe un producto con este código";
+                        CargarCategoriasCompra(model.CategoriaId);
+                        return View(model);
                     }
                 }
-            }
 
-            if (!subDepartamentoId.HasValue)
-            {
-                ModelState.AddModelError("SubDepartamentoId", "Debe seleccionar un subdepartamento");
-                CargarCombos();
-                return View(producto);
-            }
-
-            if (ModelState.IsValid)
-            {
                 string query = @"
-                    INSERT INTO Producto (SubDepartamentoId, PresentacionId, MarcaId, 
-                                         Codigo, CodigoBarras, Nombre, Descripcion, 
-                                         PrecioCompra, PrecioVenta, EstaEnOferta, PrecioOferta,
-                                         FechaInicioOferta, FechaFinOferta, Activo, FechaCreacion)
-                    VALUES (@SubDepartamentoId, @PresentacionId, @MarcaId,
-                            @Codigo, @CodigoBarras, @Nombre, @Descripcion,
-                            @PrecioCompra, @PrecioVenta, @EstaEnOferta, @PrecioOferta,
-                            @FechaInicioOferta, @FechaFinOferta, @Activo, GETDATE());
+                    INSERT INTO ProductoCompra (Codigo, Nombre, Descripcion, UnidadMedida, PrecioCompra, StockActual, StockMinimo, CategoriaId, Activo, FechaCreacion)
+                    VALUES (@Codigo, @Nombre, @Descripcion, @UnidadMedida, @PrecioCompra, 0, @StockMinimo, @CategoriaId, 1, GETDATE());
                     SELECT SCOPE_IDENTITY();";
 
                 using (var conn = new SqlConnection(_connectionString))
                 using (var cmd = new SqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@SubDepartamentoId", subDepartamentoId.Value);
-                    cmd.Parameters.AddWithValue("@PresentacionId", producto.PresentacionId ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@MarcaId", producto.MarcaId ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Codigo", producto.Codigo ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@CodigoBarras", producto.CodigoBarras ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Nombre", producto.Nombre ?? "");
-                    cmd.Parameters.AddWithValue("@Descripcion", producto.Descripcion ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@PrecioCompra", producto.PrecioCompra ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@PrecioVenta", producto.PrecioVenta);
-                    cmd.Parameters.AddWithValue("@EstaEnOferta", producto.EstaEnOferta);
-                    cmd.Parameters.AddWithValue("@PrecioOferta", producto.PrecioOferta ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@FechaInicioOferta", producto.FechaInicioOferta ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@FechaFinOferta", producto.FechaFinOferta ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Activo", producto.Activo);
-
+                    cmd.Parameters.AddWithValue("@Codigo", model.Codigo);
+                    cmd.Parameters.AddWithValue("@Nombre", model.Nombre);
+                    cmd.Parameters.AddWithValue("@Descripcion", string.IsNullOrEmpty(model.Descripcion) ? (object)DBNull.Value : model.Descripcion);
+                    cmd.Parameters.AddWithValue("@UnidadMedida", model.UnidadMedida);
+                    cmd.Parameters.AddWithValue("@PrecioCompra", model.PrecioCompra);
+                    cmd.Parameters.AddWithValue("@StockMinimo", model.StockMinimo);
+                    cmd.Parameters.AddWithValue("@CategoriaId", model.CategoriaId.HasValue ? (object)model.CategoriaId.Value : DBNull.Value);
                     conn.Open();
-                    int newId = Convert.ToInt32(cmd.ExecuteScalar());
+                    cmd.ExecuteScalar();
                 }
 
-                TempData["SuccessCrear"] = "Producto creado exitosamente";
+                TempData["Success"] = $"La materia prima '{model.Nombre}' ha sido creada exitosamente.";
                 return RedirectToAction("Index");
             }
-
-            CargarCombos();
-            return View(producto);
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al crear: {ex.Message}";
+                CargarCategoriasCompra(model.CategoriaId);
+                return View(model);
+            }
         }
 
         // GET: Producto/Editar/5
@@ -235,42 +206,38 @@ namespace LaMediaCancha.Controllers
             if (Session["UserRol"] == null)
                 return RedirectToAction("Login", "Account");
 
-            Producto producto = null;
+            ProductoModels.ProductoCompra producto = null;
 
             string query = @"
-                SELECT ProductoId, SubDepartamentoId, PresentacionId, MarcaId,
-                       Codigo, CodigoBarras, Nombre, Descripcion,
-                       PrecioCompra, PrecioVenta, EstaEnOferta, PrecioOferta,
-                       FechaInicioOferta, FechaFinOferta, Activo
-                FROM Producto
-                WHERE ProductoId = @ProductoId";
+                SELECT 
+                    pc.ProductoCompraId, pc.Codigo, pc.Nombre, pc.Descripcion,
+                    pc.UnidadMedida, pc.PrecioCompra, pc.StockActual, pc.StockMinimo,
+                    pc.CategoriaId, ISNULL(cc.Nombre, 'Sin categoría') AS Categoria, pc.Activo
+                FROM ProductoCompra pc
+                LEFT JOIN CategoriaCompra cc ON pc.CategoriaId = cc.CategoriaCompraId
+                WHERE pc.ProductoCompraId = @ProductoCompraId";
 
             using (var conn = new SqlConnection(_connectionString))
             using (var cmd = new SqlCommand(query, conn))
             {
-                cmd.Parameters.AddWithValue("@ProductoId", id);
+                cmd.Parameters.AddWithValue("@ProductoCompraId", id);
                 conn.Open();
-
                 using (var reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
                     {
-                        producto = new Producto
+                        producto = new ProductoModels.ProductoCompra
                         {
-                            ProductoId = (int)reader["ProductoId"],
-                            SubDepartamentoId = reader["SubDepartamentoId"] as int?,
-                            PresentacionId = reader["PresentacionId"] as int?,
-                            MarcaId = reader["MarcaId"] as int?,
-                            Codigo = reader["Codigo"]?.ToString() ?? "",
-                            CodigoBarras = reader["CodigoBarras"]?.ToString(),
-                            Nombre = reader["Nombre"]?.ToString() ?? "",
+                            ProductoCompraId = (int)reader["ProductoCompraId"],
+                            Codigo = reader["Codigo"].ToString(),
+                            Nombre = reader["Nombre"].ToString(),
                             Descripcion = reader["Descripcion"]?.ToString(),
-                            PrecioCompra = reader["PrecioCompra"] as decimal?,
-                            PrecioVenta = reader["PrecioVenta"] != DBNull.Value ? (decimal)reader["PrecioVenta"] : 0,
-                            EstaEnOferta = reader["EstaEnOferta"] as bool?,
-                            PrecioOferta = reader["PrecioOferta"] as decimal?,
-                            FechaInicioOferta = reader["FechaInicioOferta"] as DateTime?,
-                            FechaFinOferta = reader["FechaFinOferta"] as DateTime?,
+                            UnidadMedida = reader["UnidadMedida"].ToString(),
+                            PrecioCompra = (decimal)reader["PrecioCompra"],
+                            StockActual = (decimal)reader["StockActual"],
+                            StockMinimo = (decimal)reader["StockMinimo"],
+                            CategoriaId = reader["CategoriaId"] as int?,
+                            Categoria = reader["Categoria"].ToString(),
                             Activo = (bool)reader["Activo"]
                         };
                     }
@@ -280,123 +247,82 @@ namespace LaMediaCancha.Controllers
             if (producto == null)
                 return HttpNotFound();
 
-            int? departamentoId = null;
-            if (producto.SubDepartamentoId.HasValue)
-            {
-                string queryDepto = "SELECT DepartamentoId FROM SubDepartamento WHERE SubDepartamentoId = @SubDepartamentoId";
-                using (var conn = new SqlConnection(_connectionString))
-                using (var cmd = new SqlCommand(queryDepto, conn))
-                {
-                    cmd.Parameters.AddWithValue("@SubDepartamentoId", producto.SubDepartamentoId.Value);
-                    conn.Open();
-                    var result = cmd.ExecuteScalar();
-                    if (result != null)
-                        departamentoId = (int)result;
-                }
-            }
-
-            CargarCombos(producto.SubDepartamentoId, producto.PresentacionId, producto.MarcaId, departamentoId);
+            CargarCategoriasCompra(producto.CategoriaId);
             return View(producto);
         }
 
         // POST: Producto/Editar/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Editar(FormCollection form)
+        public ActionResult Editar(ProductoModels.ProductoCompra model)
         {
             if (Session["UserRol"] == null)
                 return RedirectToAction("Login", "Account");
 
-            var producto = new Producto
+            if (!ModelState.IsValid)
             {
-                ProductoId = Convert.ToInt32(form["ProductoId"]),
-                Codigo = form["Codigo"],
-                CodigoBarras = form["CodigoBarras"],
-                Nombre = form["Nombre"],
-                Descripcion = form["Descripcion"],
-                PresentacionId = string.IsNullOrEmpty(form["PresentacionId"]) ? (int?)null : Convert.ToInt32(form["PresentacionId"]),
-                MarcaId = string.IsNullOrEmpty(form["MarcaId"]) ? (int?)null : Convert.ToInt32(form["MarcaId"]),
-                PrecioCompra = string.IsNullOrEmpty(form["PrecioCompra"]) ? (decimal?)null : Convert.ToDecimal(form["PrecioCompra"]),
-                PrecioVenta = string.IsNullOrEmpty(form["PrecioVenta"]) ? 0 : Convert.ToDecimal(form["PrecioVenta"]),
-                EstaEnOferta = form["EstaEnOferta"] == "true",
-                PrecioOferta = string.IsNullOrEmpty(form["PrecioOferta"]) ? (decimal?)null : Convert.ToDecimal(form["PrecioOferta"]),
-                FechaInicioOferta = string.IsNullOrEmpty(form["FechaInicioOferta"]) ? (DateTime?)null : Convert.ToDateTime(form["FechaInicioOferta"]),
-                FechaFinOferta = string.IsNullOrEmpty(form["FechaFinOferta"]) ? (DateTime?)null : Convert.ToDateTime(form["FechaFinOferta"]),
-                Activo = form["Activo"] == "true"
-            };
+                CargarCategoriasCompra(model.CategoriaId);
+                return View(model);
+            }
 
-            if (!string.IsNullOrEmpty(form["SubDepartamentoId"]))
-                producto.SubDepartamentoId = Convert.ToInt32(form["SubDepartamentoId"]);
-
-            if (ModelState.IsValid)
+            try
             {
                 string query = @"
-                    UPDATE Producto 
-                    SET SubDepartamentoId = @SubDepartamentoId,
-                        PresentacionId = @PresentacionId,
-                        MarcaId = @MarcaId,
-                        Codigo = @Codigo,
-                        CodigoBarras = @CodigoBarras,
+                    UPDATE ProductoCompra 
+                    SET Codigo = @Codigo,
                         Nombre = @Nombre,
                         Descripcion = @Descripcion,
+                        UnidadMedida = @UnidadMedida,
                         PrecioCompra = @PrecioCompra,
-                        PrecioVenta = @PrecioVenta,
-                        EstaEnOferta = @EstaEnOferta,
-                        PrecioOferta = @PrecioOferta,
-                        FechaInicioOferta = @FechaInicioOferta,
-                        FechaFinOferta = @FechaFinOferta,
-                        Activo = @Activo,
-                        FechaModificacion = GETDATE()
-                    WHERE ProductoId = @ProductoId";
+                        StockMinimo = @StockMinimo,
+                        CategoriaId = @CategoriaId,
+                        Activo = @Activo
+                    WHERE ProductoCompraId = @ProductoCompraId";
 
                 using (var conn = new SqlConnection(_connectionString))
                 using (var cmd = new SqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@ProductoId", producto.ProductoId);
-                    cmd.Parameters.AddWithValue("@SubDepartamentoId", producto.SubDepartamentoId ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@PresentacionId", producto.PresentacionId ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@MarcaId", producto.MarcaId ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Codigo", producto.Codigo ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@CodigoBarras", producto.CodigoBarras ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Nombre", producto.Nombre ?? "");
-                    cmd.Parameters.AddWithValue("@Descripcion", producto.Descripcion ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@PrecioCompra", producto.PrecioCompra ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@PrecioVenta", producto.PrecioVenta);
-                    cmd.Parameters.AddWithValue("@EstaEnOferta", producto.EstaEnOferta);
-                    cmd.Parameters.AddWithValue("@PrecioOferta", producto.PrecioOferta ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@FechaInicioOferta", producto.FechaInicioOferta ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@FechaFinOferta", producto.FechaFinOferta ?? (object)DBNull.Value);
-                    cmd.Parameters.AddWithValue("@Activo", producto.Activo);
-
+                    cmd.Parameters.AddWithValue("@ProductoCompraId", model.ProductoCompraId);
+                    cmd.Parameters.AddWithValue("@Codigo", model.Codigo);
+                    cmd.Parameters.AddWithValue("@Nombre", model.Nombre);
+                    cmd.Parameters.AddWithValue("@Descripcion", string.IsNullOrEmpty(model.Descripcion) ? (object)DBNull.Value : model.Descripcion);
+                    cmd.Parameters.AddWithValue("@UnidadMedida", model.UnidadMedida);
+                    cmd.Parameters.AddWithValue("@PrecioCompra", model.PrecioCompra);
+                    cmd.Parameters.AddWithValue("@StockMinimo", model.StockMinimo);
+                    cmd.Parameters.AddWithValue("@CategoriaId", model.CategoriaId.HasValue ? (object)model.CategoriaId.Value : DBNull.Value);
+                    cmd.Parameters.AddWithValue("@Activo", model.Activo);
                     conn.Open();
                     cmd.ExecuteNonQuery();
                 }
 
-                TempData["Success"] = "Producto actualizado exitosamente";
+                TempData["Success"] = $"La materia prima '{model.Nombre}' ha sido actualizada exitosamente.";
                 return RedirectToAction("Index");
             }
-
-            CargarCombos(producto.SubDepartamentoId, producto.PresentacionId, producto.MarcaId, null);
-            return View(producto);
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Error al actualizar: {ex.Message}";
+                CargarCategoriasCompra(model.CategoriaId);
+                return View(model);
+            }
         }
 
-        // POST: Producto/CambiarEstado
+        // POST: Producto/CambiarEstado - Inactivar/Activar producto
         [HttpPost]
         public JsonResult CambiarEstado(int id, bool activo)
         {
             try
             {
-                string query = "UPDATE Producto SET Activo = @Activo, FechaModificacion = GETDATE() WHERE ProductoId = @ProductoId";
+                string query = "UPDATE ProductoCompra SET Activo = @Activo WHERE ProductoCompraId = @ProductoCompraId";
                 using (var conn = new SqlConnection(_connectionString))
                 using (var cmd = new SqlCommand(query, conn))
                 {
-                    cmd.Parameters.AddWithValue("@ProductoId", id);
+                    cmd.Parameters.AddWithValue("@ProductoCompraId", id);
                     cmd.Parameters.AddWithValue("@Activo", activo);
                     conn.Open();
                     cmd.ExecuteNonQuery();
                 }
 
-                string mensaje = activo ? "Producto activado exitosamente" : "Producto inactivado exitosamente";
+                string mensaje = activo ? "El producto ha sido activado exitosamente." : "El producto ha sido inactivado exitosamente. Aún podrá recibir compras y lotes.";
                 return Json(new { success = true, message = mensaje });
             }
             catch (Exception ex)
@@ -405,87 +331,195 @@ namespace LaMediaCancha.Controllers
             }
         }
 
-        // POST: Producto/Inactivar
-        [HttpPost]
-        public JsonResult Inactivar(int id)
-        {
-            return CambiarEstado(id, false);
-        }
+        // ==================== LOTES DE COMPRA ====================
 
-        // GET: Producto/Inventario
-        public ActionResult Inventario()
+        // GET: Producto/Lotes/5
+        public ActionResult Lotes(int id)
         {
             if (Session["UserRol"] == null)
                 return RedirectToAction("Login", "Account");
 
-            var inventario = new List<InventarioProducto>();
+            var lotes = ObtenerLotesPorProducto(id);
+            string nombreProducto = "";
 
-            string query = @"
-                SELECT 
-                    p.ProductoId, p.Codigo, p.Nombre,
-                    ISNULL(i.ExistenciaActual, 0) AS ExistenciaActual,
-                    ISNULL(i.StockMinimo, 10) AS StockMinimo,
-                    ISNULL(i.StockMaximo, 100) AS StockMaximo
-                FROM Producto p
-                LEFT JOIN Inventario i ON p.ProductoId = i.ProductoId
-                WHERE p.Activo = 1
-                ORDER BY p.Nombre";
-
+            // Obtener nombre del producto
+            string queryNombre = "SELECT Nombre FROM ProductoCompra WHERE ProductoCompraId = @ProductoCompraId";
             using (var conn = new SqlConnection(_connectionString))
-            using (var cmd = new SqlCommand(query, conn))
+            using (var cmd = new SqlCommand(queryNombre, conn))
             {
+                cmd.Parameters.AddWithValue("@ProductoCompraId", id);
                 conn.Open();
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        inventario.Add(new InventarioProducto
-                        {
-                            ProductoId = (int)reader["ProductoId"],
-                            Codigo = reader["Codigo"]?.ToString() ?? "",
-                            Nombre = reader["Nombre"]?.ToString() ?? "",
-                            ExistenciaActual = reader["ExistenciaActual"] != DBNull.Value ? Convert.ToInt32(reader["ExistenciaActual"]) : 0,
-                            StockMinimo = reader["StockMinimo"] != DBNull.Value ? Convert.ToInt32(reader["StockMinimo"]) : 10,
-                            StockMaximo = reader["StockMaximo"] != DBNull.Value ? Convert.ToInt32(reader["StockMaximo"]) : 100
-                        });
-                    }
-                }
+                var result = cmd.ExecuteScalar();
+                if (result != null)
+                    nombreProducto = result.ToString();
             }
-            return View(inventario);
+
+            ViewBag.NombreProducto = nombreProducto;
+            ViewBag.ProductoCompraId = id;
+            return View(lotes);
         }
 
-        // POST: Producto/AjustarInventario
-        [HttpPost]
-        public JsonResult AjustarInventario(int productoId, int nuevoStock, int stockMinimo, int stockMaximo, string motivo)
+        // GET: Producto/CrearLote
+        public ActionResult CrearLote(int productoCompraId)
         {
+            if (Session["UserRol"] == null)
+                return RedirectToAction("Login", "Account");
+
+            ViewBag.ProductoCompraId = productoCompraId;
+            ViewBag.Proveedores = ObtenerProveedores();
+
+            // Obtener nombre del producto
+            string queryNombre = "SELECT Nombre FROM ProductoCompra WHERE ProductoCompraId = @ProductoCompraId";
+            using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand(queryNombre, conn))
+            {
+                cmd.Parameters.AddWithValue("@ProductoCompraId", productoCompraId);
+                conn.Open();
+                var result = cmd.ExecuteScalar();
+                if (result != null)
+                    ViewBag.NombreProducto = result.ToString();
+            }
+
+            return View();
+        }
+
+        // POST: Producto/CrearLote
+        [HttpPost]
+        public JsonResult CrearLote(int productoCompraId, int proveedorId, string numeroLote, decimal cantidad, decimal precioUnitario, DateTime? fechaVencimiento)
+        {
+            if (Session["UserRol"] == null)
+                return Json(new { success = false, message = "Sesión expirada" });
+
+            // Validaciones básicas
+            if (productoCompraId <= 0)
+                return Json(new { success = false, message = "ID de producto inválido" });
+
+            if (proveedorId <= 0)
+                return Json(new { success = false, message = "Debe seleccionar un proveedor" });
+
+            if (string.IsNullOrEmpty(numeroLote))
+                return Json(new { success = false, message = "Debe ingresar un número de lote" });
+
+            if (cantidad <= 0)
+                return Json(new { success = false, message = "La cantidad debe ser mayor a 0" });
+
+            if (precioUnitario <= 0)
+                return Json(new { success = false, message = "El precio unitario debe ser mayor a 0" });
+
             try
             {
-                string checkQuery = "SELECT COUNT(*) FROM Inventario WHERE ProductoId = @ProductoId";
                 using (var conn = new SqlConnection(_connectionString))
                 {
                     conn.Open();
-                    using (var cmd = new SqlCommand(checkQuery, conn))
+
+                    // Insertar el lote
+                    string insertLote = @"
+                INSERT INTO LoteCompra (ProductoCompraId, ProveedorId, NumeroLote, CantidadInicial, CantidadActual, PrecioUnitario, FechaIngreso, FechaVencimiento, Activo)
+                VALUES (@ProductoCompraId, @ProveedorId, @NumeroLote, @Cantidad, @Cantidad, @PrecioUnitario, GETDATE(), @FechaVencimiento, 1)";
+
+                    using (var cmd = new SqlCommand(insertLote, conn))
                     {
-                        cmd.Parameters.AddWithValue("@ProductoId", productoId);
-                        int existe = (int)cmd.ExecuteScalar();
+                        cmd.Parameters.AddWithValue("@ProductoCompraId", productoCompraId);
+                        cmd.Parameters.AddWithValue("@ProveedorId", proveedorId);
+                        cmd.Parameters.AddWithValue("@NumeroLote", numeroLote);
+                        cmd.Parameters.AddWithValue("@Cantidad", cantidad);
+                        cmd.Parameters.AddWithValue("@PrecioUnitario", precioUnitario);
+                        cmd.Parameters.AddWithValue("@FechaVencimiento", fechaVencimiento.HasValue ? (object)fechaVencimiento.Value : DBNull.Value);
+                        cmd.ExecuteNonQuery();
+                    }
 
-                        string query;
-                        if (existe > 0)
-                            query = @"UPDATE Inventario SET ExistenciaActual = @ExistenciaActual, StockMinimo = @StockMinimo, StockMaximo = @StockMaximo WHERE ProductoId = @ProductoId";
-                        else
-                            query = @"INSERT INTO Inventario (ProductoId, ExistenciaActual, StockMinimo, StockMaximo) VALUES (@ProductoId, @ExistenciaActual, @StockMinimo, @StockMaximo)";
+                    // Actualizar el stock del producto
+                    string updateStock = @"
+                UPDATE ProductoCompra 
+                SET StockActual = ISNULL(StockActual, 0) + @Cantidad
+                WHERE ProductoCompraId = @ProductoCompraId";
 
-                        using (var cmd2 = new SqlCommand(query, conn))
+                    using (var cmd = new SqlCommand(updateStock, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@ProductoCompraId", productoCompraId);
+                        cmd.Parameters.AddWithValue("@Cantidad", cantidad);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                return Json(new { success = true, message = "Lote agregado y stock actualizado exitosamente" });
+            }
+            catch (SqlException ex)
+            {
+                // Error específico de SQL
+                return Json(new { success = false, message = "Error de base de datos: " + ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error al guardar: " + ex.Message });
+            }
+        }
+
+        // POST: Producto/ConsumirStock
+        [HttpPost]
+        public JsonResult ConsumirStock(int loteId, decimal cantidad, string motivo)
+        {
+            if (Session["UserRol"] == null)
+                return Json(new { success = false, message = "Sesión expirada" });
+
+            try
+            {
+                using (var conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    using (var transaction = conn.BeginTransaction())
+                    {
+                        try
                         {
-                            cmd2.Parameters.AddWithValue("@ProductoId", productoId);
-                            cmd2.Parameters.AddWithValue("@ExistenciaActual", nuevoStock);
-                            cmd2.Parameters.AddWithValue("@StockMinimo", stockMinimo);
-                            cmd2.Parameters.AddWithValue("@StockMaximo", stockMaximo);
-                            cmd2.ExecuteNonQuery();
+                            // Obtener el ProductoCompraId del lote
+                            int productoCompraId = 0;
+                            string getProducto = "SELECT ProductoCompraId FROM LoteCompra WHERE LoteCompraId = @LoteCompraId";
+                            using (var cmd = new SqlCommand(getProducto, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@LoteCompraId", loteId);
+                                productoCompraId = (int)cmd.ExecuteScalar();
+                            }
+
+                            // Actualizar el lote
+                            string updateLote = @"
+                                UPDATE LoteCompra 
+                                SET CantidadActual = CantidadActual - @Cantidad
+                                WHERE LoteCompraId = @LoteCompraId AND CantidadActual >= @Cantidad";
+
+                            using (var cmd = new SqlCommand(updateLote, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@LoteCompraId", loteId);
+                                cmd.Parameters.AddWithValue("@Cantidad", cantidad);
+                                int rows = cmd.ExecuteNonQuery();
+
+                                if (rows == 0)
+                                    return Json(new { success = false, message = "No hay suficiente stock en este lote" });
+                            }
+
+                            // Actualizar el stock del producto
+                            string updateStock = @"
+                                UPDATE ProductoCompra 
+                                SET StockActual = StockActual - @Cantidad
+                                WHERE ProductoCompraId = @ProductoCompraId";
+
+                            using (var cmd = new SqlCommand(updateStock, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@ProductoCompraId", productoCompraId);
+                                cmd.Parameters.AddWithValue("@Cantidad", cantidad);
+                                cmd.ExecuteNonQuery();
+                            }
+
+                            transaction.Commit();
+                        }
+                        catch
+                        {
+                            transaction.Rollback();
+                            throw;
                         }
                     }
                 }
-                return Json(new { success = true, message = "Inventario ajustado exitosamente" });
+
+                return Json(new { success = true, message = "Stock consumido exitosamente" });
             }
             catch (Exception ex)
             {
@@ -493,51 +527,134 @@ namespace LaMediaCancha.Controllers
             }
         }
 
-        // ==================== MÉTODOS AUXILIARES PARA COMBOS ====================
+        // ==================== MÉTODOS AUXILIARES ====================
 
-        private void CargarCombos(int? subDepartamentoId = null, int? presentacionId = null, int? marcaId = null, int? departamentoId = null)
+        private List<ProductoModels.LoteCompra> ObtenerLotesPorProducto(int productoCompraId)
         {
-            // Departamentos — se asignan directo porque ObtenerDepartamentos() ya devuelve List<SelectListItem>
-            var departamentos = ObtenerDepartamentos();
-            if (departamentoId.HasValue)
-            {
-                var seleccionado = departamentos.FirstOrDefault(d => d.Value == departamentoId.Value.ToString());
-                if (seleccionado != null) seleccionado.Selected = true;
-            }
-            ViewBag.Departamentos = departamentos;
+            var lotes = new List<ProductoModels.LoteCompra>();
 
-            // SubDepartamentos
-            var subDepartamentos = ObtenerSubDepartamentos(departamentoId ?? 0);
-            if (subDepartamentoId.HasValue)
-            {
-                var seleccionado = subDepartamentos.FirstOrDefault(s => s.Value == subDepartamentoId.Value.ToString());
-                if (seleccionado != null) seleccionado.Selected = true;
-            }
-            ViewBag.SubDepartamentos = subDepartamentos;
+            string query = @"
+                SELECT 
+                    l.LoteCompraId,
+                    l.NumeroLote,
+                    l.CantidadInicial,
+                    l.CantidadActual,
+                    l.PrecioUnitario,
+                    l.FechaIngreso,
+                    l.FechaVencimiento,
+                    l.Activo,
+                    p.RazonSocial AS ProveedorNombre
+                FROM LoteCompra l
+                LEFT JOIN Proveedor p ON l.ProveedorId = p.ProveedorId
+                WHERE l.ProductoCompraId = @ProductoCompraId
+                ORDER BY l.FechaIngreso DESC";
 
-            // Presentaciones
-            var presentaciones = ObtenerPresentaciones();
-            if (presentacionId.HasValue)
+            using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand(query, conn))
             {
-                var seleccionado = presentaciones.FirstOrDefault(p => p.Value == presentacionId.Value.ToString());
-                if (seleccionado != null) seleccionado.Selected = true;
+                cmd.Parameters.AddWithValue("@ProductoCompraId", productoCompraId);
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        lotes.Add(new ProductoModels.LoteCompra
+                        {
+                            LoteCompraId = (int)reader["LoteCompraId"],
+                            NumeroLote = reader["NumeroLote"].ToString(),
+                            CantidadInicial = (decimal)reader["CantidadInicial"],
+                            CantidadActual = (decimal)reader["CantidadActual"],
+                            PrecioUnitario = (decimal)reader["PrecioUnitario"],
+                            FechaIngreso = (DateTime)reader["FechaIngreso"],
+                            FechaVencimiento = reader["FechaVencimiento"] as DateTime?,
+                            Activo = (bool)reader["Activo"],
+                            ProveedorNombre = reader["ProveedorNombre"]?.ToString() ?? "N/A"
+                        });
+                    }
+                }
             }
-            ViewBag.Presentaciones = presentaciones;
 
-            // Marcas
-            var marcas = ObtenerMarcas();
-            if (marcaId.HasValue)
-            {
-                var seleccionado = marcas.FirstOrDefault(m => m.Value == marcaId.Value.ToString());
-                if (seleccionado != null) seleccionado.Selected = true;
-            }
-            ViewBag.Marcas = marcas;
+            return lotes;
         }
 
-        private List<SelectListItem> ObtenerDepartamentos()
+        private void CargarCategoriasCompra(int? categoriaId = null)
         {
-            var lista = new List<SelectListItem>();
-            string query = "SELECT DepartamentoId, Nombre FROM Departamento WHERE Activo = 1 ORDER BY Nombre";
+            var categorias = new List<SelectListItem>();
+            string query = "SELECT CategoriaCompraId, Nombre FROM CategoriaCompra WHERE Activo = 1 ORDER BY Nombre";
+
+            using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand(query, conn))
+            {
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    categorias.Add(new SelectListItem { Value = "", Text = "Seleccione una categoría..." });
+                    while (reader.Read())
+                    {
+                        categorias.Add(new SelectListItem
+                        {
+                            Value = reader["CategoriaCompraId"].ToString(),
+                            Text = reader["Nombre"].ToString()
+                        });
+                    }
+                }
+            }
+
+            ViewBag.CategoriasCompra = new SelectList(categorias, "Value", "Text", categoriaId);
+        }
+
+        private SelectList ObtenerProveedores()
+        {
+            var proveedores = new List<SelectListItem>();
+            string query = "SELECT ProveedorId, RazonSocial FROM Proveedor WHERE Activo = 1 ORDER BY RazonSocial";
+
+            using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand(query, conn))
+            {
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    proveedores.Add(new SelectListItem { Value = "", Text = "Seleccione un proveedor..." });
+                    while (reader.Read())
+                    {
+                        proveedores.Add(new SelectListItem
+                        {
+                            Value = reader["ProveedorId"].ToString(),
+                            Text = reader["RazonSocial"].ToString()
+                        });
+                    }
+                }
+            }
+
+            return new SelectList(proveedores, "Value", "Text");
+        }
+        // GET: Producto/Inventario
+        public ActionResult Inventario()
+        {
+            if (Session["UserRol"] == null)
+                return RedirectToAction("Login", "Account");
+
+            var inventario = new List<ProductoModels.InventarioCompra>();
+
+            string query = @"
+        SELECT 
+            pc.ProductoCompraId,
+            pc.Codigo,
+            pc.Nombre,
+            pc.UnidadMedida,
+            pc.PrecioCompra,
+            pc.StockActual,
+            pc.StockMinimo,
+            ISNULL(cc.Nombre, 'Sin categoría') AS Categoria,
+            pc.Activo,
+            CASE 
+                WHEN pc.StockActual <= pc.StockMinimo THEN 'Bajo'
+                WHEN pc.StockActual <= pc.StockMinimo * 1.5 THEN 'Alerta'
+                ELSE 'Normal'
+            END AS EstadoStock
+        FROM ProductoCompra pc
+        LEFT JOIN CategoriaCompra cc ON pc.CategoriaId = cc.CategoriaCompraId
+        ORDER BY pc.Nombre";
 
             using (var conn = new SqlConnection(_connectionString))
             using (var cmd = new SqlCommand(query, conn))
@@ -547,96 +664,24 @@ namespace LaMediaCancha.Controllers
                 {
                     while (reader.Read())
                     {
-                        lista.Add(new SelectListItem
+                        inventario.Add(new ProductoModels.InventarioCompra
                         {
-                            Value = reader["DepartamentoId"].ToString(),
-                            Text = reader["Nombre"].ToString()
+                            ProductoCompraId = (int)reader["ProductoCompraId"],
+                            Codigo = reader["Codigo"].ToString(),
+                            Nombre = reader["Nombre"].ToString(),
+                            UnidadMedida = reader["UnidadMedida"].ToString(),
+                            PrecioCompra = (decimal)reader["PrecioCompra"],
+                            StockActual = (decimal)reader["StockActual"],
+                            StockMinimo = (decimal)reader["StockMinimo"],
+                            Categoria = reader["Categoria"].ToString(),
+                            Activo = (bool)reader["Activo"],
+                            EstadoStock = reader["EstadoStock"].ToString()
                         });
                     }
                 }
             }
-            return lista;
-        }
 
-        private List<SelectListItem> ObtenerSubDepartamentos(int departamentoId)
-        {
-            var lista = new List<SelectListItem>();
-            string query = "SELECT SubDepartamentoId, Nombre FROM SubDepartamento WHERE DepartamentoId = @DepartamentoId AND Activo = 1 ORDER BY Nombre";
-
-            using (var conn = new SqlConnection(_connectionString))
-            using (var cmd = new SqlCommand(query, conn))
-            {
-                cmd.Parameters.AddWithValue("@DepartamentoId", departamentoId);
-                conn.Open();
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        lista.Add(new SelectListItem
-                        {
-                            Value = reader["SubDepartamentoId"].ToString(),
-                            Text = reader["Nombre"].ToString()
-                        });
-                    }
-                }
-            }
-            return lista;
-        }
-
-        private List<SelectListItem> ObtenerPresentaciones()
-        {
-            var lista = new List<SelectListItem>();
-            string query = "SELECT PresentacionId, Nombre FROM Presentacion WHERE Activo = 1 ORDER BY Nombre";
-
-            using (var conn = new SqlConnection(_connectionString))
-            using (var cmd = new SqlCommand(query, conn))
-            {
-                conn.Open();
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        lista.Add(new SelectListItem
-                        {
-                            Value = reader["PresentacionId"].ToString(),
-                            Text = reader["Nombre"].ToString()
-                        });
-                    }
-                }
-            }
-            return lista;
-        }
-
-        private List<SelectListItem> ObtenerMarcas()
-        {
-            var lista = new List<SelectListItem>();
-            string query = "SELECT MarcaId, Nombre FROM Marca WHERE Activo = 1 ORDER BY Nombre";
-
-            using (var conn = new SqlConnection(_connectionString))
-            using (var cmd = new SqlCommand(query, conn))
-            {
-                conn.Open();
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        lista.Add(new SelectListItem
-                        {
-                            Value = reader["MarcaId"].ToString(),
-                            Text = reader["Nombre"].ToString()
-                        });
-                    }
-                }
-            }
-            return lista;
-        }
-
-        // API para AJAX - Carga dinámica de subdepartamentos
-        [HttpGet]
-        public JsonResult GetSubDepartamentos(int departamentoId)
-        {
-            var subDepartamentos = ObtenerSubDepartamentos(departamentoId);
-            return Json(subDepartamentos, JsonRequestBehavior.AllowGet);
+            return View(inventario);
         }
     }
 }

@@ -1,11 +1,432 @@
-﻿}using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿@model IEnumerable<LaMediaCancha.Models.Usuario>
 
-namespace LaMediaCancha.Views.Admin
-{
-	public class ListaUsuarios
-	{
-	}
+@{
+    ViewBag.Title = "Usuarios";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
+<div class="container-fluid px-3 px-md-4 py-4">
+    <div class="row justify-content-center">
+        <div class="col-12">
+
+            <div class="card-custom card-custom-full">
+
+                <!-- HEADER -->
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+                        <div>
+                            <h2 class="text-white mb-1">
+                                <i class="fas fa-users me-2"></i> Usuarios
+                            </h2>
+
+                            <p class="mb-0 text-white-50">
+                                Gestión de usuarios del sistema
+                            </p>
+                        </div>
+
+                        <div class="d-flex gap-2 flex-wrap">
+
+                            <a href="@Url.Action("CrearUsuario", "Admin")"
+                               class="btn btn-light">
+                                <i class="fas fa-user-plus me-1"></i>
+                                Nuevo Usuario
+                            </a>
+
+                            <a href="@Url.Action("Dashboard", "Home")"
+                               class="btn btn-outline-light">
+                                <i class="fas fa-arrow-left me-1"></i>
+                                Regresar
+                            </a>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BODY -->
+                <div class="card-body-custom p-4">
+
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>
+                            @TempData["Success"]
+
+                            <button type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="alert">
+                            </button>
+                        </div>
+                    }
+
+                    <div class="table-responsive">
+
+                        <table class="table table-hover align-middle">
+
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Nombre Completo</th>
+                                    <th>Email</th>
+                                    <th>Rol</th>
+                                    <th class="text-center">Estado</th>
+                                    <th class="text-center">Acciones</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+
+                                @if (Model != null && Model.Any())
+                                {
+                                    foreach (var item in Model)
+                                    {
+                                        <tr>
+
+                                            <td class="fw-semibold">
+                                                @item.NombreCompleto
+                                            </td>
+
+                                            <td>
+                                                @item.Email
+                                            </td>
+
+                                            <td>
+                                                @if (item.RolId == 1)
+                                                {
+                                                    <span class="badge bg-danger">
+                                                        Administrativo
+                                                    </span>
+                                                }
+                                                else if (item.RolId == 2)
+                                                {
+                                                    <span class="badge bg-info">
+                                                        Soporte
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">
+                                                        @(item.Rol?.Nombre ?? "Sin Rol")
+                                                    </span>
+                                                }
+                                            </td>
+
+                                            <td class="text-center">
+                                                @if (item.Activo)
+                                                {
+                                                    <span class="badge bg-success">
+                                                        Activo
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">
+                                                        Inactivo
+                                                    </span>
+                                                }
+                                            </td>
+
+                                            <td class="text-center">
+
+                                                <div class="btn-group btn-group-sm"
+                                                     role="group">
+
+                                                    @if (item.Activo)
+                                                    {
+                                                        <button type="button"
+                                                                class="btn btn-danger"
+                                                                title="Inactivar"
+                                                                onclick="cambiarEstado(@item.UsuarioId, '@item.NombreCompleto', false)">
+
+                                                            <i class="fas fa-ban"></i>
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button type="button"
+                                                                class="btn btn-success"
+                                                                title="Activar"
+                                                                onclick="cambiarEstado(@item.UsuarioId, '@item.NombreCompleto', true)">
+
+                                                            <i class="fas fa-check-circle"></i>
+                                                        </button>
+                                                    }
+
+                                                </div>
+
+                                            </td>
+
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="5"
+                                            class="text-center text-muted py-5">
+
+                                            <i class="fas fa-users fa-2x mb-3 d-block"></i>
+
+                                            No hay usuarios registrados
+
+                                        </td>
+                                    </tr>
+                                }
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+
+        function cambiarEstado(id, nombre, activar) {
+
+            let titulo = activar
+                ? "¿Activar usuario?"
+                : "¿Inactivar usuario?";
+
+            let texto = activar
+                ? `¿Está seguro de <strong>activar</strong> al usuario "${nombre}"?`
+                : `¿Está seguro de <strong>inactivar</strong> al usuario "${nombre}"?`;
+
+            let icono = activar ? "question" : "warning";
+
+            let botonTexto = activar
+                ? "Sí, activar"
+                : "Sí, inactivar";
+
+            let botonColor = activar
+                ? "#28a745"
+                : "#d33";
+
+            Swal.fire({
+                title: titulo,
+                html: texto,
+                icon: icono,
+                showCancelButton: true,
+                confirmButtonColor: botonColor,
+                cancelButtonColor: "#6c757d",
+                confirmButtonText: botonTexto,
+                cancelButtonText: "Cancelar"
+            }).then((result) => {
+
+                if (result.isConfirmed) {
+
+                    Swal.fire({
+                        title: "Procesando...",
+                        text: "Por favor espere",
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    $.ajax({
+
+                        url: '@Url.Action("CambiarEstadoUsuario", "Admin")',
+                        type: 'POST',
+
+                        data: {
+                            id: id,
+                            activo: activar
+                        },
+
+                        success: function (response) {
+
+                            if (response.success) {
+
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: activar
+                                        ? '¡Usuario activado!'
+                                        : '¡Usuario inactivado!',
+                                    text: response.message,
+                                    confirmButtonColor: '#28a745'
+                                }).then(() => {
+                                    location.reload();
+                                });
+
+                            } else {
+
+                                Swal.fire(
+                                    'Error',
+                                    response.message,
+                                    'error'
+                                );
+                            }
+                        },
+
+                        error: function () {
+
+                            Swal.fire(
+                                'Error',
+                                'Error al cambiar el estado del usuario',
+                                'error'
+                            );
+                        }
+                    });
+                }
+            });
+        }
+
+    </script>
+}
+
+<style>
+
+    .card-custom {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        width: 100%;
+    }
+
+    .card-custom-full {
+        max-width: 100% !important;
+    }
+
+    .card-header-custom {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #c95a00 0%, #a04700 100%) !important;
+    }
+
+    .card-body-custom {
+        width: 100%;
+    }
+
+    .card-header-custom .btn-light {
+        background: rgba(255,255,255,0.2);
+        border: none;
+        color: white;
+        transition: all 0.2s ease;
+    }
+
+        .card-header-custom .btn-light:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+    .card-header-custom .btn-outline-light {
+        border: 1px solid rgba(255,255,255,0.5);
+        color: white;
+        transition: all 0.2s ease;
+    }
+
+        .card-header-custom .btn-outline-light:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
+        }
+
+    .table {
+        width: 100%;
+        margin-bottom: 0;
+    }
+
+        .table th {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 12px 10px;
+            white-space: nowrap;
+        }
+
+        .table td {
+            vertical-align: middle;
+            font-size: 0.9rem;
+            padding: 12px 10px;
+        }
+
+    .btn-group .btn {
+        padding: 5px 10px;
+        margin: 0 2px;
+        border-radius: 8px !important;
+        transition: all 0.2s ease;
+    }
+
+        .btn-group .btn:hover {
+            transform: translateY(-2px);
+        }
+
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+        }
+
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+
+        .btn-success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+
+    .badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .bg-danger {
+        background-color: #dc3545 !important;
+    }
+
+    .bg-info {
+        background-color: #17a2b8 !important;
+    }
+
+    .bg-success {
+        background-color: #28a745 !important;
+    }
+
+    .bg-secondary {
+        background-color: #6c757d !important;
+    }
+
+    .alert-success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+        border-radius: 12px;
+    }
+
+    @@media (max-width: 768px) {
+
+        .card-header-custom {
+            padding: 1rem;
+        }
+
+        .table th,
+        .table td {
+            white-space: nowrap;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: nowrap;
+        }
+
+            .btn-group .btn {
+                padding: 4px 8px;
+            }
+    }
+</style>

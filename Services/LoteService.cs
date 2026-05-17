@@ -33,30 +33,30 @@ namespace LaMediaCancha.Services
             var lotes = new List<LoteViewModel>();
 
             string query = @"
-                SELECT 
-                    l.LoteId,
-                    l.NumeroLoteInterno,
-                    l.NumeroLoteProveedor,
-                    l.FechaIngreso,
-                    l.FechaVencimiento,
-                    l.CantidadInicial,
-                    l.CantidadActual,
-                    l.PrecioUnitario,
-                    l.Estado,
-                    l.CompraId,
-                    ec.NumeroDocumento AS NumeroCompra,
-                    p.RazonSocial AS ProveedorNombre,
-                    CASE 
-                        WHEN l.FechaVencimiento IS NULL THEN NULL
-                        WHEN l.FechaVencimiento < GETDATE() THEN -1
-                        ELSE DATEDIFF(DAY, GETDATE(), l.FechaVencimiento)
-                    END AS DiasParaVencer
-                FROM Lote l
-                LEFT JOIN EncabezadoCompra ec ON l.CompraId = ec.CompraId
-                LEFT JOIN Proveedor p ON l.ProveedorId = p.ProveedorId
-                WHERE l.ProductoId = @ProductoId
-                  AND l.Activo = 1
-                ORDER BY l.FechaIngreso ASC";
+        SELECT 
+            l.LoteId,
+            l.NumeroLoteInterno,
+            l.NumeroLoteProveedor,
+            l.FechaIngreso,
+            l.FechaVencimiento,
+            l.CantidadInicial,
+            l.CantidadActual,
+            l.PrecioUnitario,
+            l.Estado,
+            l.CompraId,
+            ec.NumeroDocumento AS NumeroCompra,
+            p.RazonSocial AS ProveedorNombre,
+            CASE 
+                WHEN l.FechaVencimiento IS NULL THEN NULL
+                WHEN l.FechaVencimiento < GETDATE() THEN -1
+                ELSE DATEDIFF(DAY, GETDATE(), l.FechaVencimiento)
+            END AS DiasParaVencer
+        FROM Lote l
+        LEFT JOIN EncabezadoCompra ec ON l.CompraId = ec.CompraId
+        LEFT JOIN Proveedor p ON l.ProveedorId = p.ProveedorId
+        WHERE l.ProductoId = @ProductoId
+          AND l.Activo = 1
+        ORDER BY l.FechaIngreso ASC";
 
             using (var conn = new SqlConnection(_connectionString))
             using (var cmd = new SqlCommand(query, conn))
@@ -70,22 +70,22 @@ namespace LaMediaCancha.Services
                     {
                         var lote = new LoteViewModel
                         {
-                            LoteId = (int)reader["LoteId"],
-                            NumeroLoteInterno = reader["NumeroLoteInterno"].ToString(),
+                            LoteId = Convert.ToInt32(reader["LoteId"]),
+                            NumeroLoteInterno = reader["NumeroLoteInterno"]?.ToString() ?? "",
                             NumeroLoteProveedor = reader["NumeroLoteProveedor"] != DBNull.Value ? reader["NumeroLoteProveedor"].ToString() : null,
-                            FechaIngreso = (DateTime)reader["FechaIngreso"],
+                            FechaIngreso = Convert.ToDateTime(reader["FechaIngreso"]),
                             FechaVencimiento = reader["FechaVencimiento"] as DateTime?,
-                            CantidadInicial = (decimal)reader["CantidadInicial"],
-                            CantidadActual = (decimal)reader["CantidadActual"],
-                            PrecioUnitario = (decimal)reader["PrecioUnitario"],
-                            Estado = reader["Estado"].ToString(),
+                            CantidadInicial = reader["CantidadInicial"] != DBNull.Value ? Convert.ToDecimal(reader["CantidadInicial"]) : 0,
+                            CantidadActual = reader["CantidadActual"] != DBNull.Value ? Convert.ToDecimal(reader["CantidadActual"]) : 0,
+                            PrecioUnitario = reader["PrecioUnitario"] != DBNull.Value ? Convert.ToDecimal(reader["PrecioUnitario"]) : 0,
+                            Estado = reader["Estado"]?.ToString() ?? "Activo",
                             NumeroCompra = reader["NumeroCompra"]?.ToString() ?? "N/A",
                             ProveedorNombre = reader["ProveedorNombre"]?.ToString() ?? "N/A"
                         };
 
                         if (reader["DiasParaVencer"] != DBNull.Value)
                         {
-                            lote.DiasParaVencer = (int)reader["DiasParaVencer"];
+                            lote.DiasParaVencer = Convert.ToInt32(reader["DiasParaVencer"]);
                         }
 
                         lotes.Add(lote);
@@ -159,10 +159,14 @@ namespace LaMediaCancha.Services
         public bool ActualizarFechaVencimiento(int loteId, DateTime fechaVencimiento, string numeroLoteProveedor)
         {
             string query = @"
-                UPDATE Lote 
-                SET FechaVencimiento = @FechaVencimiento,
-                    NumeroLoteProveedor = @NumeroLoteProveedor
-                WHERE LoteId = @LoteId";
+        UPDATE Lote 
+        SET FechaVencimiento = @FechaVencimiento,
+            NumeroLoteProveedor = @NumeroLoteProveedor,
+            Estado = CASE 
+                        WHEN @FechaVencimiento < GETDATE() THEN 'Vencido'
+                        ELSE Estado
+                     END
+        WHERE LoteId = @LoteId";
 
             using (var conn = new SqlConnection(_connectionString))
             using (var cmd = new SqlCommand(query, conn))
@@ -170,6 +174,31 @@ namespace LaMediaCancha.Services
                 cmd.Parameters.AddWithValue("@LoteId", loteId);
                 cmd.Parameters.AddWithValue("@FechaVencimiento", fechaVencimiento);
                 cmd.Parameters.AddWithValue("@NumeroLoteProveedor", (object)numeroLoteProveedor ?? DBNull.Value);
+                conn.Open();
+                return cmd.ExecuteNonQuery() > 0;
+            }
+        }
+        public bool CrearLote(int productoId, string numeroLoteInterno, string numeroLoteProveedor,
+                      decimal cantidad, decimal precioUnitario, string fechaIngreso, string fechaVencimiento)
+        {
+            string query = @"
+        INSERT INTO Lote (ProductoId, NumeroLoteInterno, NumeroLoteProveedor, 
+                         CantidadInicial, CantidadActual, PrecioUnitario, 
+                         FechaIngreso, FechaVencimiento, Estado, Activo, FechaCreacion)
+        VALUES (@ProductoId, @NumeroLoteInterno, @NumeroLoteProveedor,
+                @Cantidad, @Cantidad, @PrecioUnitario,
+                @FechaIngreso, @FechaVencimiento, 'Activo', 1, GETDATE())";
+
+            using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand(query, conn))
+            {
+                cmd.Parameters.AddWithValue("@ProductoId", productoId);
+                cmd.Parameters.AddWithValue("@NumeroLoteInterno", numeroLoteInterno);
+                cmd.Parameters.AddWithValue("@NumeroLoteProveedor", (object)numeroLoteProveedor ?? DBNull.Value);
+                cmd.Parameters.AddWithValue("@Cantidad", cantidad);
+                cmd.Parameters.AddWithValue("@PrecioUnitario", precioUnitario);
+                cmd.Parameters.AddWithValue("@FechaIngreso", string.IsNullOrEmpty(fechaIngreso) ? DateTime.Now : DateTime.Parse(fechaIngreso));
+                cmd.Parameters.AddWithValue("@FechaVencimiento", string.IsNullOrEmpty(fechaVencimiento) ? DBNull.Value : (object)DateTime.Parse(fechaVencimiento));
                 conn.Open();
                 return cmd.ExecuteNonQuery() > 0;
             }

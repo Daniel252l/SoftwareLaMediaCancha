@@ -302,11 +302,7 @@
         </div>
     }
 
-    <div class="garantia">
-        Todos nuestros productos cuentan con garantía<br />
-        de un mes a partir de la fecha de facturación.
-    </div>
-
+   
     <div class="gracias">¡Gracias por su compra!</div>
 
     <div class="footer">
@@ -315,7 +311,8 @@
     </div>
 
     <script>
-        window.onload = function () {
+        // No imprimir automáticamente - solo mostrar la factura
+        function imprimirFactura() {
             window.print();
         }
     </script>

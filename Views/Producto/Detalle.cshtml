@@ -1,21 +1,23 @@
-@model LaMediaCancha.Models.ProductoModels.Producto
+@model LaMediaCancha.Models.ProductoModels.ProductoCompra
 
 @{
-    ViewBag.Title = "Detalle Producto";
+    ViewBag.Title = "Detalle de Materia Prima";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card-custom">
+<div class="container-fluid px-5 py-4">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card-custom card-custom-full">
                 <div class="card-header-custom">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h2 class="text-white mb-1"><i class="fas fa-info-circle"></i> Detalle del Producto</h2>
-                            <p class="mb-0 text-white-50">Información completa del producto</p>
+                            <h2 class="mb-1" style="text-align:left; font-size:1.6rem;">
+                                <i class="fas fa-info-circle"></i> Detalle de Materia Prima
+                            </h2>
+                            <p class="mb-0" style="font-size:0.9rem;">Información completa del insumo</p>
                         </div>
-                        <a href="@Url.Action("Index")" class="btn btn-light">
+                        <a href="@Url.Action("Index")" class="btn-regresar">
                             <i class="fas fa-arrow-left"></i> Regresar
                         </a>
                     </div>
@@ -23,73 +25,91 @@
                 <div class="card-body-custom p-4">
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="text-muted small text-uppercase">Código</label>
-                            <p class="fw-bold fs-5">@Model.Codigo</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted small text-uppercase">Código de Barras</label>
-                            <p class="fw-bold fs-5">@(Model.CodigoBarras ?? "-")</p>
-                        </div>
-                        <div class="col-12 mb-3">
-                            <label class="text-muted small text-uppercase">Nombre</label>
-                            <p class="fw-bold fs-5">@Model.Nombre</p>
-                        </div>
-                        <div class="col-12 mb-3">
-                            <label class="text-muted small text-uppercase">Descripción</label>
-                            <p>@(Model.Descripcion ?? "-")</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted small text-uppercase">Precio Compra</label>
-                            <p class="text-danger fw-bold fs-4">@(Model.PrecioCompra?.ToString("C") ?? "-")</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted small text-uppercase">Precio Venta</label>
-                            <p class="text-success fw-bold fs-4">@Model.PrecioVenta.ToString("C")</p>
-                        </div>
-                    </div>
-
-                    @if (Model.EstaEnOferta == true)
-                    {
-                        <div class="alert alert-warning mt-3">
-                            <h6><i class="fas fa-percent"></i> Oferta Especial</h6>
-                            <p><strong>Precio Oferta:</strong> @(Model.PrecioOferta?.ToString("C") ?? "-")</p>
-                            <p><strong>Vigencia:</strong> @(Model.FechaInicioOferta?.ToString("dd/MM/yyyy")) hasta @(Model.FechaFinOferta?.ToString("dd/MM/yyyy"))</p>
-                        </div>
-                    }
-
-                    <div class="row mt-3">
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted small text-uppercase">Estado</label>
-                            <p>
-                                @if (Model.Activo)
-                                {
-                                    <span class="badge bg-success px-3 py-2">Activo</span>
-                                }
-                                else
-                                {
-                                    <span class="badge bg-danger px-3 py-2">Inactivo</span>
-                                }
-                            </p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="text-muted small text-uppercase">Fecha Creación</label>
-                            <p>@Model.FechaCreacion?.ToString("dd/MM/yyyy HH:mm")</p>
-                        </div>
-                        @if (Model.FechaModificacion.HasValue)
-                        {
-                            <div class="col-md-6 mb-3">
-                                <label class="text-muted small text-uppercase">Última Modificación</label>
-                                <p>@Model.FechaModificacion.Value.ToString("dd/MM/yyyy HH:mm")</p>
+                            <div class="campo-box">
+                                <label class="campo-label">Código</label>
+                                <p class="campo-valor">@Model.Codigo</p>
                             </div>
-                        }
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="campo-box">
+                                <label class="campo-label">Unidad de Medida</label>
+                                <p class="campo-valor">@Model.UnidadMedida</p>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                        <a href="@Url.Action("Index")" class="btn btn-secondary">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <div class="campo-box">
+                                <label class="campo-label">Nombre</label>
+                                <p class="campo-valor">@Model.Nombre</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <div class="campo-box">
+                                <label class="campo-label">Descripción</label>
+                                <p class="campo-valor" style="font-weight:400;">@(string.IsNullOrEmpty(Model.Descripcion) ? "-" : Model.Descripcion)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="campo-box">
+                                <label class="campo-label">Precio Compra</label>
+                                <p class="text-danger" style="font-weight:800; font-size:1.8rem; margin:0;">Q @string.Format("{0:N2}", Model.PrecioCompra)</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="campo-box">
+                                <label class="campo-label">Stock Actual</label>
+                                <p class="campo-valor" style="font-weight:800; font-size:1.5rem;">@Model.StockActual</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="campo-box">
+                                <label class="campo-label">Stock Mínimo</label>
+                                <p class="campo-valor">@Model.StockMinimo</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <div class="campo-box">
+                                <label class="campo-label">Categoría</label>
+                                <p class="campo-valor">@Model.Categoria</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <div class="campo-box">
+                                <label class="campo-label">Estado</label>
+                                <p style="margin:0;">
+                                    @if (Model.Activo)
+                                    {
+                                        <span class="badge-success" style="font-size:0.85rem; padding:6px 18px;">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge-danger" style="font-size:0.85rem; padding:6px 18px;">Inactivo</span>
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3" style="border-top:1px solid #eee;">
+                        <a href="@Url.Action("Index")" class="btn-ver" style="padding:10px 20px; font-size:0.85rem;">
                             <i class="fas fa-arrow-left"></i> Regresar
                         </a>
-                        <a href="@Url.Action("Editar", new { id = Model.ProductoId })" class="btn btn-primary">
-                            <i class="fas fa-edit"></i> Editar Producto
+                        <a href="@Url.Action("Editar", new { id = Model.ProductoCompraId })" class="btn-editar" style="padding:10px 20px; font-size:0.85rem;">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                        <a href="@Url.Action("Lotes", new { id = Model.ProductoCompraId })" class="btn-lotes" style="padding:10px 20px; font-size:0.85rem;">
+                            <i class="fas fa-layer-group"></i> Ver Lotes
                         </a>
                     </div>
                 </div>
@@ -99,46 +119,103 @@
 </div>
 
 <style>
-    .card-custom {
-        background: white;
-        border-radius: 15px;
-        overflow: hidden;
-        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    .card-custom-full {
+        max-width: 100% !important;
     }
 
-    .card-header-custom {
-        padding: 1.5rem;
-        background: linear-gradient(135deg, #c95a00 0%, #a04700 100%) !important;
+    .btn-regresar {
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.4);
+        color: white;
+        border-radius: 8px;
+        padding: 8px 18px;
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: background 0.2s;
+        white-space: nowrap;
     }
 
-        .card-header-custom .btn-light {
-            background: rgba(255,255,255,0.2);
-            border: none;
+        .btn-regresar:hover {
+            background: rgba(255,255,255,0.35);
+            color: white;
+            text-decoration: none;
+        }
+
+    .campo-box {
+        background: #fafafa;
+        border: 1px solid #f0f0f0;
+        border-radius: 10px;
+        padding: 14px 18px;
+        height: 100%;
+    }
+
+    .campo-label {
+        font-size: 0.72rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        color: #999;
+        letter-spacing: 0.5px;
+        display: block;
+        margin-bottom: 6px;
+    }
+
+    .campo-valor {
+        font-weight: 700;
+        font-size: 1rem;
+        color: #333;
+        margin: 0;
+    }
+
+    .badge-success {
+        background: #27AE60;
+        color: white;
+        border-radius: 30px;
+        display: inline-block;
+    }
+
+    .badge-danger {
+        background: #E74C3C;
+        color: white;
+        border-radius: 30px;
+        display: inline-block;
+    }
+
+    .btn-ver {
+        background: #6c757d;
+        color: white;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+        .btn-ver:hover {
+            background: #5a6268;
             color: white;
         }
 
-            .card-header-custom .btn-light:hover {
-                background: rgba(255,255,255,0.3);
-            }
-
-    .badge {
-        font-size: 0.8rem;
-        font-weight: 500;
-        border-radius: 20px;
-    }
-
-    .btn-primary {
+    .btn-editar {
         background: linear-gradient(135deg, #c95a00, #a04700);
-        border: none;
+        color: white;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.2s ease;
     }
 
-        .btn-primary:hover {
+        .btn-editar:hover {
             background: linear-gradient(135deg, #a04700, #8b3a00);
+            color: white;
         }
 
-    .alert-warning {
-        background-color: #fff3e0;
-        border-color: #F39C12;
-        color: #E67E22;
+    .btn-lotes {
+        background: #3498DB;
+        color: white;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: all 0.2s ease;
     }
+
+        .btn-lotes:hover {
+            background: #2980B9;
+            color: white;
+        }
 </style>

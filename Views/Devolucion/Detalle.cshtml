@@ -1,242 +1,191 @@
 @model LaMediaCancha.Models.DevolucionModels.EncabezadoDevolucion
+
 @{
     ViewBag.Title = "Detalle Devolución";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-10 offset-md-1">
-            <div class="card-custom" style="max-width: 100%;">
+<div class="container-fluid px-4 py-4">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card-custom card-custom-full">
                 <div class="card-header-custom">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h2><i class="fas fa-undo-alt"></i> Devolución #@Model.DevolucionId</h2>
-                            <p>Detalle de la devolución</p>
+                            <h2 class="text-white mb-1">
+                                <i class="fas fa-undo-alt me-2"></i> Detalle Devolución
+                            </h2>
+                            <p class="mb-0 text-white-50">Información completa de la devolución</p>
                         </div>
-                        <a href="@Url.Action("Index", "Devolucion")" class="btn-custom" style="width: auto; padding: 10px 20px; background: #6c757d;">
-                            <i class="fas fa-arrow-left"></i> Regresar
+                        <a href="@Url.Action("Index", "Devolucion")" class="btn btn-outline-light">
+                            <i class="fas fa-arrow-left me-1"></i> Regresar
                         </a>
                     </div>
                 </div>
-                <div class="card-body-custom">
-                    <!-- Información de la devolución -->
-                    <div class="info-devolucion">
-                        <div class="row">
-                            <div class="col-md-3">
-                                <div class="info-item">
-                                    <label>COMPRA #</label>
-                                    <p><strong>@Model.NumeroDocCompra</strong></p>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="info-item">
-                                    <label>FECHA DEVOLUCIÓN</label>
-                                    <p><strong>@Model.FechaDevolucion.ToString("dd/MM/yyyy HH:mm")</strong></p>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="info-item">
-                                    <label>TIPO</label>
-                                    <p><strong>@Model.TipoDevolucion</strong></p>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="info-item">
-                                    <label>ESTADO</label>
-                                    <p>
-                                        @if (Model.Estado == "Registrada")
-                                        {
-                                            <span class="badge-warning">Registrada</span>
-                                        }
-                                        else if (Model.Estado == "Autorizada")
-                                        {
-                                            <span class="badge-success">Autorizada</span>
-                                        }
-                                        else
-                                        {
-                                            <span class="badge-info">@Model.Estado</span>
-                                        }
-                                    </p>
-                                </div>
+
+                <div class="card-body-custom p-4">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <label class="text-muted small">NÚMERO DEVOLUCIÓN</label>
+                                <p class="fw-bold fs-4">DEV-@Model.DevolucionId.ToString("D6")</p>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="info-item">
-                                    <label>MOTIVO</label>
-                                    <p><strong>@Model.Motivo</strong></p>
-                                </div>
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <label class="text-muted small">FECHA DEVOLUCIÓN</label>
+                                <p class="fw-bold">@Model.FechaDevolucion.ToString("dd/MM/yyyy HH:mm")</p>
                             </div>
                         </div>
-                        @if (!string.IsNullOrEmpty(Model.Observaciones))
-                        {
-                            <div class="row">
-                                <div class="col-md-12">
-                                    <div class="info-item">
-                                        <label>OBSERVACIONES</label>
-                                        <p>@Model.Observaciones</p>
-                                    </div>
-                                </div>
-                            </div>
-                        }
                     </div>
+
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="info-box">
+                                <label class="text-muted small">DOCUMENTO COMPRA</label>
+                                <p class="fw-bold">@Model.NumeroDocCompra</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="info-box">
+                                <label class="text-muted small">PROVEEDOR</label>
+                                <p class="fw-bold">@Model.ProveedorNombre</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="info-box">
+                                <label class="text-muted small">EMPLEADO</label>
+                                <p class="fw-bold">@Model.EmpleadoNombre</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <label class="text-muted small">TIPO DEVOLUCIÓN</label>
+                                <p>@Model.TipoDevolucion</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="info-box">
+                                <label class="text-muted small">MOTIVO</label>
+                                <p>@Model.Motivo</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(Model.Observaciones))
+                    {
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="info-box">
+                                    <label class="text-muted small">OBSERVACIONES</label>
+                                    <p>@Model.Observaciones</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
 
                     <hr />
 
-                    <h4>Productos devueltos</h4>
+                    <h4 class="mb-3">Productos devueltos</h4>
                     <div class="table-responsive">
-                        <table class="table-custom">
-                            <thead>
+                        <table class="table table-hover">
+                            <thead class="table-dark">
                                 <tr>
                                     <th>Código</th>
                                     <th>Producto</th>
                                     <th class="text-center">Cantidad</th>
-                                    <th class="text-right">Precio</th>
-                                    <th class="text-right">Subtotal</th>
+                                    <th class="text-end">Precio Unitario</th>
+                                    <th class="text-end">Subtotal</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @if (Model.Detalles != null && Model.Detalles.Any())
+                                @foreach (var item in Model.Detalles)
                                 {
-                                    foreach (var item in Model.Detalles)
-                                    {
-                                        <tr>
-                                            <td>
-                                                @item.ProductoCodigo
-                                        </td>
-                                        <td>
-                                            @item.ProductoNombre
-                                    </td>
-                                    <td class="text-center">
-                                        @item.Cantidad.ToString("N0")
-                                </td>
-                                <td class="text-right">@String.Format("{0:N2}", item.PrecioReferencia)
-                            </td>
-                            <td class="text-right">
-                                <strong>@String.Format("{0:N2}", item.Subtotal)</strong>
-                            </td>
-                        </tr>
-                    }
-                }
-                else
-                {
-                    <tr>
-                        <td colspan="5" class="text-center">
-                            No hay productos registrados
-                        </td>
-                    </tr>
-                    }
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="4" class="text-right">
-                            <strong>TOTAL DEVUELTO:</strong>
-                        </td>
-                        <td class="text-right">
-                            <strong>@String.Format("{0:N2}", Model.MontoTotal)</strong>
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
+                                    <tr>
+                                        <td>@item.ProductoCodigo</td>
+                                        <td>@item.ProductoNombre</td>
+                                        <td class="text-center">@item.Cantidad</td>
+                                        <td class="text-end">Q @item.PrecioReferencia.ToString("N2")</td>
+                                        <td class="text-end text-danger fw-bold">Q @item.Subtotal.ToString("N2")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-light">
+                                    <td colspan="4" class="text-end fw-bold">TOTAL DEVUELTO:</td>
+                                    <td class="text-end text-danger fw-bold fs-5">Q @Model.MontoTotal.ToString("N2")</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
 
-        <!-- Botones eliminados -->
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Nota:</strong> El stock de los productos devueltos ha sido descontado automáticamente del inventario.
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
-</div>
-</div>
 </div>
 
 <style>
-    .info-devolucion {
-        background: #e8f4f8;
-        padding: 20px;
+    .container-fluid {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 30px !important;
+        padding-right: 30px !important;
+    }
+
+    .card-custom {
+        width: 100%;
+        background: #fff;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    .card-header-custom {
+        padding: 1.5rem 2rem;
+        background: linear-gradient(135deg,#c95a00 0%,#a04700 100%);
+    }
+
+    .info-box {
+        background: #f8f9fa;
+        padding: 15px;
         border-radius: 10px;
-        margin-bottom: 20px;
+        margin-bottom: 15px;
     }
 
-    .info-item {
-        margin-bottom: 10px;
-    }
-
-        .info-item label {
+        .info-box label {
             font-size: 0.7rem;
             text-transform: uppercase;
-            color: #7F8C8D;
-            display: block;
-            margin-bottom: 5px;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
 
-        .info-item p {
+        .info-box p {
             margin: 0;
-            font-size: 1rem;
+            font-weight: 500;
         }
 
-    .badge-warning {
-        background: #F39C12;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        display: inline-block;
-    }
-
-    .badge-success {
-        background: #27AE60;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        display: inline-block;
-    }
-
-    .badge-info {
-        background: #3498DB;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        font-weight: 600;
-        display: inline-block;
-    }
-
-    .table-custom {
+    .table {
         width: 100%;
-        border-collapse: collapse;
-        margin-top: 15px;
+        margin-bottom: 0;
     }
 
-        .table-custom th, .table-custom td {
+        .table th {
             padding: 12px;
-            border-bottom: 1px solid #eee;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            white-space: nowrap;
         }
 
-        .table-custom th {
-            background: #8B4513;
-            color: white;
-            font-weight: 600;
+        .table td {
+            padding: 12px;
+            vertical-align: middle;
         }
-
-        .table-custom tfoot td {
-            border-top: 2px solid #8B4513;
-            font-weight: bold;
-        }
-
-    .text-right {
-        text-align: right;
-    }
-
-    .text-center {
-        text-align: center;
-    }
-
-    hr {
-        margin: 20px 0;
-        border: 0;
-        border-top: 1px solid #eee;
-    }
 </style>

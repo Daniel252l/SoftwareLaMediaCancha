@@ -1,100 +1,225 @@
 ﻿@model IEnumerable<LaMediaCancha.Models.Proveedor>
+
 @{
     ViewBag.Title = "Proveedores";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container-fluid">
+<div class="container-fluid px-4 py-3">
     <div class="row">
         <div class="col-12">
-            <div class="card-custom" style="max-width: 100%;">
+
+            <div class="card-custom card-custom-full">
+
+                <!-- HEADER -->
                 <div class="card-header-custom">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+
                         <div>
-                            <h2><i class="fas fa-truck"></i> Proveedores</h2>
-                            <p>Gestión de proveedores del sistema</p>
+                            <h2 class="text-white mb-1">
+                                <i class="fas fa-truck"></i> Proveedores
+                            </h2>
+
+                            <p class="mb-0 text-white-50">
+                                Gestión de proveedores del sistema
+                            </p>
                         </div>
-                        <a href="@Url.Action("Crear", "Proveedor")" class="btn-custom" style="width: auto;">
-                            <i class="fas fa-plus"></i> Nuevo Proveedor
-                        </a>
+
+                        <div class="d-flex gap-2 flex-wrap">
+
+                            <a href="@Url.Action("Crear")"
+                               class="btn btn-light">
+                                <i class="fas fa-plus-circle"></i>
+                                Nuevo Proveedor
+                            </a>
+
+                            <a href="@Url.Action("Dashboard", "Home")"
+                               class="btn btn-outline-light">
+                                <i class="fas fa-arrow-left"></i>
+                                Regresar
+                            </a>
+
+                        </div>
                     </div>
                 </div>
-                <div class="card-body-custom">
+
+                <!-- BODY -->
+                <div class="card-body-custom p-4">
+
                     @if (TempData["Success"] != null)
                     {
-                        <div class="alert alert-success">
-                            <i class="fas fa-check-circle"></i> @TempData["Success"]
+                        <div class="alert alert-success alert-dismissible fade show"
+                             role="alert">
+
+                            <i class="fas fa-check-circle me-2"></i>
+                            @TempData["Success"]
+
+                            <button type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="alert">
+                            </button>
                         </div>
                     }
 
                     <div class="table-responsive">
-                        <table class="table-custom" id="tblProveedores">
-                            <thead>
+
+                        <table class="table table-hover align-middle"
+                               id="tblProveedores">
+
+                            <thead class="table-dark">
                                 <tr>
                                     <th>NIT</th>
                                     <th>Razón Social</th>
                                     <th>Contacto</th>
                                     <th>Teléfono</th>
                                     <th>Política</th>
-                                    <th class="text-center">Días</th>
-                                    <th>Estado</th>
+                                    <th>Días</th>
+                                    <th class="text-center">Estado</th>
                                     <th class="text-center">Acciones</th>
                                 </tr>
                             </thead>
+
                             <tbody>
-                                @foreach (var item in Model)
+
+                                @if (Model != null && Model.Any())
+                                {
+                                    foreach (var item in Model)
+                                    {
+                                        <tr>
+
+                                            <td>
+                                                <span class="fw-semibold">
+                                                    @item.Nit
+                                                </span>
+                                            </td>
+
+                                            <td>
+                                                <strong>
+                                                    @item.RazonSocial
+                                                </strong>
+                                            </td>
+
+                                            <td>
+                                                @(string.IsNullOrEmpty(item.Contacto)
+                                                    ? "—"
+                                                    : item.Contacto)
+                                            </td>
+
+                                            <td>
+                                                @(string.IsNullOrEmpty(item.Telefono)
+                                                    ? "—"
+                                                    : item.Telefono)
+                                            </td>
+
+                                            <td>
+                                                @(item.PoliticaNombre
+                                                    ?? item.PoliticaDevolucion
+                                                    ?? "—")
+                                            </td>
+
+                                            <td>
+                                                @if (item.DiasMaximosDevolucion > 0)
+                                                {
+                                                    <span class="badge badge-days">
+                                                        @item.DiasMaximosDevolucion días
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span>—</span>
+                                                }
+                                            </td>
+
+                                            <td class="text-center">
+
+                                                @if (item.Activo)
+                                                {
+                                                    <span class="badge bg-success">
+                                                        Activo
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary">
+                                                        Inactivo
+                                                    </span>
+                                                }
+
+                                            </td>
+
+                                            <td class="text-center">
+
+                                                <div class="btn-group btn-group-sm"
+                                                     role="group">
+
+                                                    <!-- VER -->
+                                                    <a href="@Url.Action("Detalle", new { id = item.ProveedorId })"
+                                                       class="btn btn-info text-white"
+                                                       title="Ver detalles">
+
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+
+                                                    <!-- EDITAR -->
+                                                    <a href="@Url.Action("Editar", new { id = item.ProveedorId })"
+                                                       class="btn btn-warning text-white"
+                                                       title="Editar">
+
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+
+                                                    @if (item.Activo)
+                                                    {
+                                                        <!-- INACTIVAR -->
+                                                        <button type="button"
+                                                                class="btn btn-danger"
+                                                                title="Inactivar"
+                                                                onclick="cambiarEstado(@item.ProveedorId, '@item.RazonSocial', false)">
+
+                                                            <i class="fas fa-ban"></i>
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <!-- ACTIVAR -->
+                                                        <button type="button"
+                                                                class="btn btn-success"
+                                                                title="Activar"
+                                                                onclick="cambiarEstado(@item.ProveedorId, '@item.RazonSocial', true)">
+
+                                                            <i class="fas fa-check-circle"></i>
+                                                        </button>
+                                                    }
+
+                                                </div>
+
+                                            </td>
+
+                                        </tr>
+                                    }
+                                }
+                                else
                                 {
                                     <tr>
-                                        <td>
-                                            @item.Nit
-                                    </td>
-                                    <td>
-                                        @item.RazonSocial
-                                </td>
-                                <td>
-                                    @item.Contacto
-                            </td>
-                            <td>@item.Telefono
-                        </td>
-                        <td>
-                            @(item.PoliticaNombre ?? "No definida")
-                        </td>
-                        <td class="text-center">@item.DiasMaximosDevolucion
-                    </td>
-                    <td>
-                        @if (item.Activo)
-                        {
-                            <span class="badge-success">Activo</span>
-                        }
-                        else
-                        {
-                            <span class="badge-danger">Inactivo</span>
-                        }
-                    </td>
-                    <td class="text-center">
-                        <a href="@Url.Action("Detalle", new { id = item.ProveedorId })" class="btn-ver" title="Ver detalles">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        <a href="@Url.Action("Editar", new { id = item.ProveedorId })" class="btn-editar" title="Editar">
-                            <i class="fas fa-edit"></i>
-                        </a>
-                        @if (item.Activo)
-                        {
-                            <button type="button" class="btn-inactivar" data-id="@item.ProveedorId" data-nombre="@item.RazonSocial" title="Inactivar">
-                                <i class="fas fa-ban"></i>
-                            </button>
-                        }
-                    </td>
-                </tr>
-            }
+
+                                        <td colspan="8"
+                                            class="text-center text-muted py-5">
+
+                                            <i class="fas fa-info-circle fa-2x mb-3 d-block"></i>
+
+                                            No hay proveedores registrados
+
+                                        </td>
+
+                                    </tr>
+                                }
+
                             </tbody>
+
                         </table>
+
                     </div>
-                </div>
-                <div class="card-footer-custom">
-                    <a href="@Url.Action("Dashboard", "Home")" class="btn-regresar">
-                        <i class="fas fa-arrow-left"></i> Regresar al Dashboard
-                    </a>
+
                 </div>
             </div>
         </div>
@@ -102,173 +227,286 @@
 </div>
 
 @section Scripts {
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <script>
-        $(document).ready(function() {
-            $('#tblProveedores').DataTable({
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json',
-                    search: "Buscar:",
-                    lengthMenu: "Mostrar _MENU_ registros",
-                    info: "Mostrando registros del _START_ al _END_ de un total de _TOTAL_ registros",
-                    infoEmpty: "Mostrando 0 registros",
-                    infoFiltered: "(filtrado de _MAX_ registros totales)",
-                    paginate: {
-                        first: "Primero",
-                        last: "Último",
-                        next: "Siguiente",
-                        previous: "Anterior"
-                    }
-                },
-                order: [[1, 'asc']],
-                pageLength: 10,
-                responsive: true
-            });
 
-            $('.btn-inactivar').click(function() {
-                var id = $(this).data('id');
-                var nombre = $(this).data('nombre');
+        function cambiarEstado(id, nombre, activar) {
 
-                Swal.fire({
-                    title: '¿Inactivar proveedor?',
-                    text: `¿Está seguro de inactivar "${nombre}"?`,
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí, inactivar',
-                    cancelButtonText: 'Cancelar'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $.post('@Url.Action("Inactivar", "Proveedor")', { id: id }, function(response) {
+            let titulo = activar
+                ? "¿Activar proveedor?"
+                : "¿Inactivar proveedor?";
+
+            let texto = activar
+                ? `¿Está seguro de <strong>activar</strong> al proveedor "${nombre}"?`
+                : `¿Está seguro de <strong>inactivar</strong> al proveedor "${nombre}"?<br><small class="text-muted">El proveedor no será eliminado.</small>`;
+
+            let icono = activar ? "question" : "warning";
+
+            let botonTexto = activar
+                ? "Sí, activar"
+                : "Sí, inactivar";
+
+            let botonColor = activar
+                ? "#28a745"
+                : "#d33";
+
+            Swal.fire({
+                title: titulo,
+                html: texto,
+                icon: icono,
+                showCancelButton: true,
+                confirmButtonColor: botonColor,
+                cancelButtonColor: "#6c757d",
+                confirmButtonText: botonTexto,
+                cancelButtonText: "Cancelar"
+            }).then((result) => {
+
+                if (result.isConfirmed) {
+
+                    Swal.fire({
+                        title: "Procesando...",
+                        text: "Por favor espere",
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    $.ajax({
+
+                        url: '@Url.Action("CambiarEstado", "Proveedor")',
+                        type: 'POST',
+
+                        data: {
+                            id: id,
+                            activo: activar
+                        },
+
+                        success: function (response) {
+
                             if (response.success) {
-                                Swal.fire('Inactivado', response.message, 'success').then(function() {
+
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: activar
+                                        ? '¡Proveedor activado!'
+                                        : '¡Proveedor inactivado!',
+                                    text: response.message,
+                                    confirmButtonColor: '#28a745'
+                                }).then(() => {
                                     location.reload();
                                 });
+
                             } else {
-                                Swal.fire('Error', response.message, 'error');
+
+                                Swal.fire(
+                                    'Error',
+                                    response.message,
+                                    'error'
+                                );
                             }
-                        });
-                    }
-                });
+                        },
+
+                        error: function () {
+
+                            Swal.fire(
+                                'Error',
+                                'Error al cambiar el estado del proveedor',
+                                'error'
+                            );
+                        }
+                    });
+                }
             });
-        });
+        }
+
     </script>
 }
 
 <style>
-    .alert-success {
-        background: #d4edda;
-        color: #155724;
-        padding: 12px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        border: 1px solid #c3e6cb;
+
+    .card-custom {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
     }
 
-    .btn-ver {
-        background: #3498DB;
-        color: white;
-        padding: 6px 12px;
-        border-radius: 5px;
-        display: inline-block;
-        margin: 0 2px;
-        text-decoration: none;
-        transition: all 0.3s ease;
+    .card-custom-full {
+        width: 100%;
+        max-width: 100%;
     }
 
-        .btn-ver:hover {
-            background: #2980B9;
-            color: white;
-            transform: scale(1.05);
-        }
-
-    .btn-editar {
-        background: #F39C12;
-        color: white;
-        padding: 6px 12px;
-        border-radius: 5px;
-        display: inline-block;
-        margin: 0 2px;
-        text-decoration: none;
-        transition: all 0.3s ease;
+    .card-header-custom {
+        padding: 1.5rem 2rem;
+        background: linear-gradient(135deg, #c95a00 0%, #a04700 100%);
     }
 
-        .btn-editar:hover {
-            background: #D68910;
-            color: white;
-            transform: scale(1.05);
-        }
+    .card-body-custom {
+        background: #fff;
+    }
 
-    .btn-inactivar {
-        background: #E74C3C;
-        color: white;
-        padding: 6px 12px;
-        border-radius: 5px;
+    .card-header-custom .btn-light {
+        background: rgba(255,255,255,0.2);
         border: none;
-        cursor: pointer;
-        margin: 0 2px;
-        transition: all 0.3s ease;
-    }
-
-        .btn-inactivar:hover {
-            background: #C0392B;
-            transform: scale(1.05);
-        }
-
-    .btn-regresar {
-        background: #6c757d;
         color: white;
-        padding: 10px 20px;
-        border-radius: 5px;
-        text-decoration: none;
-        display: inline-block;
-        transition: all 0.3s ease;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+        padding: 10px 18px;
     }
 
-        .btn-regresar:hover {
-            background: #5a6268;
-            color: white;
+        .card-header-custom .btn-light:hover {
+            background: rgba(255,255,255,0.3);
             transform: translateY(-2px);
         }
 
-    .badge-success {
-        background: #27AE60;
+    .card-header-custom .btn-outline-light {
+        border: 1px solid rgba(255,255,255,0.5);
         color: white;
-        padding: 4px 10px;
-        border-radius: 15px;
-        font-size: 0.7rem;
-        display: inline-block;
+        border-radius: 10px;
+        padding: 10px 18px;
+        transition: all 0.2s ease;
     }
 
-    .badge-danger {
-        background: #E74C3C;
-        color: white;
-        padding: 4px 10px;
-        border-radius: 15px;
-        font-size: 0.7rem;
-        display: inline-block;
-    }
-
-    .card-footer-custom {
-        padding: 15px 20px;
-        border-top: 1px solid #eee;
-        text-align: right;
-    }
-
-    .text-center {
-        text-align: center;
-    }
-
-    .table-custom {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-        .table-custom th, .table-custom td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
+        .card-header-custom .btn-outline-light:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateY(-2px);
         }
 
-        .table-custom th {
-            background: #8B4513;
+    .table {
+        margin-bottom: 0;
+    }
+
+        .table th {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 14px 12px;
+            background: #343a40 !important;
             color: white;
+            border: none;
         }
+
+        .table td {
+            vertical-align: middle;
+            font-size: 0.9rem;
+            padding: 14px 12px;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(201, 90, 0, 0.03);
+        }
+
+    /* BOTONES */
+
+    .btn-group .btn {
+        padding: 6px 10px;
+        margin: 0 2px;
+        border-radius: 8px !important;
+        transition: all 0.2s ease;
+    }
+
+        .btn-group .btn:hover {
+            transform: translateY(-2px);
+        }
+
+    .btn-info {
+        background-color: #17a2b8;
+        border-color: #17a2b8;
+    }
+
+        .btn-info:hover {
+            background-color: #138496;
+            border-color: #138496;
+            box-shadow: 0 2px 8px rgba(23,162,184,0.3);
+        }
+
+    .btn-warning {
+        background-color: #c95a00;
+        border-color: #c95a00;
+    }
+
+        .btn-warning:hover {
+            background-color: #a04700;
+            border-color: #a04700;
+            box-shadow: 0 2px 8px rgba(201,90,0,0.3);
+        }
+
+    .btn-danger {
+        background-color: #dc3545;
+        border-color: #dc3545;
+    }
+
+        .btn-danger:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+            box-shadow: 0 2px 8px rgba(220,53,69,0.3);
+        }
+
+    .btn-success {
+        background-color: #28a745;
+        border-color: #28a745;
+    }
+
+        .btn-success:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+            box-shadow: 0 2px 8px rgba(40,167,69,0.3);
+        }
+
+    /* BADGES */
+
+    .badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .badge-days {
+        background: #c95a00;
+        color: white;
+    }
+
+    .bg-success {
+        background-color: #27AE60 !important;
+    }
+
+    .bg-secondary {
+        background-color: #6c757d !important;
+    }
+
+    .alert-success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+        border-radius: 12px;
+    }
+
+    @@media (max-width: 768px) {
+
+        .card-header-custom {
+            padding: 1rem;
+        }
+
+            .card-header-custom h2 {
+                font-size: 1.4rem;
+            }
+
+        .table th,
+        .table td {
+            white-space: nowrap;
+        }
+
+        .btn-group {
+            display: flex;
+            flex-wrap: nowrap;
+        }
+
+            .btn-group .btn {
+                padding: 4px 8px;
+            }
+    }
 </style>

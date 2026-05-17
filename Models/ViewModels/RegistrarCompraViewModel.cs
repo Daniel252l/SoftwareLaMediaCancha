@@ -13,8 +13,7 @@ namespace LaMediaCancha.Models.ViewModels
         public string NumeroFactura { get; set; }
         public DateTime? FechaVencimiento { get; set; }
         public string Observaciones { get; set; }
-        public decimal CostoEnvio { get; set; }  // ← NUEVO: Costo de envío
-
+        public decimal CostoEnvio { get; set; }
 
         public List<SelectListItem> Proveedores { get; set; }
         public List<SelectListItem> TiposCompra { get; set; }
@@ -25,9 +24,14 @@ namespace LaMediaCancha.Models.ViewModels
     public class ProductoCompraItem
     {
         public int ProductoId { get; set; }
+        public string Codigo { get; set; }
         public string NombreProducto { get; set; }
+        public string Presentacion { get; set; }
         public decimal Cantidad { get; set; }
         public decimal PrecioUnitario { get; set; }
         public decimal Descuento { get; set; }
+        public decimal Subtotal { get; set; }
+        public bool EstabaEnOferta { get; set; }      // ← NUEVO: Indica si el producto está en oferta
+        public decimal? PrecioOferta { get; set; }     // ← NUEVO: Precio especial de oferta
     }
 }

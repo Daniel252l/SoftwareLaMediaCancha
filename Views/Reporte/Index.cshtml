@@ -1,11 +1,384 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿@model LaMediaCancha.Models.ViewModels.ReporteFiltrosViewModel
 
-namespace LaMediaCancha.Views.Reporte
-{
-	public class Index
-	{
-	}
+@{
+    ViewBag.Title = "Reportes";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card-custom card-custom-full">
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div>
+                            <h2 class="text-white mb-1">
+                                <i class="fas fa-chart-bar"></i> Reportes
+                            </h2>
+                            <p class="mb-0 text-white-50">Generación de reportes del sistema</p>
+                        </div>
+                        <a href="@Url.Action("Dashboard", "Home")" class="btn btn-light">
+                            <i class="fas fa-arrow-left"></i> Regresar
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card-body-custom p-4">
+
+                    <!-- Buscador de reportes (LUPA) -->
+                    <div class="search-container mb-4">
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-white">
+                                <i class="fas fa-search text-primary"></i>
+                            </span>
+                            <input type="text" id="buscarReporte" class="form-control"
+                                   placeholder="Buscar reporte por nombre...">
+                        </div>
+                    </div>
+
+                    <!-- Grid de Reportes -->
+                    <div class="row" id="reportesGrid">
+                        <!-- Ventas -->
+                        <div class="col-md-4 col-lg-3 mb-3 reporte-item" data-nombre="Ventas por período">
+                            <div class="card reporte-card" onclick="seleccionarReporte('Ventas')">
+                                <div class="card-body text-center">
+                                    <div class="icon-circle bg-primary mx-auto mb-3">
+                                        <i class="fas fa-chart-line text-white fa-2x"></i>
+                                    </div>
+                                    <h5 class="card-title">Ventas por período</h5>
+                                    <p class="card-text text-muted small">Total de ventas, facturas emitidas, promedio por día</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 col-lg-3 mb-3 reporte-item" data-nombre="Productos más vendidos">
+                            <div class="card reporte-card" onclick="seleccionarReporte('ProductosMasVendidos')">
+                                <div class="card-body text-center">
+                                    <div class="icon-circle bg-success mx-auto mb-3">
+                                        <i class="fas fa-trophy text-white fa-2x"></i>
+                                    </div>
+                                    <h5 class="card-title">Productos más vendidos</h5>
+                                    <p class="card-text text-muted small">Ranking de productos más vendidos</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 col-lg-3 mb-3 reporte-item" data-nombre="Inventario">
+                            <div class="card reporte-card" onclick="seleccionarReporte('Inventario')">
+                                <div class="card-body text-center">
+                                    <div class="icon-circle bg-warning mx-auto mb-3">
+                                        <i class="fas fa-boxes text-white fa-2x"></i>
+                                    </div>
+                                    <h5 class="card-title">Inventario actual</h5>
+                                    <p class="card-text text-muted small">Stock actual por producto y nivel de inventario</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 col-lg-3 mb-3 reporte-item" data-nombre="Caja diaria">
+                            <div class="card reporte-card" onclick="seleccionarReporte('CajaDiaria')">
+                                <div class="card-body text-center">
+                                    <div class="icon-circle bg-info mx-auto mb-3">
+                                        <i class="fas fa-cash-register text-white fa-2x"></i>
+                                    </div>
+                                    <h5 class="card-title">Caja diaria</h5>
+                                    <p class="card-text text-muted small">Resumen de ingresos/egresos del día</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 col-lg-3 mb-3 reporte-item" data-nombre="Utilidad">
+                            <div class="card reporte-card" onclick="seleccionarReporte('Utilidad')">
+                                <div class="card-body text-center">
+                                    <div class="icon-circle bg-danger mx-auto mb-3">
+                                        <i class="fas fa-chart-pie text-white fa-2x"></i>
+                                    </div>
+                                    <h5 class="card-title">Utilidad por período</h5>
+                                    <p class="card-text text-muted small">Ganancia (ventas - costo de ventas)</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 col-lg-3 mb-3 reporte-item" data-nombre="Ventas por producto">
+                            <div class="card reporte-card" onclick="seleccionarReporte('VentasPorProducto')">
+                                <div class="card-body text-center">
+                                    <div class="icon-circle bg-secondary mx-auto mb-3">
+                                        <i class="fas fa-chart-simple text-white fa-2x"></i>
+                                    </div>
+                                    <h5 class="card-title">Ventas por producto</h5>
+                                    <p class="card-text text-muted small">Desglose de ventas por cada producto</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 col-lg-3 mb-3 reporte-item" data-nombre="Ventas por forma de pago">
+                            <div class="card reporte-card" onclick="seleccionarReporte('VentasPorPago')">
+                                <div class="card-body text-center">
+                                    <div class="icon-circle bg-dark mx-auto mb-3">
+                                        <i class="fas fa-credit-card text-white fa-2x"></i>
+                                    </div>
+                                    <h5 class="card-title">Ventas por forma de pago</h5>
+                                    <p class="card-text text-muted small">Efectivo, Tarjeta, Transferencia, QR</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 col-lg-3 mb-3 reporte-item" data-nombre="Compras por período">
+                            <div class="card reporte-card" onclick="seleccionarReporte('Compras')">
+                                <div class="card-body text-center">
+                                    <div class="icon-circle bg-primary mx-auto mb-3">
+                                        <i class="fas fa-shopping-cart text-white fa-2x"></i>
+                                    </div>
+                                    <h5 class="card-title">Compras por período</h5>
+                                    <p class="card-text text-muted small">Historial de compras a proveedores</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 col-lg-3 mb-3 reporte-item" data-nombre="Ventas anuladas">
+                            <div class="card reporte-card" onclick="seleccionarReporte('VentasAnuladas')">
+                                <div class="card-body text-center">
+                                    <div class="icon-circle bg-danger mx-auto mb-3">
+                                        <i class="fas fa-ban text-white fa-2x"></i>
+                                    </div>
+                                    <h5 class="card-title">Ventas anuladas</h5>
+                                    <p class="card-text text-muted small">Facturas anuladas con motivos</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-4 col-lg-3 mb-3 reporte-item" data-nombre="Stock bajo">
+                            <div class="card reporte-card" onclick="seleccionarReporte('StockBajo')">
+                                <div class="card-body text-center">
+                                    <div class="icon-circle bg-warning mx-auto mb-3">
+                                        <i class="fas fa-exclamation-triangle text-white fa-2x"></i>
+                                    </div>
+                                    <h5 class="card-title">Productos con stock bajo</h5>
+                                    <p class="card-text text-muted small">Alertas de productos por debajo del mínimo</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mensaje cuando no hay resultados -->
+                    <div id="noResultados" class="text-center py-5" style="display: none;">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No se encontraron reportes con ese nombre</p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Filtros -->
+<div class="modal fade" id="filtrosModal" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" style="background: linear-gradient(135deg, #c95a00, #a04700);">
+                <h5 class="modal-title text-white">
+                    <i class="fas fa-sliders-h"></i> Filtros del Reporte
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="filtrosForm">
+                    <input type="hidden" id="tipoReporte" name="TipoReporte" />
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-calendar-alt"></i> Fecha Desde
+                            </label>
+                            <input type="date" id="FechaInicio" name="FechaInicio" class="form-control"
+                                   value="@DateTime.Now.AddDays(-30).ToString("yyyy-MM-dd")">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-calendar-alt"></i> Fecha Hasta
+                            </label>
+                            <input type="date" id="FechaFin" name="FechaFin" class="form-control"
+                                   value="@DateTime.Now.ToString("yyyy-MM-dd")">
+                        </div>
+                    </div>
+
+                    <div class="mb-3" id="formaPagoContainer" style="display: none;">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-credit-card"></i> Forma de Pago
+                        </label>
+                        <select id="FormaPago" name="FormaPago" class="form-select">
+                            <option value="">Todas</option>
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Tarjeta">Tarjeta</option>
+                        </select>
+                    </div>
+
+                    <div class="alert alert-info small">
+                        <i class="fas fa-info-circle"></i>
+                        El reporte se generará con los filtros seleccionados.
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnGenerarReporte">
+                    <i class="fas fa-chart-line"></i> Generar Reporte
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let reporteSeleccionado = '';
+
+        // Buscador de reportes
+        $('#buscarReporte').on('keyup', function() {
+            var busqueda = $(this).val().toLowerCase();
+            var visibles = 0;
+
+            $('.reporte-item').each(function() {
+                var nombre = $(this).data('nombre').toLowerCase();
+                if (nombre.indexOf(busqueda) !== -1) {
+                    $(this).show();
+                    visibles++;
+                } else {
+                    $(this).hide();
+                }
+            });
+
+            $('#noResultados').toggle(visibles === 0);
+        });
+
+        function seleccionarReporte(tipo) {
+            reporteSeleccionado = tipo;
+            $('#tipoReporte').val(tipo);
+
+            // Mostrar/ocultar filtros específicos
+            $('#formaPagoContainer').toggle(tipo === 'Ventas');
+
+            $('#filtrosModal').modal('show');
+        }
+
+        $('#btnGenerarReporte').click(function() {
+            var formData = {
+                TipoReporte: $('#tipoReporte').val(),
+                FechaInicio: $('#FechaInicio').val(),
+                FechaFin: $('#FechaFin').val(),
+                FormaPago: $('#FormaPago').val()
+            };
+
+            // Validar fechas
+            if (formData.FechaInicio > formData.FechaFin) {
+                Swal.fire('Error', 'La fecha desde debe ser menor a la fecha hasta', 'error');
+                return;
+            }
+
+            $('#filtrosModal').modal('hide');
+
+            Swal.fire({
+                title: 'Generando reporte...',
+                text: 'Por favor espere',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            // Enviar formulario
+            var form = $('<form>', {
+                'method': 'POST',
+                'action': '@Url.Action("GenerarReporte", "Reporte")'
+            });
+
+            $.each(formData, function(key, value) {
+                $('<input>').attr({
+                    'type': 'hidden',
+                    'name': key,
+                    'value': value
+                }).appendTo(form);
+            });
+
+            $('body').append(form);
+            form.submit();
+        });
+    </script>
+}
+
+<style>
+    .reporte-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: 1px solid #e0e0e0;
+        border-radius: 15px;
+        overflow: hidden;
+    }
+
+        .reporte-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: #c95a00;
+        }
+
+    .icon-circle {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .bg-primary {
+        background: linear-gradient(135deg, #17a2b8, #138496);
+    }
+
+    .bg-success {
+        background: linear-gradient(135deg, #27AE60, #1e8449);
+    }
+
+    .bg-warning {
+        background: linear-gradient(135deg, #F39C12, #D68910);
+    }
+
+    .bg-info {
+        background: linear-gradient(135deg, #3498DB, #2980B9);
+    }
+
+    .bg-danger {
+        background: linear-gradient(135deg, #E74C3C, #c0392b);
+    }
+
+    .bg-secondary {
+        background: linear-gradient(135deg, #6c757d, #5a6268);
+    }
+
+    .bg-dark {
+        background: linear-gradient(135deg, #2c3e30, #1e2a20);
+    }
+
+    .search-container {
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .input-group-text {
+        border-radius: 10px 0 0 10px;
+        border-right: none;
+    }
+
+    .input-group input {
+        border-radius: 0 10px 10px 0;
+        border-left: none;
+    }
+
+        .input-group input:focus {
+            border-color: #c95a00;
+            box-shadow: none;
+        }
+
+    .modal-content {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+</style>

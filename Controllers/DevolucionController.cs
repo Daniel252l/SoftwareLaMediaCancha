@@ -15,10 +15,12 @@ namespace LaMediaCancha.Controllers
     public class DevolucionController : Controller
     {
         private readonly string _connectionString;
+        private readonly DevolucionService _devolucionService;
 
         public DevolucionController()
         {
             _connectionString = ConfigurationManager.ConnectionStrings["LaMediaCanchaDB"].ConnectionString;
+            _devolucionService = new DevolucionService();
         }
 
         public ActionResult Index()
@@ -77,14 +79,17 @@ namespace LaMediaCancha.Controllers
             DevolucionModels.EncabezadoDevolucion devolucion = null;
 
             string query = @"
-                SELECT 
-                    d.*,
-                    e.CodigoEmpleado,
-                    p.Nombres + ' ' + p.Apellidos AS EmpleadoNombre
-                FROM EncabezadoDevolucion d
-                INNER JOIN Empleado e ON d.EmpleadoId = e.EmpleadoId
-                INNER JOIN Persona p ON e.PersonaId = p.PersonaId
-                WHERE d.DevolucionId = @DevolucionId";
+        SELECT 
+            d.*,
+            e.CodigoEmpleado,
+            p.Nombres + ' ' + p.Apellidos AS EmpleadoNombre,
+            prov.RazonSocial AS ProveedorNombre
+        FROM EncabezadoDevolucion d
+        INNER JOIN Empleado e ON d.EmpleadoId = e.EmpleadoId
+        INNER JOIN Persona p ON e.PersonaId = p.PersonaId
+        INNER JOIN EncabezadoCompra ec ON d.CompraId = ec.CompraId
+        INNER JOIN Proveedor prov ON ec.ProveedorId = prov.ProveedorId
+        WHERE d.DevolucionId = @DevolucionId";
 
             using (var conn = new SqlConnection(_connectionString))
             using (var cmd = new SqlCommand(query, conn))
@@ -100,9 +105,10 @@ namespace LaMediaCancha.Controllers
                         {
                             DevolucionId = (int)reader["DevolucionId"],
                             CompraId = (int)reader["CompraId"],
+                            NumeroDocCompra = reader["NumeroDocCompra"].ToString(),
                             EmpleadoId = (int)reader["EmpleadoId"],
                             EmpleadoNombre = reader["EmpleadoNombre"].ToString(),
-                            NumeroDocCompra = reader["NumeroDocCompra"].ToString(),
+                            ProveedorNombre = reader["ProveedorNombre"].ToString(),
                             FechaCompraRef = (DateTime)reader["FechaCompraRef"],
                             TeniaProductosEnOferta = (bool)reader["TeniaProductosEnOferta"],
                             FechaDevolucion = (DateTime)reader["FechaDevolucion"],
@@ -143,10 +149,10 @@ namespace LaMediaCancha.Controllers
                     dd.MotivoDetalle,
                     dd.EstabaEnOferta,
                     dd.PrecioOfertaRef,
-                    p.Codigo AS ProductoCodigo,
-                    p.Nombre AS ProductoNombre
+                    pc.Codigo AS ProductoCodigo,
+                    pc.Nombre AS ProductoNombre
                 FROM DetalleDevolucion dd
-                INNER JOIN Producto p ON dd.ProductoId = p.ProductoId
+                INNER JOIN ProductoCompra pc ON dd.ProductoId = pc.ProductoCompraId
                 WHERE dd.DevolucionId = @DevolucionId";
 
             using (var conn = new SqlConnection(_connectionString))
@@ -233,18 +239,7 @@ namespace LaMediaCancha.Controllers
                     }).ToList()
                 };
 
-                var service = new DevolucionService();
-                int devolucionId = service.RegistrarDevolucion(request);
-
-                // Marcar compra como Cerrada
-                string updateQuery = "UPDATE EncabezadoCompra SET Estado = 'Cerrada' WHERE CompraId = @CompraId AND Estado = 'Aprobada'";
-                using (var conn = new SqlConnection(_connectionString))
-                using (var cmd = new SqlCommand(updateQuery, conn))
-                {
-                    cmd.Parameters.AddWithValue("@CompraId", model.CompraId);
-                    conn.Open();
-                    cmd.ExecuteNonQuery();
-                }
+                int devolucionId = _devolucionService.RegistrarDevolucion(request);
 
                 return Json(new
                 {
@@ -270,7 +265,6 @@ namespace LaMediaCancha.Controllers
 
                 numeroFactura = numeroFactura.Trim();
 
-                // Buscar por NumeroDocumento (COMP-001) o por NumeroFactura
                 string query = @"
                     SELECT 
                         ec.CompraId,
@@ -303,7 +297,6 @@ namespace LaMediaCancha.Controllers
                                 int diasMaximos = reader.GetInt32(reader.GetOrdinal("DiasMaximos"));
                                 string estadoCompra = reader.GetString(reader.GetOrdinal("Estado"));
 
-                                // Validar que no esté cerrada
                                 if (estadoCompra == "Cerrada")
                                 {
                                     return Json(new
@@ -357,25 +350,73 @@ namespace LaMediaCancha.Controllers
         {
             try
             {
-                var service = new DevolucionService();
-                var productos = service.ObtenerProductosDisponiblesParaDevolver(compraId);
+                System.Diagnostics.Debug.WriteLine($"=== GetProductosPorCompra ===");
+                System.Diagnostics.Debug.WriteLine($"CompraId: {compraId}");
 
-                var resultado = productos.Select(p => new
+                string query = @"
+            SELECT 
+                dc.ProductoId,
+                pc.Codigo AS CodigoProducto,
+                pc.Nombre AS NombreProducto,
+                ISNULL(pc.UnidadMedida, 'Unidad') AS Presentacion,
+                dc.Cantidad AS CantidadComprada,
+                ISNULL(dc.CantidadDevuelta, 0) AS CantidadYaDevuelta,
+                (dc.Cantidad - ISNULL(dc.CantidadDevuelta, 0)) AS Disponible,
+                CASE 
+                    WHEN dc.EstabaEnOferta = 1 AND dc.PrecioOferta IS NOT NULL THEN dc.PrecioOferta
+                    ELSE dc.PrecioUnitario
+                END AS PrecioUnitario,
+                dc.EstabaEnOferta,
+                CASE 
+                    WHEN dc.EstabaEnOferta = 1 THEN '❌ No se puede devolver (producto comprado en oferta)'
+                    WHEN (dc.Cantidad - ISNULL(dc.CantidadDevuelta, 0)) <= 0 THEN '❌ No hay stock disponible'
+                    ELSE '✅ Disponible para devolver'
+                END AS MensajeEstado
+            FROM DetalleCompra dc
+            INNER JOIN ProductoCompra pc ON dc.ProductoId = pc.ProductoCompraId
+            WHERE dc.CompraId = @CompraId
+              AND (dc.Cantidad - ISNULL(dc.CantidadDevuelta, 0)) > 0
+            ORDER BY pc.Nombre";
+
+                var productos = new List<object>();
+
+                using (var conn = new SqlConnection(_connectionString))
+                using (var cmd = new SqlCommand(query, conn))
                 {
-                    p.ProductoId,
-                    p.CodigoProducto,
-                    p.NombreProducto,
-                    p.Presentacion,
-                    p.CantidadComprada,
-                    p.CantidadYaDevuelta,
-                    p.PrecioUnitario,
-                    p.EstaEnOferta
-                });
+                    cmd.Parameters.AddWithValue("@CompraId", compraId);
+                    conn.Open();
 
-                return Json(resultado, JsonRequestBehavior.AllowGet);
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            decimal cantidadComprada = reader.GetDecimal(reader.GetOrdinal("CantidadComprada"));
+                            decimal cantidadYaDevuelta = reader.GetDecimal(reader.GetOrdinal("CantidadYaDevuelta"));
+                            decimal disponible = reader.GetDecimal(reader.GetOrdinal("Disponible"));
+                            bool estaEnOferta = reader.GetBoolean(reader.GetOrdinal("EstabaEnOferta"));
+
+                            productos.Add(new
+                            {
+                                ProductoId = reader.GetInt32(reader.GetOrdinal("ProductoId")),
+                                CodigoProducto = reader.GetString(reader.GetOrdinal("CodigoProducto")),
+                                NombreProducto = reader.GetString(reader.GetOrdinal("NombreProducto")),
+                                Presentacion = reader.GetString(reader.GetOrdinal("Presentacion")),
+                                CantidadComprada = cantidadComprada,
+                                CantidadYaDevuelta = cantidadYaDevuelta,
+                                Disponible = disponible,
+                                PrecioUnitario = reader.GetDecimal(reader.GetOrdinal("PrecioUnitario")),
+                                EstaEnOferta = estaEnOferta,
+                                MensajeEstado = reader.GetString(reader.GetOrdinal("MensajeEstado"))
+                            });
+                        }
+                    }
+                }
+
+                return Json(productos, JsonRequestBehavior.AllowGet);
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Debug.WriteLine($"Error en GetProductosPorCompra: {ex.Message}");
                 return Json(new { error = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }

@@ -1,0 +1,427 @@
+﻿@model LaMediaCancha.Models.ViewModels.OfertaViewModel
+
+@{
+    ViewBag.Title = "Crear Oferta";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid container-ofertas py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-11 col-lg-9 col-xl-8">
+
+            <div class="card-custom">
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <h2 class="text-white mb-1">
+                                <i class="fas fa-percent me-2"></i> Crear Oferta
+                            </h2>
+                            <p class="mb-0 text-white-50">
+                                Configure una nueva promoción o descuento
+                            </p>
+                        </div>
+
+                        <a href="@Url.Action("Index", "Oferta")" class="btn btn-light">
+                            <i class="fas fa-arrow-left me-1"></i> Regresar
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card-body-custom p-4">
+
+                    <form action="@Url.Action("Crear", "Oferta")" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                Nombre de la Oferta
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <input type="text"
+                                   name="Nombre"
+                                   class="form-control"
+                                   placeholder="Ej: Martes de Hamburguesa, Happy Hour, etc."
+                                   required />
+
+                            <small class="text-muted">
+                                Nombre descriptivo de la promoción
+                            </small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                Descripción
+                            </label>
+
+                            <textarea name="Descripcion"
+                                      class="form-control"
+                                      rows="3"
+                                      placeholder="Descripción detallada de la oferta..."></textarea>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    Producto
+                                    <span class="text-danger">*</span>
+                                </label>
+
+                                <select id="ProductoId"
+                                        name="ProductoId"
+                                        class="form-select"
+                                        required>
+
+                                    <option value="">Seleccione un producto...</option>
+
+                                    @if (ViewBag.Productos != null)
+                                    {
+                                        foreach (var item in ViewBag.Productos)
+                                        {
+                                            <option value="@item.Value">
+                                                @item.Text
+                                            </option>
+                                        }
+                                    }
+                                </select>
+
+                                <small class="text-muted">
+                                    Producto que tendrá descuento
+                                </small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    Descuento (%)
+                                    <span class="text-danger">*</span>
+                                </label>
+
+                                <input type="number"
+                                       id="DescuentoPorcentaje"
+                                       name="DescuentoPorcentaje"
+                                       class="form-control"
+                                       step="1"
+                                       min="0"
+                                       max="100"
+                                       placeholder="0-100"
+                                       required />
+
+                                <small class="text-muted">
+                                    Porcentaje de descuento
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    Precio Original
+                                </label>
+
+                                <input type="text"
+                                       id="PrecioOriginal"
+                                       class="form-control"
+                                       readonly
+                                       style="background-color: #f8f9fa;" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    Precio con Descuento
+                                </label>
+
+                                <input type="text"
+                                       id="PrecioOferta"
+                                       class="form-control precio-oferta"
+                                       readonly />
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    Fecha Inicio
+                                    <span class="text-danger">*</span>
+                                </label>
+
+                                <input type="date"
+                                       id="FechaInicio"
+                                       name="FechaInicio"
+                                       class="form-control"
+                                       required />
+
+                                <small class="text-muted">
+                                    Fecha en que comienza la oferta
+                                </small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    Fecha Fin
+                                    <span class="text-danger">*</span>
+                                </label>
+
+                                <input type="date"
+                                       id="FechaFin"
+                                       name="FechaFin"
+                                       class="form-control"
+                                       required />
+
+                                <small class="text-muted">
+                                    Fecha en que termina la oferta
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info mt-4">
+                            <i class="fas fa-info-circle me-2"></i>
+
+                            <strong>Nota:</strong>
+                            La oferta estará activa solo durante el período seleccionado.
+                            Los clientes podrán verla en la pantalla de toma de pedidos.
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top flex-wrap">
+
+                            <a href="@Url.Action("Index", "Oferta")"
+                               class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i> Cancelar
+                            </a>
+
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Crear Oferta
+                            </button>
+
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+
+            // Fechas por defecto
+            var today = new Date();
+            var nextMonth = new Date(today);
+
+            nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+            $('#FechaInicio').val(today.toISOString().split('T')[0]);
+            $('#FechaFin').val(nextMonth.toISOString().split('T')[0]);
+
+            function calcularPrecioOferta() {
+
+                var productoId = $('#ProductoId').val();
+                var descuento = $('#DescuentoPorcentaje').val();
+
+                if (productoId) {
+
+                    $.ajax({
+                        url: '@Url.Action("GetPrecioProducto", "Oferta")',
+                        type: 'GET',
+                        data: { productoId: productoId },
+
+                        success: function (data) {
+
+                            if (data.success) {
+
+                                var precioOriginal = data.precio;
+
+                                $('#PrecioOriginal').val(
+                                    'Q ' + precioOriginal.toFixed(2)
+                                );
+
+                                if (descuento && descuento > 0) {
+
+                                    var precioFinal =
+                                        precioOriginal -
+                                        (precioOriginal * descuento / 100);
+
+                                    $('#PrecioOferta').val(
+                                        'Q ' + precioFinal.toFixed(2)
+                                    );
+
+                                } else {
+
+                                    $('#PrecioOferta').val('');
+                                }
+                            }
+                        }
+                    });
+
+                } else {
+
+                    $('#PrecioOriginal').val('');
+                    $('#PrecioOferta').val('');
+                }
+            }
+
+            $('#ProductoId').change(calcularPrecioOferta);
+
+            $('#DescuentoPorcentaje').on(
+                'keyup change',
+                calcularPrecioOferta
+            );
+
+            $('#FechaFin').change(function () {
+
+                var fechaInicio = $('#FechaInicio').val();
+                var fechaFin = $(this).val();
+
+                if (fechaInicio &&
+                    fechaFin &&
+                    fechaFin < fechaInicio) {
+
+                    alert(
+                        'La fecha de fin debe ser mayor a la fecha de inicio'
+                    );
+
+                    $(this).val('');
+                }
+            });
+        });
+    </script>
+}
+
+<style>
+
+    .container-ofertas {
+        width: 100%;
+        max-width: 100% !important;
+        padding-left: 30px;
+        padding-right: 30px;
+    }
+
+    .card-custom {
+        width: 100%;
+        max-width: 1000px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    .card-header-custom {
+        padding: 1.5rem;
+        background: linear-gradient( 135deg, #c95a00 0%, #a04700 100% ) !important;
+    }
+
+        .card-header-custom .btn-light {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            padding: 8px 18px;
+        }
+
+            .card-header-custom .btn-light:hover {
+                background: rgba(255,255,255,0.3);
+                transform: translateY(-2px);
+            }
+
+    .card-body-custom {
+        background: #fff;
+    }
+
+    .form-control,
+    .form-select {
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        padding: 12px 14px;
+        transition: all 0.2s ease;
+        min-height: 48px;
+    }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #c95a00;
+            box-shadow: 0 0 0 3px rgba(201, 90, 0, 0.15);
+            outline: none;
+        }
+
+    .form-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 6px;
+    }
+
+    .precio-oferta {
+        background-color: #e8f5e9 !important;
+        color: #27AE60 !important;
+        font-weight: bold;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #c95a00, #a04700);
+        border: none;
+        padding: 10px 25px;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #a04700, #8b3a00);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(201, 90, 0, 0.3);
+        }
+
+    .btn-secondary {
+        background: #6c757d;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+    .text-muted {
+        color: #6c757d !important;
+        font-size: 0.75rem;
+    }
+
+    .alert-info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+        border-radius: 12px;
+        padding: 16px;
+    }
+
+    .border-top {
+        border-top: 1px solid #e9ecef !important;
+    }
+
+    @@media (max-width: 768px) {
+
+        .container-ofertas {
+            padding-left: 15px;
+            padding-right: 15px;
+        }
+
+        .card-header-custom {
+            padding: 1rem;
+        }
+
+            .card-header-custom h2 {
+                font-size: 1.4rem;
+            }
+
+        .btn-primary,
+        .btn-secondary {
+            width: 100%;
+        }
+    }
+</style>

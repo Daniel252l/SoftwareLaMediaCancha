@@ -1,4 +1,5 @@
 @model LaMediaCancha.Models.ViewModels.RegistrarCompraViewModel
+
 @{
     ViewBag.Title = "Registrar Compra";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -74,11 +75,12 @@
                     <table id="tblProductos" style="width: 100%; border-collapse: collapse; background: white;">
                         <thead>
                             <tr style="background: #8B4513; color: white;">
-                                <th style="padding: 12px; text-align: left; width: 35%;">Producto</th>
-                                <th style="padding: 12px; text-align: center; width: 15%;">Cantidad</th>
-                                <th style="padding: 12px; text-align: center; width: 20%;">Precio Unitario (Q)</th>
-                                <th style="padding: 12px; text-align: center; width: 15%;">Descuento %</th>
-                                <th style="padding: 12px; text-align: center; width: 15%;">Subtotal (Q)</th>
+                                <th style="padding: 12px; text-align: left; width: 25%;">Producto</th>
+                                <th style="padding: 12px; text-align: center; width: 10%;">Cantidad</th>
+                                <th style="padding: 12px; text-align: center; width: 15%;">Precio Unitario</th>
+                                <th style="padding: 12px; text-align: center; width: 15%;">¿En Oferta?</th>
+                                <th style="padding: 12px; text-align: center; width: 15%;">Precio Oferta</th>
+                                <th style="padding: 12px; text-align: center; width: 15%;">Subtotal</th>
                                 <th style="padding: 12px; text-align: center; width: 5%;"></th>
                             </tr>
                         </thead>
@@ -87,8 +89,16 @@
                         </tbody>
                         <tfoot>
                             <tr style="background: #f8f9fa;">
-                                <td colspan="5" style="padding: 12px; text-align: right; font-weight: bold;">TOTAL:</td>
-                                <td style="padding: 12px; text-align: center; font-weight: bold; color: #D35400;" id="totalGeneral">Q 0.00</td>
+                                <td colspan="6" style="padding: 12px; text-align: right; font-weight: bold;">SUBTOTAL:</td>
+                                <td style="padding: 12px; text-align: center; font-weight: bold;" id="subtotalGeneral">Q 0.00</td>
+                            </tr>
+                            <tr style="background: #f8f9fa;">
+                                <td colspan="6" style="padding: 12px; text-align: right; font-weight: bold;">COSTO ENVÍO:</td>
+                                <td style="padding: 12px; text-align: center; font-weight: bold;" id="costoEnvioMostrar">Q 0.00</td>
+                            </tr>
+                            <tr style="background: #f8f9fa; border-top: 2px solid #D35400;">
+                                <td colspan="6" style="padding: 12px; text-align: right; font-weight: bold; font-size: 16px;">TOTAL GENERAL:</td>
+                                <td style="padding: 12px; text-align: center; font-weight: bold; font-size: 18px; color: #D35400;" id="totalGeneral">Q 0.00</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -120,23 +130,12 @@
             <button type="button" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;" onclick="cerrarModal()">&times;</button>
         </div>
         <div style="padding: 20px; overflow-y: auto; max-height: 500px;">
-            <input type="text" id="buscarProducto" class="form-control" placeholder="Buscar producto por nombre o código..." style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;" />
-            <div style="overflow-x: auto; margin-top: 15px;">
-                <table style="width: 100%; border-collapse: collapse;" id="tblBuscarProductos">
-                    <thead>
-                        <tr style="background: #8B4513; color: white;">
-                            <th style="padding: 8px;">Código</th>
-                            <th style="padding: 8px;">Producto</th>
-                            <th style="padding: 8px;">Presentación</th>
-                            <th style="padding: 8px;">Precio (Q)</th>
-                            <th style="padding: 8px;">Descuento</th>
-                            <th style="padding: 8px;"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td colspan="6" style="padding: 8px; text-align: center;">Seleccione un proveedor primero</td></tr>
-                    </tbody>
-                </table>
+            <input type="text" id="buscarProducto" class="form-control" placeholder="Buscar producto por nombre o código..." style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 15px;" />
+            <div id="productosListaContainer" style="min-height: 200px;">
+                <div class="text-center p-4">
+                    <i class="fas fa-spinner fa-spin fa-2x text-muted"></i>
+                    <p class="mt-2 text-muted">Cargando productos...</p>
+                </div>
             </div>
         </div>
         <div style="padding: 15px 20px; border-top: 1px solid #eee; text-align: right; background: #f8f9fa;">
@@ -146,11 +145,14 @@
 </div>
 
 @section Scripts {
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
-        .form-control:focus {
+        .form-control:focus, .form-select:focus {
             outline: none;
             border-color: #D35400 !important;
-            box-shadow: 0 0 0 2px rgba(211, 84, 0, 0.1) !important;
+            box-shadow: 0 0 0 2px rgba(211,84,0,0.1) !important;
         }
 
         .btn-agregar:hover {
@@ -178,10 +180,6 @@
             height: 38px;
         }
 
-            #tblProductos input[readonly] {
-                background-color: #f5f5f5;
-            }
-
         .btn-eliminar {
             background: #E74C3C;
             color: white;
@@ -197,15 +195,6 @@
             .btn-eliminar:hover {
                 background: #C0392B;
             }
-
-        .badge-descuento {
-            background: #3498DB;
-            color: white;
-            padding: 3px 10px;
-            border-radius: 15px;
-            font-size: 11px;
-            display: inline-block;
-        }
 
         .btn-seleccionar {
             background: #27AE60;
@@ -233,47 +222,82 @@
             display: block;
         }
 
-        .subtotal-valor {
-            font-weight: bold;
-            color: #D35400;
-            font-size: 14px;
-            display: block;
-            text-align: center;
+        .oferta-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
         }
+
+        .precio-oferta {
+            width: 100px;
+        }
+
+        .productos-lista {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .producto-item {
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+            .producto-item:hover {
+                background-color: #f5f5f5;
+                transform: translateX(5px);
+                border-color: #D35400;
+            }
     </style>
 
     <script>
         var contadorProductos = 0;
+        var productosData = [];
 
         function formatearMoneda(valor) {
-            return 'Q ' + valor.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+            return 'Q ' + parseFloat(valor).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
         }
 
-        function calcularTotalGeneral() {
+        function recalcularTotales() {
             let subtotal = 0;
             $('#tblProductos tbody tr').each(function() {
                 let subtotalVal = parseFloat($(this).find('.subtotal-valor').data('val')) || 0;
                 subtotal += subtotalVal;
             });
-
             let costoEnvio = parseFloat($('#CostoEnvio').val()) || 0;
             let total = subtotal + costoEnvio;
-
+            $('#subtotalGeneral').text(formatearMoneda(subtotal));
+            $('#costoEnvioMostrar').text(formatearMoneda(costoEnvio));
             $('#totalGeneral').text(formatearMoneda(total));
         }
 
         function calcularSubtotal(fila) {
             let cantidad = parseFloat(fila.find('.cantidad').val()) || 0;
+            let esOferta = fila.find('.oferta-checkbox').is(':checked');
+            let precioOferta = parseFloat(fila.find('.precio-oferta').val()) || 0;
             let precio = parseFloat(fila.find('.precio').val()) || 0;
-            let descuento = parseFloat(fila.find('.descuento').val()) || 0;
+            let precioFinal = esOferta && precioOferta > 0 ? precioOferta : precio;
+            let subtotal = cantidad * precioFinal;
 
-            let subtotal = cantidad * precio * (1 - descuento / 100);
+            fila.find('.subtotal-valor').text(formatearMoneda(subtotal)).data('val', subtotal);
+            recalcularTotales();
+        }
 
-            fila.find('.subtotal-valor')
-                .text(formatearMoneda(subtotal))
-                .data('val', subtotal);
+        function toggleOferta(checkbox) {
+            var fila = $(checkbox).closest('tr');
+            var precioOfertaInput = fila.find('.precio-oferta');
+            var estabaEnOfertaHidden = fila.find('.estabaEnOferta');
 
-            calcularTotalGeneral();
+            if (checkbox.checked) {
+                precioOfertaInput.prop('disabled', false);
+                estabaEnOfertaHidden.val('true');
+            } else {
+                precioOfertaInput.prop('disabled', true);
+                estabaEnOfertaHidden.val('false');
+            }
+            calcularSubtotal(fila);
         }
 
         function agregarProducto(producto) {
@@ -282,52 +306,37 @@
                 return;
             }
 
-            var descuentoBase = producto.DescuentoBase || 0;
             var precioFormateado = formatearMoneda(producto.PrecioUnitario);
-
             var html = `
                 <tr data-id="${producto.ProductoId}">
-                    <td style="vertical-align: middle;">
+                    <td>
                         <span class="producto-nombre">${producto.NombreProducto}</span>
                         <span class="producto-precio">Precio: ${precioFormateado}</span>
                         <input type="hidden" name="Productos[${contadorProductos}].ProductoId" value="${producto.ProductoId}" />
                         <input type="hidden" name="Productos[${contadorProductos}].NombreProducto" value="${producto.NombreProducto}" />
+                        <input type="hidden" name="Productos[${contadorProductos}].EstabaEnOferta" class="estabaEnOferta" value="false" />
+                        <input type="hidden" name="Productos[${contadorProductos}].Codigo" value="${producto.Codigo || ''}" />
+                        <input type="hidden" name="Productos[${contadorProductos}].Presentacion" value="${producto.Presentacion || ''}" />
                     </td>
-                    <td>
-                        <input type="number" name="Productos[${contadorProductos}].Cantidad" class="cantidad" min="0.01" step="0.01" value="1" required />
-                    </td>
-                    <td>
-                        <input type="number" name="Productos[${contadorProductos}].PrecioUnitario" class="precio" min="0" step="0.01" value="${producto.PrecioUnitario}" required />
-                    </td>
-                    <td>
-                        <input type="number" name="Productos[${contadorProductos}].Descuento" class="descuento" min="0" max="100" step="1" value="${descuentoBase}" readonly />
-                    </td>
-                    <td>
-                        <span class="subtotal-valor" data-val="0">Q 0.00</span>
-                    </td>
-                    <td>
-                        <button type="button" class="btn-eliminar"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-            `;
+                    <td><input type="number" name="Productos[${contadorProductos}].Cantidad" class="cantidad" min="0.01" step="0.01" value="1" required style="text-align: center;" /></td>
+                    <td><input type="number" name="Productos[${contadorProductos}].PrecioUnitario" class="precio" min="0" step="0.01" value="${producto.PrecioUnitario}" required style="text-align: center;" /></td>
+                    <td><input type="checkbox" class="oferta-checkbox" onchange="toggleOferta(this)" /></td>
+                    <td><input type="number" name="Productos[${contadorProductos}].PrecioOferta" class="precio-oferta" min="0" step="0.01" value="0" disabled style="text-align: center; width: 100px;" /></td>
+                    <td><span class="subtotal-valor" data-val="0">Q 0.00</span></td>
+                    <td><button type="button" class="btn-eliminar"><i class="fas fa-trash"></i></button></td>
+                </tr>`;
 
             $('#tblProductos tbody').append(html);
             contadorProductos++;
-
             var filaActual = $('#tblProductos tbody tr:last');
-            filaActual.find('.cantidad, .precio').on('change keyup', function() { calcularSubtotal(filaActual); });
-            filaActual.find('.btn-eliminar').click(function() {
-                filaActual.remove();
-                calcularTotalGeneral();
-                reindexarProductos();
-            });
-
+            filaActual.find('.cantidad, .precio, .precio-oferta').on('change keyup', function() { calcularSubtotal(filaActual); });
+            filaActual.find('.btn-eliminar').click(function() { filaActual.remove(); recalcularTotales(); reindexarProductos(); });
             calcularSubtotal(filaActual);
         }
 
         function reindexarProductos() {
             $('#tblProductos tbody tr').each(function(index) {
-                $(this).find('input').each(function() {
+                $(this).find('input, .estabaEnOferta').each(function() {
                     var name = $(this).attr('name');
                     if (name && name.indexOf('Productos[') === 0) {
                         $(this).attr('name', name.replace(/Productos\[\d+\]/, 'Productos[' + index + ']'));
@@ -337,14 +346,77 @@
             contadorProductos = $('#tblProductos tbody tr').length;
         }
 
-        function abrirModal() {
-            var proveedorId = $('#ProveedorId').val();
-            if (!proveedorId || proveedorId === '') {
-                Swal.fire('Atención', 'Primero debe seleccionar un proveedor', 'warning');
-                return;
+        function cargarListaProductos() {
+            console.log('Cargando productos...');
+
+            $.ajax({
+                url: '@Url.Action("ListarProductos", "Compra")',
+                type: 'GET',
+                data: { filtro: '', proveedorId: $('#ProveedorId').val() },
+                success: function(data) {
+                    console.log('Productos recibidos:', data);
+                    productosData = data;
+                    var container = $('#productosListaContainer');
+                    container.empty();
+
+                    if (!data || data.length === 0) {
+                        container.html('<div class="text-center p-4 text-muted">No se encontraron productos activos</div>');
+                    } else {
+                        var html = '<div class="row g-2 productos-lista">';
+                        for (var i = 0; i < data.length; i++) {
+                            var p = data[i];
+                            html += `
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="producto-item card h-100" onclick="seleccionarProductoDesdeLista(${p.ProductoId})">
+                                        <div class="card-body p-2">
+                                            <div class="fw-bold">${escapeHtml(p.Codigo || '')}</div>
+                                            <div class="small">${escapeHtml(p.NombreProducto)}</div>
+                                            <div class="text-success fw-bold mt-1">${formatearMoneda(p.PrecioUnitario)}</div>
+                                            <div class="text-muted small">${escapeHtml(p.Presentacion || '')}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        html += '</div>';
+                        container.html(html);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error al cargar productos:', error);
+                    $('#productosListaContainer').html('<div class="text-center p-4 text-danger">Error al cargar productos: ' + error + '</div>');
+                }
+            });
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        function seleccionarProductoDesdeLista(productoId) {
+            var producto = productosData.find(p => p.ProductoId === productoId);
+            if (producto) {
+                agregarProducto({
+                    ProductoId: producto.ProductoId,
+                    Codigo: producto.Codigo,
+                    NombreProducto: producto.NombreProducto,
+                    Presentacion: producto.Presentacion,
+                    PrecioUnitario: producto.PrecioUnitario
+                });
+                cerrarModal();
             }
+        }
+
+        function abrirModal() {
+            console.log('Abriendo modal...');
             $('#modalProducto').css('display', 'flex');
-            cargarProductos('', proveedorId);
+            cargarListaProductos();
         }
 
         function cerrarModal() {
@@ -352,81 +424,63 @@
             $('#buscarProducto').val('');
         }
 
-        function cargarProductos(filtro, proveedorId) {
-            $.get('@Url.Action("ListarProductos", "Compra")',
-                { filtro: filtro || '', proveedorId: proveedorId },
-                function(data) {
-                    var tbody = $('#tblBuscarProductos tbody');
-                    tbody.empty();
-
-                    if (data.length === 0) {
-                        tbody.append('<tr><td colspan="6" style="padding: 8px; text-align: center;">No se encontraron productos</td</tr');
-                    } else {
-                        for (var i = 0; i < data.length; i++) {
-                            var p = data[i];
-                            var row = `
-                                <tr>
-                                    <td style="padding: 8px;">${p.Codigo || ''}</td>
-                                    <td style="padding: 8px;"><strong>${p.NombreProducto}</strong></td>
-                                    <td style="padding: 8px;">${p.Presentacion || ''}</td>
-                                    <td style="padding: 8px; text-align: right;">${formatearMoneda(p.PrecioUnitario)}</td>
-                                    <td style="padding: 8px; text-align: center;"><span class="badge-descuento">${p.DescuentoBase || 0}%</span></td>
-                                    <td style="padding: 8px; text-align: center;">
-                                        <button type="button" class="btn-seleccionar"
-                                            data-id="${p.ProductoId}"
-                                            data-nombre="${p.NombreProducto}"
-                                            data-precio="${p.PrecioUnitario}"
-                                            data-descuento="${p.DescuentoBase || 0}">
-                                            Seleccionar
-                                        </button>
-                                    </td>
-                                </tr>
-                            `;
-                            tbody.append(row);
-                        }
-                    }
-                });
-        }
-
         $(document).ready(function() {
+            console.log('Documento listo');
+
             $('#btnAgregarProducto').click(abrirModal);
 
-            $('#CostoEnvio').on('change keyup', function() {
-                calcularTotalGeneral();
-            });
-
-            $(document).on('click', '.btn-seleccionar', function() {
-                var producto = {
-                    ProductoId: $(this).data('id'),
-                    NombreProducto: $(this).data('nombre'),
-                    PrecioUnitario: parseFloat($(this).data('precio')),
-                    DescuentoBase: parseFloat($(this).data('descuento')) || 0
-                };
-                agregarProducto(producto);
-                cerrarModal();
-            });
+            $('#CostoEnvio').on('change keyup', recalcularTotales);
 
             $('#buscarProducto').on('keyup', function() {
-                var proveedorId = $('#ProveedorId').val();
-                if (proveedorId) cargarProductos($(this).val(), proveedorId);
+                var filtro = $(this).val().toLowerCase();
+                if (productosData.length > 0) {
+                    var filtered = productosData.filter(p =>
+                        (p.Codigo && p.Codigo.toLowerCase().includes(filtro)) ||
+                        (p.NombreProducto && p.NombreProducto.toLowerCase().includes(filtro))
+                    );
+
+                    var container = $('#productosListaContainer');
+                    container.empty();
+
+                    if (filtered.length === 0) {
+                        container.html('<div class="text-center p-4 text-muted">No se encontraron productos</div>');
+                    } else {
+                        var html = '<div class="row g-2 productos-lista">';
+                        for (var i = 0; i < filtered.length; i++) {
+                            var p = filtered[i];
+                            html += `
+                                <div class="col-md-6 col-lg-4">
+                                    <div class="producto-item card h-100" onclick="seleccionarProductoDesdeLista(${p.ProductoId})">
+                                        <div class="card-body p-2">
+                                            <div class="fw-bold">${escapeHtml(p.Codigo || '')}</div>
+                                            <div class="small">${escapeHtml(p.NombreProducto)}</div>
+                                            <div class="text-success fw-bold mt-1">${formatearMoneda(p.PrecioUnitario)}</div>
+                                            <div class="text-muted small">${escapeHtml(p.Presentacion || '')}</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                        html += '</div>';
+                        container.html(html);
+                    }
+                }
             });
 
             $('#ProveedorId').change(function() {
+                console.log('Proveedor cambiado a:', $(this).val());
                 $('#tblProductos tbody').empty();
                 contadorProductos = 0;
-                calcularTotalGeneral();
+                recalcularTotales();
             });
 
             $('#frmCompra').submit(function(e) {
                 e.preventDefault();
-
                 if ($('#tblProductos tbody tr').length === 0) {
                     Swal.fire('Atención', 'Debe agregar al menos un producto', 'warning');
                     return;
                 }
-
                 reindexarProductos();
-
                 Swal.fire({
                     title: '¿Guardar compra?',
                     text: '¿Está seguro de registrar esta compra?',
@@ -439,7 +493,6 @@
                         var btn = $('#btnGuardar');
                         btn.html('<i class="fas fa-spinner fa-spin"></i> Guardando...');
                         btn.prop('disabled', true);
-
                         $.post('@Url.Action("GuardarCompra", "Compra")', $('#frmCompra').serialize(), function(r) {
                             if (r.success) {
                                 Swal.fire('Éxito', r.message, 'success').then(() => {
@@ -450,7 +503,8 @@
                                 btn.html('<i class="fas fa-save"></i> Guardar Compra');
                                 btn.prop('disabled', false);
                             }
-                        }).fail(() => {
+                        }).fail(function(xhr) {
+                            console.log(xhr.responseText);
                             Swal.fire('Error', 'Error al guardar la compra', 'error');
                             btn.html('<i class="fas fa-save"></i> Guardar Compra');
                             btn.prop('disabled', false);

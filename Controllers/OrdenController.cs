@@ -3,6 +3,7 @@ using LaMediaCancha.Models.ViewModels;
 using LaMediaCancha.Services;
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Web.Mvc;
 
@@ -106,11 +107,10 @@ namespace LaMediaCancha.Controllers
 
                 int ordenId = 0;
                 decimal subtotalGlobal = 0, impuestoGlobal = 0, totalGlobal = 0;
+                List<int> ordenesPersonaIds = new List<int>();
 
-                // Verificar si es cuentas separadas
                 if (model.UsarCuentasSeparadas && model.CuentasPorPersona != null && model.CuentasPorPersona.Any())
                 {
-                    // Crear orden principal
                     var ordenPrincipal = new OrdenModels.Orden
                     {
                         NumeroOrden = numeroOrden,
@@ -131,34 +131,37 @@ namespace LaMediaCancha.Controllers
                     foreach (var persona in model.CuentasPorPersona)
                     {
                         int ordenPersonaId = _ordenService.CrearOrdenPersona(ordenId, persona.NombreCliente);
-                        decimal subtotalPersona = 0;
+                        ordenesPersonaIds.Add(ordenPersonaId);
 
-                        // Agregar productos individuales de la persona
+                        decimal subtotalPersonaNormal = 0;
+                        decimal subtotalPersonaOfertas = 0;
+
                         if (persona.Productos != null)
                         {
                             foreach (var producto in persona.Productos)
                             {
-                                decimal subtotalProducto = producto.Cantidad * producto.PrecioUnitario;
+                                decimal montoProducto = producto.Cantidad * producto.PrecioUnitario;
                                 var detalle = new OrdenModels.DetalleOrden
                                 {
                                     ProductoId = producto.ProductoId,
+                                    ProductoCodigo = "",
                                     ProductoNombre = producto.NombreProducto,
                                     Cantidad = producto.Cantidad,
                                     PrecioUnitario = producto.PrecioUnitario,
-                                    Subtotal = subtotalProducto,
+                                    Subtotal = montoProducto,
                                     Nota = producto.Nota,
                                     EsDeCombo = false,
                                     ComboId = null
                                 };
                                 _ordenService.AgregarDetalleOrdenPersona(ordenPersonaId, detalle);
-                                subtotalPersona += subtotalProducto;
 
-                                // Debug
-                                System.Diagnostics.Debug.WriteLine($"Producto guardado: {producto.NombreProducto} - Cantidad: {producto.Cantidad} - Subtotal: {subtotalProducto}");
+                                if (producto.EsOferta)
+                                    subtotalPersonaOfertas += montoProducto;
+                                else
+                                    subtotalPersonaNormal += montoProducto;
                             }
                         }
 
-                        // Agregar combos de la persona
                         if (persona.Combos != null)
                         {
                             foreach (var combo in persona.Combos)
@@ -167,20 +170,21 @@ namespace LaMediaCancha.Controllers
                                 {
                                     foreach (var producto in combo.ProductosSeparados)
                                     {
-                                        decimal subtotalProducto = producto.Cantidad * producto.PrecioUnitario;
+                                        decimal montoProducto = producto.Cantidad * producto.PrecioUnitario;
                                         var detalle = new OrdenModels.DetalleOrden
                                         {
                                             ProductoId = producto.ProductoId,
+                                            ProductoCodigo = "",
                                             ProductoNombre = producto.NombreProducto,
                                             Cantidad = producto.Cantidad,
                                             PrecioUnitario = producto.PrecioUnitario,
-                                            Subtotal = subtotalProducto,
-                                            Nota = $"Combo {combo.NombreCombo} - {producto.Nota}",
+                                            Subtotal = montoProducto,
+                                            Nota = producto.Nota,
                                             EsDeCombo = true,
                                             ComboId = combo.ComboId
                                         };
                                         _ordenService.AgregarDetalleOrdenPersona(ordenPersonaId, detalle);
-                                        subtotalPersona += subtotalProducto;
+                                        subtotalPersonaNormal += montoProducto;
                                     }
                                 }
                                 else
@@ -189,28 +193,30 @@ namespace LaMediaCancha.Controllers
                                     foreach (var productoCombo in productosDelCombo)
                                     {
                                         decimal cantidadTotal = productoCombo.CantidadIncluida * combo.Cantidad;
-                                        decimal subtotalProducto = cantidadTotal * productoCombo.PrecioIndividual;
-
+                                        decimal montoProducto = cantidadTotal * productoCombo.PrecioIndividual;
                                         var detalle = new OrdenModels.DetalleOrden
                                         {
                                             ProductoId = productoCombo.ProductoId,
+                                            ProductoCodigo = "",
                                             ProductoNombre = productoCombo.ProductoNombre,
                                             Cantidad = cantidadTotal,
                                             PrecioUnitario = productoCombo.PrecioIndividual,
-                                            Subtotal = subtotalProducto,
+                                            Subtotal = montoProducto,
                                             Nota = $"Combo: {combo.NombreCombo}",
                                             EsDeCombo = true,
                                             ComboId = combo.ComboId
                                         };
                                         _ordenService.AgregarDetalleOrdenPersona(ordenPersonaId, detalle);
-                                        subtotalPersona += subtotalProducto;
+                                        subtotalPersonaNormal += montoProducto;
                                     }
                                 }
                             }
                         }
 
-                        decimal impuestoPersona = subtotalPersona * 0.12m;
+                        decimal subtotalPersona = subtotalPersonaNormal + subtotalPersonaOfertas;
+                        decimal impuestoPersona = subtotalPersonaNormal * 0.12m;
                         decimal totalPersona = subtotalPersona + impuestoPersona;
+
                         _ordenService.ActualizarTotalesOrdenPersona(ordenPersonaId, subtotalPersona, impuestoPersona, totalPersona);
 
                         subtotalGlobal += subtotalPersona;
@@ -219,43 +225,62 @@ namespace LaMediaCancha.Controllers
                     }
 
                     ActualizarTotalesOrden(ordenId, subtotalGlobal, impuestoGlobal, totalGlobal);
+                    _ordenService.ActualizarEstadoMesa(model.MesaId, "Ocupada");
+
+                    // CORREGIDO: Generar tickets para cada persona
+                    var tickets = new List<TicketViewModel>();
+                    foreach (var personaId in ordenesPersonaIds)
+                    {
+                        var ticket = _ordenService.GenerarTicket(ordenId, personaId);
+                        tickets.Add(ticket);
+                    }
+
+                    return Json(new
+                    {
+                        success = true,
+                        message = "Pedido guardado exitosamente",
+                        ordenId = ordenId,
+                        esCuentasSeparadas = true,
+                        tickets = tickets,
+                        ordenesPersonaIds = ordenesPersonaIds
+                    });
                 }
                 else
                 {
-                    // Modo normal
                     if (model.Productos == null)
                         model.Productos = new List<OrdenProductoViewModel>();
                     if (model.Combos == null)
                         model.Combos = new List<ComboSeleccionadoViewModel>();
 
-                    // Calcular subtotal de productos individuales
-                    decimal subtotal = 0;
+                    decimal subtotalNormal = 0;
+                    decimal subtotalOfertas = 0;
+
                     foreach (var producto in model.Productos)
                     {
-                        subtotal += producto.Cantidad * producto.PrecioUnitario;
+                        decimal monto = producto.Cantidad * producto.PrecioUnitario;
+                        if (producto.EsOferta)
+                            subtotalOfertas += monto;
+                        else
+                            subtotalNormal += monto;
                     }
 
-                    // Calcular subtotal de combos (expandiendo a productos individuales)
                     foreach (var combo in model.Combos)
                     {
                         if (combo.VenderPorSeparado && combo.ProductosSeparados != null)
                         {
                             foreach (var producto in combo.ProductosSeparados)
-                            {
-                                subtotal += producto.Cantidad * producto.PrecioUnitario;
-                            }
+                                subtotalNormal += producto.Cantidad * producto.PrecioUnitario;
                         }
                         else
                         {
                             var productosDelCombo = _ordenService.ObtenerProductosPorCombo(combo.ComboId);
-                            foreach (var productoCombo in productosDelCombo)
-                            {
-                                subtotal += productoCombo.CantidadIncluida * combo.Cantidad * productoCombo.PrecioIndividual;
-                            }
+                            foreach (var pc in productosDelCombo)
+                                subtotalNormal += pc.CantidadIncluida * combo.Cantidad * pc.PrecioIndividual;
                         }
                     }
 
-                    decimal impuesto = subtotal * 0.12m;
+                    decimal subtotal = subtotalNormal + subtotalOfertas;
+                    decimal impuesto = subtotalNormal * 0.12m;
                     decimal total = subtotal + impuesto;
 
                     var orden = new OrdenModels.Orden
@@ -275,105 +300,81 @@ namespace LaMediaCancha.Controllers
                     };
                     ordenId = _ordenService.CrearOrden(orden);
 
-                    // Guardar productos individuales
-                    if (model.Productos != null)
+                    foreach (var producto in model.Productos)
                     {
-                        foreach (var producto in model.Productos)
+                        var detalle = new OrdenModels.DetalleOrden
                         {
-                            decimal subtotalProducto = producto.Cantidad * producto.PrecioUnitario;
-                            var detalle = new OrdenModels.DetalleOrden
-                            {
-                                ProductoId = producto.ProductoId,
-                                ProductoNombre = producto.NombreProducto,
-                                Cantidad = producto.Cantidad,
-                                PrecioUnitario = producto.PrecioUnitario,
-                                Subtotal = subtotalProducto,
-                                Nota = producto.Nota,
-                                EsDeCombo = false,
-                                ComboId = null
-                            };
-                            _ordenService.AgregarDetalleOrden(ordenId, detalle);
-
-                            // Debug
-                            System.Diagnostics.Debug.WriteLine($"Producto guardado: {producto.NombreProducto} - Cantidad: {producto.Cantidad} - Subtotal: {subtotalProducto}");
-                        }
+                            ProductoId = producto.ProductoId,
+                            ProductoCodigo = "",
+                            ProductoNombre = producto.NombreProducto,
+                            Cantidad = producto.Cantidad,
+                            PrecioUnitario = producto.PrecioUnitario,
+                            Subtotal = producto.Cantidad * producto.PrecioUnitario,
+                            Nota = producto.Nota,
+                            EsDeCombo = false,
+                            ComboId = null
+                        };
+                        _ordenService.AgregarDetalleOrden(ordenId, detalle);
                     }
 
-                    // Guardar combos (expandiendo a productos individuales)
-                    if (model.Combos != null)
+                    foreach (var combo in model.Combos)
                     {
-                        foreach (var combo in model.Combos)
+                        if (combo.VenderPorSeparado && combo.ProductosSeparados != null)
                         {
-                            if (combo.VenderPorSeparado && combo.ProductosSeparados != null)
+                            foreach (var producto in combo.ProductosSeparados)
                             {
-                                foreach (var producto in combo.ProductosSeparados)
+                                var detalle = new OrdenModels.DetalleOrden
                                 {
-                                    decimal subtotalProducto = producto.Cantidad * producto.PrecioUnitario;
-                                    var detalle = new OrdenModels.DetalleOrden
-                                    {
-                                        ProductoId = producto.ProductoId,
-                                        ProductoNombre = producto.NombreProducto,
-                                        Cantidad = producto.Cantidad,
-                                        PrecioUnitario = producto.PrecioUnitario,
-                                        Subtotal = subtotalProducto,
-                                        Nota = $"Combo {combo.NombreCombo} - {producto.Nota}",
-                                        EsDeCombo = true,
-                                        ComboId = combo.ComboId
-                                    };
-                                    _ordenService.AgregarDetalleOrden(ordenId, detalle);
-                                }
+                                    ProductoId = producto.ProductoId,
+                                    ProductoCodigo = "",
+                                    ProductoNombre = producto.NombreProducto,
+                                    Cantidad = producto.Cantidad,
+                                    PrecioUnitario = producto.PrecioUnitario,
+                                    Subtotal = producto.Cantidad * producto.PrecioUnitario,
+                                    Nota = producto.Nota,
+                                    EsDeCombo = true,
+                                    ComboId = combo.ComboId
+                                };
+                                _ordenService.AgregarDetalleOrden(ordenId, detalle);
                             }
-                            else
+                        }
+                        else
+                        {
+                            var productosDelCombo = _ordenService.ObtenerProductosPorCombo(combo.ComboId);
+                            foreach (var productoCombo in productosDelCombo)
                             {
-                                var productosDelCombo = _ordenService.ObtenerProductosPorCombo(combo.ComboId);
-                                foreach (var productoCombo in productosDelCombo)
+                                var detalle = new OrdenModels.DetalleOrden
                                 {
-                                    decimal cantidadTotal = productoCombo.CantidadIncluida * combo.Cantidad;
-                                    decimal subtotalProducto = cantidadTotal * productoCombo.PrecioIndividual;
-
-                                    var detalle = new OrdenModels.DetalleOrden
-                                    {
-                                        ProductoId = productoCombo.ProductoId,
-                                        ProductoNombre = productoCombo.ProductoNombre,
-                                        Cantidad = cantidadTotal,
-                                        PrecioUnitario = productoCombo.PrecioIndividual,
-                                        Subtotal = subtotalProducto,
-                                        Nota = $"Combo: {combo.NombreCombo}",
-                                        EsDeCombo = true,
-                                        ComboId = combo.ComboId
-                                    };
-                                    _ordenService.AgregarDetalleOrden(ordenId, detalle);
-                                }
+                                    ProductoId = productoCombo.ProductoId,
+                                    ProductoCodigo = "",
+                                    ProductoNombre = productoCombo.ProductoNombre,
+                                    Cantidad = productoCombo.CantidadIncluida * combo.Cantidad,
+                                    PrecioUnitario = productoCombo.PrecioIndividual,
+                                    Subtotal = productoCombo.CantidadIncluida * combo.Cantidad * productoCombo.PrecioIndividual,
+                                    Nota = $"Combo: {combo.NombreCombo}",
+                                    EsDeCombo = true,
+                                    ComboId = combo.ComboId
+                                };
+                                _ordenService.AgregarDetalleOrden(ordenId, detalle);
                             }
                         }
                     }
+
+                    _ordenService.ActualizarEstadoMesa(model.MesaId, "Ocupada");
+                    var ticket = _ordenService.GenerarTicket(ordenId);
+
+                    return Json(new
+                    {
+                        success = true,
+                        message = "Pedido guardado exitosamente",
+                        ordenId = ordenId,
+                        esCuentasSeparadas = false,
+                        ticket = ticket
+                    });
                 }
-
-                _ordenService.ActualizarEstadoMesa(model.MesaId, "Ocupada");
-
-                // Verificar que los detalles se guardaron correctamente
-                var detallesVerificacion = _ordenService.ObtenerDetallesOrden(ordenId);
-                decimal subtotalVerificacion = detallesVerificacion.Sum(d => d.Subtotal);
-                System.Diagnostics.Debug.WriteLine($"=== VERIFICACIÓN FINAL ===");
-                System.Diagnostics.Debug.WriteLine($"OrdenId: {ordenId}");
-                System.Diagnostics.Debug.WriteLine($"Total calculado en orden: {totalGlobal}");
-                System.Diagnostics.Debug.WriteLine($"Subtotal de detalles: {subtotalVerificacion}");
-                System.Diagnostics.Debug.WriteLine($"Cantidad de detalles: {detallesVerificacion.Count}");
-
-                var ticket = _ordenService.GenerarTicket(ordenId);
-
-                return Json(new
-                {
-                    success = true,
-                    message = "Pedido guardado exitosamente",
-                    ordenId = ordenId,
-                    ticket = ticket
-                });
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"ERROR: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"STACK TRACE: {ex.StackTrace}");
                 return Json(new { success = false, message = ex.Message });
             }
         }
@@ -418,14 +419,17 @@ namespace LaMediaCancha.Controllers
             if (Session["UserRol"] == null)
                 return RedirectToAction("Login", "Account");
 
-            var ticket = _ordenService.GenerarTicket(ordenId, ordenPersonaId);
-
-            if (Request.IsAjaxRequest())
+            try
             {
+                var ticket = _ordenService.GenerarTicket(ordenId, ordenPersonaId);
+                ViewBag.FormaPago = "Efectivo";
                 return PartialView("_TicketPartial", ticket);
             }
-
-            return View(ticket);
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error GenerarTicket: {ex.Message}");
+                return Content($"Error al generar el ticket: {ex.Message}");
+            }
         }
 
         private void ActualizarTotalesOrden(int ordenId, decimal subtotal, decimal impuesto, decimal total)

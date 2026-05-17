@@ -1,4 +1,5 @@
 @model LaMediaCancha.Models.ViewModels.RegistrarDevolucionViewModel
+
 @{
     ViewBag.Title = "Registrar Devolución";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -14,7 +15,7 @@
                             <h2><i class="fas fa-undo-alt"></i> Registrar Devolución</h2>
                             <p>Ingrese el número de factura para buscar la compra</p>
                         </div>
-                        <a href="@Url.Action("Index", "Compra")" class="btn-custom" style="width: auto; padding: 10px 20px; background: #6c757d;">
+                        <a href="@Url.Action("Index", "Devolucion")" class="btn-custom" style="width: auto; padding: 10px 20px; background: #6c757d;">
                             <i class="fas fa-arrow-left"></i> Regresar
                         </a>
                     </div>
@@ -272,6 +273,16 @@
             border-radius: 5px;
             box-sizing: border-box;
         }
+
+        .producto-bloqueado {
+            background-color: #fff3f3;
+            color: #999;
+        }
+
+        .texto-bloqueado {
+            color: #E74C3C;
+            font-size: 12px;
+        }
     </style>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -291,7 +302,7 @@
 
         function calcularTotal() {
             var total = 0;
-            document.querySelectorAll('.cantidad-input').forEach(function (input) {
+            document.querySelectorAll('.cantidad-input:not([disabled])').forEach(function (input) {
                 var val = parseFloat(input.value) || 0;
                 total += val;
             });
@@ -299,51 +310,67 @@
         }
 
         function cargarProductos(compraId) {
+            console.log('Cargando productos para compraId:', compraId);
+
             $.ajax({
                 url: '@Url.Action("GetProductosPorCompra", "Devolucion")',
                 type: 'GET',
                 data: { compraId: compraId },
                 dataType: 'json',
                 success: function (data) {
+                    console.log('Respuesta completa:', data);
+
                     var tbody = $('#tblProductosBody');
                     tbody.empty();
 
-                    if (data.error) {
-                        tbody.append('<tr><td colspan="7" class="text-center">⚠️ ' + data.error + '</td></tr>');
+                    if (data && data.error) {
+                        console.error('Error del servidor:', data.error);
+                        tbody.append('<td><td colspan="7" class="text-center text-danger">⚠️ ' + data.error + '</td></tr>');
                         $('#divProductos').hide();
                         return;
                     }
 
                     if (!data || data.length === 0) {
-                        tbody.append('<tr><td colspan="7" class="text-center">⚠️ No hay productos disponibles para devolver</td></tr>');
+                        console.log('No hay productos disponibles');
+                        tbody.append('<tr><td colspan="7" class="text-center">⚠️ No hay productos disponibles para devolver. Solo se pueden devolver productos que NO estén en oferta.</td</tr');
                         $('#divProductos').hide();
                     } else {
+                        console.log('Productos encontrados:', data.length);
                         $('#divProductos').show();
 
                         for (var i = 0; i < data.length; i++) {
                             var p = data[i];
-                            var disponible = p.CantidadComprada - p.CantidadYaDevuelta;
+                            var disponible = p.Disponible;
                             var presentacion = (p.Presentacion && p.Presentacion !== '') ? p.Presentacion : 'Unidad';
+                            var estaEnOferta = p.EstaEnOferta || false;
 
-                            var row = '<tr>' +
-                                '<td>' + p.CodigoProducto + '</td>' +
-                                '<td>' + p.NombreProducto + '</td>' +
-                                '<td>' + presentacion + '</td>' +
-                                '<td class="text-center">' + p.CantidadComprada + '</td>' +
-                                '<td class="text-center">' + p.CantidadYaDevuelta + '</td>' +
-                                '<td class="text-center"><span class="badge-info">' + disponible + '</span></td>' +
-                                '<td class="text-center">' +
-                                    '<input type="number" class="cantidad-input" ' +
+                            console.log('Producto:', p.CodigoProducto, 'Disponible:', disponible, 'EnOferta:', estaEnOferta);
+
+                            var rowClass = estaEnOferta ? 'class="producto-bloqueado"' : '';
+                            var inputHtml = '';
+
+                            if (estaEnOferta) {
+                                inputHtml = '<span class="texto-bloqueado">No disponible Producto Ofertado</span>';
+                            } else {
+                                inputHtml = '<input type="number" class="cantidad-input" ' +
                                     'min="0" max="' + disponible + '" step="1" ' +
                                     'data-id="' + p.ProductoId + '" ' +
                                     'data-precio="' + p.PrecioUnitario + '" ' +
-                                    'data-nombre="' + p.NombreProducto.replace(/"/g, '&quot;') + '" />' +
-                                '</td>' +
+                                    'data-nombre="' + (p.NombreProducto || '').replace(/"/g, '&quot;') + '" />';
+                            }
+
+                            var row = '<tr ' + rowClass + '>' +
+                                '<td>' + (p.CodigoProducto || '') + '</td>' +
+                                '<td>' + (p.NombreProducto || '') + '</td>' +
+                                '<td>' + presentacion + '</td>' +
+                                '<td class="text-center">' + (p.CantidadComprada || 0) + '</td>' +
+                                '<td class="text-center">' + (p.CantidadYaDevuelta || 0) + '</td>' +
+                                '<td class="text-center"><span class="badge-info">' + disponible + '</span></td>' +
+                                '<td class="text-center">' + inputHtml + '</td>' +
                                 '</tr>';
                             tbody.append(row);
                         }
 
-                        // Setear valor 0 usando propiedad DOM directa
                         document.querySelectorAll('.cantidad-input').forEach(function (input) {
                             input.value = 0;
                             input.addEventListener('input', calcularTotal);
@@ -353,8 +380,10 @@
                         calcularTotal();
                     }
                 },
-                error: function () {
-                    mostrarMensaje('Error al cargar los productos', 'error');
+                error: function (xhr, status, error) {
+                    console.error('Error en AJAX:', status, error);
+                    $('#tblProductosBody').html('<td><td colspan="7" class="text-center text-danger">⚠️ Error al cargar productos: ' + error + '</td</tr');
+                    $('#divProductos').hide();
                 }
             });
         }
@@ -379,6 +408,8 @@
                     dataType: 'json',
                     cache: false,
                     success: function (response) {
+                        console.log('Respuesta de búsqueda:', response);
+
                         if (response.success) {
                             compraIdActual = response.compraId;
                             $('#txtDocumentoCompra').val(response.numeroDocumento);
@@ -405,8 +436,9 @@
                             $('#divProductos').hide();
                         }
                     },
-                    error: function () {
-                        mostrarMensaje('Error al buscar la factura', 'error');
+                    error: function (xhr, status, error) {
+                        console.error('Error en búsqueda:', error);
+                        mostrarMensaje('Error al buscar la factura: ' + error, 'error');
                         $('#infoCompra').hide();
                         $('#divProductos').hide();
                     },
@@ -423,7 +455,6 @@
                 }
             });
 
-            // *** BOTON REGISTRAR DEVOLUCION - CORREGIDO ***
             $(document).on('click', '#btnRegistrarDevolucion', function () {
                 var tipoDevolucion = document.getElementById('TipoDevolucion').value;
                 var motivo = document.getElementById('Motivo').value.trim();
@@ -441,17 +472,14 @@
 
                 var productos = [];
 
-                // *** FIX PRINCIPAL: usar propiedad DOM nativa ***
-                document.querySelectorAll('.cantidad-input').forEach(function (input) {
+                document.querySelectorAll('.cantidad-input:not([disabled])').forEach(function (input) {
                     var cantidad = parseFloat(input.value) || 0;
                     var productoId = input.getAttribute('data-id');
-                    var precioUnitario = input.getAttribute('data-precio');
 
                     if (cantidad > 0) {
                         productos.push({
                             ProductoId: parseInt(productoId),
-                            CantidadADevolver: cantidad,
-                            PrecioUnitario: parseFloat(precioUnitario)
+                            CantidadADevolver: cantidad
                         });
                     }
                 });
@@ -459,13 +487,13 @@
                 console.log("Productos a devolver:", productos);
 
                 if (productos.length === 0) {
-                    Swal.fire('Atención', 'Debe ingresar cantidad mayor a 0 en al menos un producto', 'warning');
+                    Swal.fire('Atención', 'Debe ingresar cantidad mayor a 0 en al menos un producto disponible', 'warning');
                     return;
                 }
 
                 Swal.fire({
                     title: '¿Registrar devolución?',
-                    text: '¿Está seguro de registrar esta devolución?',
+                    text: '¿Está seguro de registrar esta devolución? El stock se descontará automáticamente.',
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonText: 'Sí, registrar',
@@ -488,11 +516,13 @@
                                 Productos: productos
                             }),
                             success: function (response) {
+                                console.log('Respuesta registro:', response);
+
                                 if (response.success) {
                                     Swal.fire({
                                         icon: 'success',
                                         title: '¡Devolución registrada!',
-                                        text: response.message,
+                                        text: 'El stock ha sido descontado exitosamente.',
                                         confirmButtonText: 'Ver detalle'
                                     }).then(function (res) {
                                         if (res.isConfirmed) {

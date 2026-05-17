@@ -1,4 +1,5 @@
 ﻿@model List<LaMediaCancha.Models.VentaModels.ProductoVenta>
+
 @{
     ViewBag.Title = "Nueva Venta";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -8,212 +9,508 @@
     <div class="row">
         <div class="col-12">
             <div class="card-custom card-custom-full">
+
+                <!-- Header -->
                 <div class="card-header-custom">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div>
-                            <h2><i class="fas fa-shopping-cart"></i> Nueva Venta</h2>
-                            <p>Seleccione productos y cantidades - Sistema FIFO</p>
+                            <h2 class="text-white mb-1">
+                                <i class="fas fa-shopping-cart"></i> Nueva Venta
+                            </h2>
+                            <p class="mb-0 text-white-50">
+                                Seleccione productos
+                            </p>
                         </div>
-                        <div>
-                            <a href="@Url.Action("Carrito", "Venta")" class="btn-custom" style="background: #27AE60; width: auto; padding: 8px 15px;">
-                                <i class="fas fa-shopping-cart"></i> Ver Carrito (<span id="cartCount">0</span>)
+                        <div class="mt-2 mt-sm-0">
+                            <a href="@Url.Action("Carrito", "Venta")" class="btn btn-light me-2">
+                                <i class="fas fa-shopping-cart"></i>
+                                Carrito (<span id="cartCount">0</span>)
                             </a>
-                            <a href="@Url.Action("Dashboard", "Home")" class="btn-custom" style="background: #6c757d; width: auto; padding: 8px 15px;">
+                            <a href="@Url.Action("Dashboard", "Home")" class="btn btn-outline-light">
                                 <i class="fas fa-arrow-left"></i> Regresar
                             </a>
                         </div>
                     </div>
                 </div>
-                <div class="card-body-custom">
-                    <div class="table-responsive">
-                        <table class="table-custom" id="tblProductos">
-                            <thead>
-                                <tr>
-                                    <th>Código</th>
-                                    <th>Producto</th>
-                                    <th class="text-center">Stock</th>
-                                    <th class="text-right">Precio (Q)</th>
-                                    <th class="text-center">Cantidad</th>
-                                    <th class="text-center"></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var producto in Model)
+
+                <!-- Body -->
+                <div class="card-body-custom p-4">
+
+                    <!-- Buscador -->
+                    <div class="buscador-container mb-4">
+                        <div class="input-group input-group-lg shadow-sm">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" id="buscadorProductos" class="form-control border-start-0"
+                                   placeholder="Buscar producto... (Nombre o código)"
+                                   style="border-left: none;">
+                        </div>
+                    </div>
+
+                    <!-- Productos -->
+                    <div id="productosContainer">
+                        <div class="row g-3" id="productosGrid">
+                            @if (Model != null && Model.Any())
+                            {
+                                foreach (var producto in Model)
                                 {
-                                    <tr>
-                                        <td>
-                                            @producto.Codigo
-                                    </td>
-                                    <td>
-                                        <strong>@producto.Nombre</strong>
-                                    </td>
-                                    <td class="text-center">
-                                        @producto.StockDisponible
-                                </td>
-                                <td class="text-right">@producto.PrecioVenta.ToString("N2")
-                            </td>
-                            <td>
-                                @if (producto.StockDisponible > 0)
-                                {
-                                    <input type="number" class="form-control cantidad-input"
-                                           style="width: 100px; text-align: center; margin: 0 auto;"
-                                           data-id="@producto.ProductoId"
-                                           data-nombre="@producto.Nombre"
-                                           data-precio="@producto.PrecioVenta"
-                                           data-stock="@producto.StockDisponible"
-                                           min="0" max="@producto.StockDisponible" step="1" value="0" />
+                                    int stockEntero = (int)Math.Floor(producto.StockDisponible);
+                                    string cardClass = producto.StockDisponible <= 0 ? "producto-card agotado" : "producto-card";
+
+                                    <div class="col-md-4 col-lg-3 col-xl-2 producto-item"
+                                         data-nombre="@producto.Nombre.ToLower()"
+                                         data-codigo="@producto.Codigo.ToLower()">
+                                        <div class="@cardClass"
+                                             data-id="@producto.ProductoId"
+                                             data-nombre="@producto.Nombre"
+                                             data-precio="@producto.PrecioVenta"
+                                             data-stock="@stockEntero">
+
+                                            @if (producto.StockDisponible > 0)
+                                            {
+                                                <div class="stock-badge">
+                                                    <span class="badge bg-success">@stockEntero disponibles</span>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="stock-badge">
+                                                    <span class="badge bg-danger">Agotado</span>
+                                                </div>
+                                            }
+
+                                            <div class="producto-icono">
+                                                <i class="fas fa-hamburger"></i>
+                                            </div>
+
+                                            <h5 class="producto-nombre">@producto.Nombre</h5>
+                                            <div class="producto-codigo">@producto.Codigo</div>
+                                            <div class="producto-precio">Q @producto.PrecioVenta.ToString("N2")</div>
+
+                                            @if (producto.StockDisponible > 0)
+                                            {
+                                                <div class="cantidad-control mt-2">
+                                                    <div class="input-group input-group-sm justify-content-center">
+                                                        <button class="btn btn-outline-secondary btn-cantidad" type="button" onclick="cambiarCantidad(this, -1)">-</button>
+                                                        <input type="number" class="form-control text-center cantidad-input"
+                                                               style="width: 60px;" value="1" min="1" max="@stockEntero" step="1">
+                                                        <button class="btn btn-outline-secondary btn-cantidad" type="button" onclick="cambiarCantidad(this, 1)">+</button>
+                                                    </div>
+                                                </div>
+                                                <button class="btn-agregar mt-3" onclick="agregarProducto(this)">
+                                                    <i class="fas fa-cart-plus"></i> Agregar
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn-agregar disabled mt-3" disabled>
+                                                    <i class="fas fa-times-circle"></i> Sin stock
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
                                 }
-                                else
-                                {
-                                    <input type="number" class="form-control cantidad-input"
-                                           style="width: 100px; text-align: center; margin: 0 auto; background: #f5f5f5;"
-                                           value="0" disabled readonly />
-                                }
-                            </td>
-                            <td class="text-center">
-                                @if (producto.StockDisponible > 0)
-                                {
-                                    <button type="button" class="btn-agregar-carrito btn-sm"
-                                            data-id="@producto.ProductoId"
-                                            data-nombre="@producto.Nombre"
-                                            data-precio="@producto.PrecioVenta"
-                                            data-stock="@producto.StockDisponible">
-                                        <i class="fas fa-cart-plus"></i> Agregar
-                                    </button>
-                                }
-                                else
-                                {
-                                    <button type="button" class="btn-agregar-carrito btn-sm" disabled style="background: #ccc; cursor: not-allowed;">
-                                        <i class="fas fa-cart-plus"></i> Sin stock
-                                    </button>
-                                }
-                            </td>
-                        </tr>
-                                }
-                    </tbody>
-                </table>
+                            }
+                            else
+                            {
+                                <div class="col-12">
+                                    <div class="alert alert-warning text-center py-5">
+                                        <i class="fas fa-exclamation-triangle fa-2x mb-2 d-block"></i>
+                                        No hay productos disponibles
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div id="sinResultados" class="text-center py-5" style="display: none;">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No se encontraron productos</h5>
+                        <p class="text-muted">Intente con otro término de búsqueda</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
-</div>
-</div>
-
-<style>
-    .btn-agregar-carrito {
-        background: #27AE60;
-        color: white;
-        border: none;
-        padding: 6px 12px;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-
-        .btn-agregar-carrito:hover {
-            background: #1E8449;
-        }
-
-    .cantidad-input {
-        text-align: center;
-    }
-
-    .table-custom th, .table-custom td {
-        padding: 12px;
-        vertical-align: middle;
-    }
-</style>
 
 @section Scripts {
-    <link href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css" rel="stylesheet" />
-    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        function actualizarContadorCarrito() {
-            var carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
-            $('#cartCount').text(carrito.length);
+        function cambiarCantidad(btn, delta) {
+            var input = $(btn).closest('.cantidad-control').find('.cantidad-input');
+            var nuevaCantidad = parseInt(input.val()) + delta;
+            var maxStock = parseInt(input.attr('max'));
+            if (nuevaCantidad < 1) nuevaCantidad = 1;
+            if (nuevaCantidad > maxStock) nuevaCantidad = maxStock;
+            input.val(nuevaCantidad);
         }
 
-        function agregarAlCarrito(producto) {
-            var carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
+        function agregarProducto(btn) {
+            var card = $(btn).closest('.producto-card');
+            var productoId = card.data('id');
+            var nombre = card.data('nombre');
+            var precio = parseFloat(card.data('precio'));
+            var maxStock = parseInt(card.data('stock'));
+            var cantidad = parseInt(card.find('.cantidad-input').val());
 
-            var existe = carrito.find(p => p.ProductoId === producto.ProductoId);
-            if (existe) {
-                existe.Cantidad += producto.Cantidad;
-                if (producto.LotesSeleccionados) {
-                    existe.LotesSeleccionados = producto.LotesSeleccionados;
-                }
-            } else {
-                carrito.push(producto);
+            if (isNaN(cantidad) || cantidad < 1) cantidad = 1;
+            if (cantidad > maxStock) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Stock insuficiente',
+                    text: 'Solo hay ' + maxStock + ' unidades disponibles de ' + nombre,
+                    confirmButtonColor: '#c95a00',
+                    confirmButtonText: 'Aceptar'
+                });
+                return;
             }
 
-            localStorage.setItem('carrito', JSON.stringify(carrito));
-            actualizarContadorCarrito();
+            var $btn = $(btn);
+            var originalText = $btn.html();
+            $btn.html('<i class="fas fa-spinner fa-spin"></i> Agregando...').prop('disabled', true);
 
-            Swal.fire('Agregado', producto.Nombre + ' x' + producto.Cantidad + ' agregado al carrito', 'success');
+            $.ajax({
+                url: '@Url.Action("AplicarFIFO", "Venta")',
+                type: 'POST',
+                data: { productoId: productoId, cantidad: cantidad },
+                success: function (response) {
+                    // ✅ Reactivar botón SIEMPRE primero
+                    $btn.html(originalText).prop('disabled', false);
 
-            $('input[data-id="' + producto.ProductoId + '"]').val(0);
+                    if (response.success) {
+                        var subtotal = cantidad * precio;
+
+                        var producto = {
+                            ProductoId: productoId,
+                            Codigo: card.closest('.producto-item').find('.producto-codigo').text(),
+                            Nombre: nombre,
+                            Cantidad: cantidad,
+                            PrecioUnitario: precio,
+                            Descuento: 0,
+                            Subtotal: subtotal,
+                            LotesSeleccionados: response.lotes
+                        };
+
+                        card.find('.cantidad-input').val(1);
+
+                        // Animación tarjeta
+                        card.addClass('producto-agregado');
+                        setTimeout(function () {
+                            card.removeClass('producto-agregado');
+                        }, 500);
+
+                        // Guardar en localStorage
+                        var carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
+                        var existe = carrito.find(function(p) { return p.ProductoId === producto.ProductoId; });
+                        if (existe) {
+                            existe.Cantidad += producto.Cantidad;
+                            if (producto.LotesSeleccionados) existe.LotesSeleccionados = producto.LotesSeleccionados;
+                        } else {
+                            carrito.push(producto);
+                        }
+                        localStorage.setItem('carrito', JSON.stringify(carrito));
+                        actualizarContadorCarrito();
+
+                        // ✅ Modal igual al de la imagen
+                        Swal.fire({
+    icon: 'success',
+    title: '¡Producto agregado!',
+    html:
+        '<div style="padding: 0 20px;">' +
+            '<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">' +
+                '<span style="color:#555;">Producto</span>' +
+                '<span style="font-weight:600;">' + nombre + '</span>' +
+            '</div>' +
+            '<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">' +
+                '<span style="color:#555;">Cantidad</span>' +
+                '<span style="font-weight:600;">' + cantidad + '</span>' +
+            '</div>' +
+            '<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">' +
+                '<span style="color:#555;">Precio unitario</span>' +
+                '<span style="font-weight:600;">Q ' + precio.toFixed(2) + '</span>' +
+            '</div>' +
+            '<div style="display:flex; justify-content:space-between; padding:12px 0;">' +
+                '<span style="color:#27AE60; font-weight:700; font-size:1.05rem;">Subtotal</span>' +
+                '<span style="color:#27AE60; font-weight:700; font-size:1.05rem;">Q ' + subtotal.toFixed(2) + '</span>' +
+            '</div>' +
+        '</div>',
+    confirmButtonColor: '#27AE60',
+    confirmButtonText: 'Continuar',
+    showCancelButton: true,
+    cancelButtonColor: '#6c757d',
+    cancelButtonText: 'Ver carrito',
+    allowOutsideClick: false,
+    customClass: {
+        htmlContainer: 'swal-html-container'
+    }
+}).then(function (result) {
+    if (result.dismiss === Swal.DismissReason.cancel) {
+        window.location.href = '@Url.Action("Carrito", "Venta")';
+    }
+});
+
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: response.message,
+                            confirmButtonColor: '#d33',
+                            confirmButtonText: 'Aceptar'
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    $btn.html(originalText).prop('disabled', false);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error al verificar el inventario. Intente nuevamente.',
+                        confirmButtonColor: '#d33',
+                        confirmButtonText: 'Aceptar'
+                    });
+                }
+            });
         }
 
-        $(document).ready(function() {
-            $('#tblProductos').DataTable({
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.10.25/i18n/Spanish.json'
-                },
-                order: [[0, 'asc']],
-                pageLength: 25
-            });
+        function actualizarContadorCarrito() {
+            var carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
+            var totalItems = carrito.reduce(function(sum, item) { return sum + item.Cantidad; }, 0);
+            $('#cartCount').text(totalItems);
+            $('#cartCount').addClass('cart-pulse');
+            setTimeout(function () {
+                $('#cartCount').removeClass('cart-pulse');
+            }, 300);
+        }
 
+        $(document).ready(function () {
             actualizarContadorCarrito();
 
-            $('.btn-agregar-carrito').click(function() {
-                var $btn = $(this);
-                var $input = $('input[data-id="' + $btn.data('id') + '"]');
-                var cantidad = parseFloat($input.val()) || 0;
+            $('#buscadorProductos').on('keyup', function () {
+                var busqueda = $(this).val().toLowerCase();
+                var visibles = 0;
 
-                if (cantidad <= 0) {
-                    Swal.fire('Atención', 'Ingrese una cantidad válida', 'warning');
-                    return;
-                }
-
-                var maxStock = parseFloat($input.data('stock'));
-                if (cantidad > maxStock) {
-                    Swal.fire('Atención', 'Stock insuficiente. Disponible: ' + maxStock, 'warning');
-                    return;
-                }
-
-                $.ajax({
-                    url: '@Url.Action("AplicarFIFO", "Venta")',
-                    type: 'POST',
-                    data: { productoId: $btn.data('id'), cantidad: cantidad },
-                    success: function(response) {
-                        if (response.success) {
-                            var producto = {
-                                ProductoId: $btn.data('id'),
-                                Codigo: $btn.closest('tr').find('td:first').text(),
-                                Nombre: $btn.data('nombre'),
-                                Cantidad: cantidad,
-                                PrecioUnitario: $btn.data('precio'),
-                                Descuento: 0,
-                                Subtotal: cantidad * $btn.data('precio'),
-                                LotesSeleccionados: response.lotes
-                            };
-                            agregarAlCarrito(producto);
-                        } else {
-                            Swal.fire('Error', response.message, 'error');
-                        }
-                    },
-                    error: function() {
-                        Swal.fire('Error', 'Error al verificar inventario', 'error');
+                $('.producto-item').each(function () {
+                    var nombre = $(this).data('nombre');
+                    var codigo = $(this).data('codigo');
+                    var coincide = nombre.includes(busqueda) || codigo.includes(busqueda);
+                    if (busqueda === '' || coincide) {
+                        $(this).show();
+                        visibles++;
+                    } else {
+                        $(this).hide();
                     }
                 });
-            });
 
-            $('.cantidad-input').keypress(function(e) {
-                if (e.which === 13) {
-                    $(this).closest('tr').find('.btn-agregar-carrito').click();
-                }
+                $('#sinResultados').toggle(visibles === 0 && busqueda !== '');
             });
         });
     </script>
 }
+
+<style>
+    .card-custom {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    .card-header-custom {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #c95a00 0%, #a04700 100%) !important;
+    }
+
+    .card-body-custom {
+        background: #f8f9fa;
+        min-height: calc(100vh - 200px);
+    }
+    .swal-html-container {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .buscador-container .input-group {
+        border-radius: 50px;
+        overflow: hidden;
+        background: white;
+    }
+
+    .buscador-container input {
+        padding: 12px 20px;
+        font-size: 1rem;
+    }
+
+    .producto-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px 15px;
+        text-align: center;
+        transition: all 0.3s ease;
+        position: relative;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border: 1px solid #e9ecef;
+    }
+
+        .producto-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border-color: #c95a00;
+        }
+
+        .producto-card.agotado {
+            opacity: 0.6;
+            background: #f5f5f5;
+        }
+
+            .producto-card.agotado:hover {
+                transform: none;
+                cursor: not-allowed;
+            }
+
+        .producto-card.producto-agregado {
+            animation: pulse 0.5s ease;
+            background: #e8f5e9;
+            border-color: #27AE60;
+        }
+
+    @@keyframes pulse {
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.05);
+            background: #c8e6c9;
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    .stock-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+
+    .producto-icono {
+        font-size: 2.5rem;
+        color: #c95a00;
+        margin-bottom: 10px;
+    }
+
+    .producto-nombre {
+        font-size: 1rem;
+        font-weight: 700;
+        margin: 10px 0 5px;
+        color: #2c3e30;
+    }
+
+    .producto-codigo {
+        font-size: 0.7rem;
+        color: #95a5a6;
+        margin-bottom: 8px;
+    }
+
+    .producto-precio {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #27AE60;
+        margin-bottom: 10px;
+    }
+
+    .cantidad-control .input-group {
+        width: auto;
+        display: inline-flex;
+    }
+
+    .cantidad-control .btn-cantidad {
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        padding: 4px 10px;
+        font-weight: bold;
+    }
+
+        .cantidad-control .btn-cantidad:hover {
+            background: #c95a00;
+            color: white;
+            border-color: #c95a00;
+        }
+
+    .cantidad-control .cantidad-input {
+        text-align: center;
+        font-size: 0.9rem;
+        padding: 4px 0;
+    }
+
+    .btn-agregar {
+        background: linear-gradient(135deg, #27AE60, #1e8449);
+        border: none;
+        color: white;
+        padding: 8px 20px;
+        border-radius: 25px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        width: 100%;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+        .btn-agregar:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+        }
+
+        .btn-agregar.disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
+
+            .btn-agregar.disabled:hover {
+                transform: none;
+                box-shadow: none;
+            }
+
+    .cart-pulse {
+        animation: cartPulse 0.3s ease;
+    }
+
+    @@keyframes cartPulse {
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.3);
+            background: #c95a00;
+            color: white;
+        }
+
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    @@media (max-width: 768px) {
+        .producto-card {
+            padding: 15px 10px;
+        }
+
+        .producto-nombre {
+            font-size: 0.85rem;
+        }
+
+        .producto-precio {
+            font-size: 1rem;
+        }
+
+        .btn-agregar {
+            padding: 6px 12px;
+            font-size: 0.7rem;
+        }
+    }
+</style>

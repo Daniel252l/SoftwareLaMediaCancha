@@ -39,7 +39,7 @@
                                                 <i class="fas fa-user"></i> <strong>@persona.NombreCliente</strong>
                                                 <span class="badge bg-light text-dark ms-2">@(persona.Detalles?.Sum(d => d.Cantidad) ?? 0) items</span>
                                             </div>
-                                            <span class="fw-bold">Total: @persona.Total.ToString("C")</span>
+                                            <span class="fw-bold">Total: Q@(persona.Total.ToString("N2"))</span>
                                         </div>
                                         <div class="card-body p-0">
                                             <table class="table table-hover mb-0">
@@ -59,8 +59,8 @@
                                                             <tr>
                                                                 <td>@item.Cantidad</td>
                                                                 <td>@item.ProductoNombre</td>
-                                                                <td class="text-end">@item.PrecioUnitario.ToString("C")</td>
-                                                                <td class="text-end">@item.Subtotal.ToString("C")</td>
+                                                                <td class="text-end">Q@(item.PrecioUnitario.ToString("N2"))</td>
+                                                                <td class="text-end">Q@(item.Subtotal.ToString("N2"))</td>
                                                             </tr>
                                                         }
                                                     }
@@ -100,8 +100,8 @@
                                                         <tr>
                                                             <td>@item.Cantidad</td>
                                                             <td>@item.ProductoNombre</td>
-                                                            <td class="text-end">@item.PrecioUnitario.ToString("C")</td>
-                                                            <td class="text-end">@item.Subtotal.ToString("C")</td>
+                                                            <td class="text-end">Q@(item.PrecioUnitario.ToString("N2"))</td>
+                                                            <td class="text-end">Q@(item.Subtotal.ToString("N2"))</td>
                                                         </tr>
                                                     }
                                                 }
@@ -132,22 +132,22 @@
                                         {
                                             <div class="d-flex justify-content-between mb-2">
                                                 <span>@persona.NombreCliente:</span>
-                                                <span class="fw-bold">@persona.Total.ToString("C")</span>
+                                                <span class="fw-bold">Q@(persona.Total.ToString("N2"))</span>
                                             </div>
                                         }
                                         <hr />
                                     }
                                     <div class="d-flex justify-content-between mb-2">
                                         <span>Subtotal:</span>
-                                        <span class="fw-bold">@Model.Subtotal.ToString("C")</span>
+                                        <span class="fw-bold">Q@(Model.Subtotal.ToString("N2"))</span>
                                     </div>
                                     <div class="d-flex justify-content-between mb-2">
                                         <span>IVA (12%):</span>
-                                        <span class="fw-bold">@Model.Impuesto.ToString("C")</span>
+                                        <span class="fw-bold">Q@(Model.Impuesto.ToString("N2"))</span>
                                     </div>
                                     <div class="d-flex justify-content-between border-top pt-2 mt-2">
                                         <span class="h5 mb-0">Total a Pagar:</span>
-                                        <span id="totalSpan" class="h5 mb-0 text-success fw-bold">@Model.Total.ToString("C")</span>
+                                        <span id="totalSpan" class="h5 mb-0 text-success fw-bold">Q@(Model.Total.ToString("N2"))</span>
                                     </div>
                                 </div>
 
@@ -155,23 +155,23 @@
                                 <div class="mt-3">
                                     <label class="form-label fw-bold">Forma de Pago</label>
                                     <select id="formaPago" class="form-select">
-                                        <option value="Efectivo">💵 Efectivo</option>
-                                        <option value="Tarjeta">💳 Tarjeta</option>
-                                        <option value="Transferencia">🏦 Transferencia</option>
-                                        <option value="QR">📱 QR</option>
+                                        <option value="Efectivo">Efectivo</option>
+                                        <option value="Tarjeta">Tarjeta</option>
+                                        <option value="QR">QR</option>
                                     </select>
                                 </div>
 
-                                <!-- Monto Recibido (siempre visible, pero solo requerido para efectivo) -->
                                 <div class="mt-3">
                                     <label class="form-label fw-bold">Monto Recibido</label>
-                                    <input type="number" id="montoRecibido" class="form-control" placeholder="Ingrese el monto recibido" step="0.01" value="0">
+                                    <input type="number" id="montoRecibido" class="form-control"
+                                           placeholder="Ingrese el monto recibido" step="0.01" value="0">
                                     <div id="cambioInfo" class="mt-2 fw-bold"></div>
                                 </div>
 
                                 <div class="mt-3">
                                     <label class="form-label fw-bold">Observaciones</label>
-                                    <textarea id="observacionesPago" class="form-control" rows="2" placeholder="Notas sobre el pago..."></textarea>
+                                    <textarea id="observacionesPago" class="form-control" rows="2"
+                                              placeholder="Notas sobre el pago..."></textarea>
                                 </div>
 
                                 <div class="d-grid gap-2 mt-4">
@@ -188,18 +188,153 @@
     </div>
 </div>
 
+<!-- ===== FACTURA IMPRIMIBLE (oculta) ===== -->
+<div id="facturaImprimir" style="display:none;">
+    <div style="font-family:'Courier New', monospace; width:300px; margin:0 auto; padding:20px;">
+
+        <div style="text-align:center; margin-bottom:15px;">
+            <h2 style="margin:0; font-size:1.4rem; letter-spacing:2px;">LA MEDIA CANCHA</h2>
+            <p style="margin:4px 0; font-size:0.75rem;">Sistema de Gestión de Restaurante</p>
+            <hr style="border-top:2px dashed #000;" />
+        </div>
+
+        <div style="font-size:0.82rem; margin-bottom:10px; line-height:1.6;">
+            <p style="margin:2px 0;"><strong>Orden:</strong> #@Model.NumeroOrden</p>
+            <p style="margin:2px 0;"><strong>Mesa:</strong> @Model.MesaId</p>
+            <p style="margin:2px 0;"><strong>Cliente:</strong> @Model.ClienteNombre</p>
+            <p style="margin:2px 0;"><strong>Fecha:</strong> @Model.FechaApertura.ToString("dd/MM/yyyy HH:mm")</p>
+        </div>
+
+        <hr style="border-top:1px dashed #000;" />
+
+        <table style="width:100%; font-size:0.78rem; border-collapse:collapse;">
+            <thead>
+                <tr style="border-bottom:1px solid #000;">
+                    <th style="text-align:left; padding:4px 2px;">Producto</th>
+                    <th style="text-align:center; padding:4px 2px;">Cant</th>
+                    <th style="text-align:right; padding:4px 2px;">P.Unit</th>
+                    <th style="text-align:right; padding:4px 2px;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.CuentasSeparadas != null && Model.CuentasSeparadas.Any())
+                {
+                    foreach (var persona in Model.CuentasSeparadas)
+                    {
+                        <tr>
+                            <td colspan="4" style="padding:6px 2px 2px; font-weight:bold; font-size:0.8rem;">
+                                @persona.NombreCliente
+                            </td>
+                        </tr>
+                        if (persona.Detalles != null)
+                        {
+                            foreach (var item in persona.Detalles)
+                            {
+                                <tr>
+                                    <td style="padding:2px;">@item.ProductoNombre</td>
+                                    <td style="text-align:center; padding:2px;">@item.Cantidad</td>
+                                    <td style="text-align:right; padding:2px;">Q@(item.PrecioUnitario.ToString("N2"))</td>
+                                    <td style="text-align:right; padding:2px;">Q@(item.Subtotal.ToString("N2"))</td>
+                                </tr>
+                                if (!string.IsNullOrEmpty(item.Nota))
+                                {
+                                    <tr>
+                                        <td colspan="4" style="font-size:0.7rem; color:#555; padding:0 2px 4px 10px;">
+                                            ↳ @item.Nota
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        }
+                        <tr>
+                            <td colspan="3" style="text-align:right; padding:4px 2px; font-size:0.8rem;">
+                                Subtotal @persona.NombreCliente:
+                            </td>
+                            <td style="text-align:right; padding:4px 2px; font-weight:bold;">
+                                Q@(persona.Total.ToString("N2"))
+                            </td>
+                        </tr>
+                        <tr><td colspan="4"><hr style="border-top:1px dashed #ccc; margin:2px 0;" /></td></tr>
+                    }
+                }
+                else if (Model.Detalles != null)
+                {
+                    foreach (var item in Model.Detalles)
+                    {
+                        <tr>
+                            <td style="padding:2px;">@item.ProductoNombre</td>
+                            <td style="text-align:center; padding:2px;">@item.Cantidad</td>
+                            <td style="text-align:right; padding:2px;">Q@(item.PrecioUnitario.ToString("N2"))</td>
+                            <td style="text-align:right; padding:2px;">Q@(item.Subtotal.ToString("N2"))</td>
+                        </tr>
+                        if (!string.IsNullOrEmpty(item.Nota))
+                        {
+                            <tr>
+                                <td colspan="4" style="font-size:0.7rem; color:#555; padding:0 2px 4px 10px;">
+                                    ↳ @item.Nota
+                                </td>
+                            </tr>
+                        }
+                    }
+                }
+            </tbody>
+        </table>
+
+        <hr style="border-top:1px dashed #000; margin-top:8px;" />
+
+        <div style="font-size:0.85rem; line-height:1.8;">
+            <div style="display:flex; justify-content:space-between;">
+                <span>Subtotal:</span>
+                <span>Q@(Model.Subtotal.ToString("N2"))</span>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+                <span>IVA (12%):</span>
+                <span>Q@(Model.Impuesto.ToString("N2"))</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; font-weight:bold;
+                        font-size:1rem; border-top:1px solid #000; margin-top:4px; padding-top:4px;">
+                <span>TOTAL:</span>
+                <span>Q@(Model.Total.ToString("N2"))</span>
+            </div>
+        </div>
+
+        <hr style="border-top:1px dashed #000; margin-top:8px;" />
+
+        <div style="font-size:0.82rem; line-height:1.8;" id="facturaInfoPago">
+            <div style="display:flex; justify-content:space-between;">
+                <span>Forma de Pago:</span>
+                <span id="facturaFormaPago">-</span>
+            </div>
+            <div style="display:flex; justify-content:space-between;">
+                <span>Monto Recibido:</span>
+                <span id="facturaRecibido">-</span>
+            </div>
+            <div style="display:flex; justify-content:space-between; color:green; font-weight:bold;">
+                <span>Cambio:</span>
+                <span id="facturaCambio">-</span>
+            </div>
+        </div>
+
+        <hr style="border-top:2px dashed #000; margin-top:10px;" />
+
+        <div style="text-align:center; font-size:0.78rem; margin-top:10px; line-height:1.8;">
+            <p style="margin:0;">¡Gracias por su visita!</p>
+            <p style="margin:0; font-weight:bold;">LA MEDIA CANCHA</p>
+            <p style="margin:0; font-size:0.7rem;">Vuelva pronto</p>
+        </div>
+
+    </div>
+</div>
+
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         let ordenId = @Model.OrdenId;
         let total = @Model.Total.ToString().Replace(",", ".");
 
-        $(document).ready(function() {
-            // Calcular cambio cuando se ingresa el monto
+        $(document).ready(function () {
             $('#montoRecibido').on('keyup', calcularCambio);
             $('#btnPagar').on('click', pagarCuenta);
-
-            // Trigger inicial para mostrar cambio
             calcularCambio();
         });
 
@@ -213,11 +348,11 @@
             let cambio = recibido - totalValor;
 
             if (recibido === 0) {
-                $('#cambioInfo').html(`💰 Ingrese el monto recibido`).css('color', '#6c757d');
+                $('#cambioInfo').html('Ingrese el monto recibido').css('color', '#6c757d');
             } else if (cambio >= 0) {
-                $('#cambioInfo').html(`💰 Cambio: ${formatoQ(cambio)}`).css('color', 'green');
+                $('#cambioInfo').html('Cambio: ' + formatoQ(cambio)).css('color', 'green');
             } else {
-                $('#cambioInfo').html(`⚠️ Faltan: ${formatoQ(Math.abs(cambio))}`).css('color', 'red');
+                $('#cambioInfo').html('Faltan: ' + formatoQ(Math.abs(cambio))).css('color', 'red');
             }
         }
 
@@ -225,9 +360,7 @@
             let formaPago = $('#formaPago').val();
             let montoRecibido = parseFloat($('#montoRecibido').val()) || 0;
             let totalValor = parseFloat(total);
-            let observaciones = $('#observacionesPago').val();
 
-            // Validar que se haya ingresado un monto
             if (montoRecibido === 0) {
                 Swal.fire({
                     icon: 'warning',
@@ -238,26 +371,24 @@
                 return;
             }
 
-            // Validar que el monto sea suficiente
             if (montoRecibido < totalValor) {
                 Swal.fire({
                     icon: 'error',
                     title: 'Monto insuficiente',
-                    text: `El monto recibido (${formatoQ(montoRecibido)}) es menor al total a pagar (${formatoQ(totalValor)})`,
+                    text: 'El monto recibido (' + formatoQ(montoRecibido) + ') es menor al total (' + formatoQ(totalValor) + ')',
                     confirmButtonColor: '#d33'
                 });
                 return;
             }
 
             let cambio = montoRecibido - totalValor;
-            let mensajeCambio = cambio > 0 ? `\nCambio: ${formatoQ(cambio)}` : '';
 
-            // Confirmar pago
             Swal.fire({
                 title: '¿Confirmar pago?',
-                html: `<strong>Total a pagar:</strong> ${formatoQ(totalValor)}<br>
-                       <strong>Forma de pago:</strong> ${formaPago}<br>
-                       <strong>Monto recibido:</strong> ${formatoQ(montoRecibido)}${mensajeCambio}`,
+                html: '<strong>Total:</strong> ' + formatoQ(totalValor) + '<br>' +
+                      '<strong>Forma de pago:</strong> ' + formaPago + '<br>' +
+                      '<strong>Recibido:</strong> ' + formatoQ(montoRecibido) + '<br>' +
+                      '<strong>Cambio:</strong> ' + formatoQ(cambio),
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#28a745',
@@ -266,14 +397,11 @@
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // Mostrar loading
                     Swal.fire({
                         title: 'Procesando pago...',
                         text: 'Por favor espere',
                         allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
+                        didOpen: () => { Swal.showLoading(); }
                     });
 
                     $.ajax({
@@ -282,14 +410,31 @@
                         data: { ordenId: ordenId },
                         success: function (response) {
                             if (response.success) {
+
+                                // Llenar datos de pago en la factura
+                                $('#facturaFormaPago').text(formaPago);
+                                $('#facturaRecibido').text(formatoQ(montoRecibido));
+                                $('#facturaCambio').text(formatoQ(cambio));
+
                                 Swal.fire({
                                     icon: 'success',
                                     title: '¡Pago realizado!',
-                                    html: `Total pagado: ${formatoQ(totalValor)}<br>${mensajeCambio}`,
-                                    confirmButtonColor: '#28a745'
-                                }).then(() => {
-                                    window.location.href = '@Url.Action("Index")';
+                                    html: 'Total pagado: <strong>' + formatoQ(totalValor) + '</strong><br>' +
+                                          'Cambio: <strong>' + formatoQ(cambio) + '</strong>',
+                                    confirmButtonColor: '#28a745',
+                                    confirmButtonText: '<i class="fas fa-print"></i> Imprimir Factura',
+                                    showDenyButton: true,
+                                    denyButtonText: 'Omitir',
+                                    denyButtonColor: '#6c757d'
+                                }).then((res) => {
+                                    if (res.isConfirmed) {
+                                        imprimirFactura();
+                                    }
+                                    setTimeout(function () {
+                                        window.location.href = '@Url.Action("Index")';
+                                    }, 500);
                                 });
+
                             } else {
                                 Swal.fire({
                                     icon: 'error',
@@ -311,6 +456,40 @@
                     });
                 }
             });
+        }
+
+        function imprimirFactura() {
+            let contenido = document.getElementById('facturaImprimir').innerHTML;
+            let ventana = window.open('', '_blank', 'width=420,height=650,scrollbars=yes');
+            ventana.document.write(`
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Factura - @Model.NumeroOrden</title>
+                    <style>
+                        body { margin: 0; padding: 10px; background: white; }
+                        @@media print {
+                            body { margin: 0; padding: 0; }
+                            @@page { margin: 5mm; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    ${contenido}
+                    <div style="text-align:center; margin-top:20px;">
+                        <button onclick="window.print()"
+                            style="padding:10px 30px; background:#28a745; color:white;
+                                   border:none; border-radius:5px; font-size:1rem; cursor:pointer;">
+                            Imprimir
+                        </button>
+                    </div>
+                    <script>
+                        window.onload = function() { window.print(); }
+                    <\/script>
+                </body>
+                </html>
+            `);
+            ventana.document.close();
         }
     </script>
 }
@@ -356,10 +535,10 @@
         transition: all 0.2s ease;
     }
 
-    .btn-success:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
-    }
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+        }
 
     @@media (max-width: 991px) {
         .cart-section {

@@ -1,29 +1,44 @@
 ﻿@model LaMediaCancha.Models.Proveedor
+
 @{
     ViewBag.Title = "Editar Proveedor";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container-fluid">
+<div class="container-fluid px-4 py-3">
     <div class="row">
-        <div class="col-md-8 offset-md-2">
-            <div class="card-custom" style="max-width: 100%;">
+        <div class="col-12">
+            <div class="card-custom proveedor-card">
+
                 <div class="card-header-custom">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div>
-                            <h2><i class="fas fa-edit"></i> Editar Proveedor</h2>
-                            <p>Modifique los datos del proveedor</p>
+                            <h2 class="text-white mb-1">
+                                <i class="fas fa-edit"></i> Editar Proveedor
+                            </h2>
+                            <p class="mb-0 text-white-50">
+                                Modifique los datos del proveedor
+                            </p>
                         </div>
-                        <a href="@Url.Action("Index", "Proveedor")" class="btn-custom" style="width: auto; padding: 10px 20px; background: #6c757d;">
-                            <i class="fas fa-arrow-left"></i> Regresar
+
+                        <a href="@Url.Action("Index", "Proveedor")" class="btn btn-light">
+                            <i class="fas fa-arrow-left me-1"></i> Regresar
                         </a>
                     </div>
                 </div>
-                <div class="card-body-custom">
+
+                <div class="card-body-custom p-4">
+
                     @if (TempData["Success"] != null)
                     {
-                        <div class="alert alert-success">
-                            <i class="fas fa-check-circle"></i> @TempData["Success"]
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fas fa-check-circle me-2"></i>
+                            @TempData["Success"]
+
+                            <button type="button"
+                                    class="btn-close"
+                                    data-bs-dismiss="alert">
+                            </button>
                         </div>
                     }
 
@@ -33,99 +48,261 @@
                         @Html.HiddenFor(m => m.ProveedorId)
                         @Html.HiddenFor(m => m.PersonaId)
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group-custom">
-                                    <label>NIT <span class="text-danger">*</span></label>
-                                    @Html.TextBoxFor(m => m.Nit, new { @class = "form-control-custom", required = "required", maxlength = "13" })
-                                    @Html.ValidationMessageFor(m => m.Nit, "", new { @class = "text-danger" })
-                                    <small class="text-muted">13 caracteres (números)</small>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group-custom">
-                                    <label>Razón Social <span class="text-danger">*</span></label>
-                                    @Html.TextBoxFor(m => m.RazonSocial, new { @class = "form-control-custom", required = "required" })
-                                    @Html.ValidationMessageFor(m => m.RazonSocial, "", new { @class = "text-danger" })
-                                </div>
-                            </div>
+                        <!-- INFORMACIÓN DEL PROVEEDOR -->
+                        <div class="section-title">
+                            <i class="fas fa-building"></i>
+                            Información del Proveedor
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group-custom">
-                                    <label>Nombre Contacto</label>
-                                    @Html.TextBoxFor(m => m.Contacto, new { @class = "form-control-custom" })
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group-custom">
-                                    <label>Teléfono</label>
-                                    @Html.TextBoxFor(m => m.Telefono, new { @class = "form-control-custom", maxlength = "8" })
-                                    @Html.ValidationMessageFor(m => m.Telefono, "", new { @class = "text-danger" })
-                                    <small class="text-muted">8 dígitos numéricos</small>
-                                </div>
-                            </div>
-                        </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    NIT <span class="text-danger">*</span>
+                                </label>
 
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group-custom">
-                                    <label>Correo Electrónico</label>
-                                    @Html.TextBoxFor(m => m.Correo, new { @class = "form-control-custom", type = "email" })
-                                    @Html.ValidationMessageFor(m => m.Correo, "", new { @class = "text-danger" })
-                                </div>
+                                @Html.TextBoxFor(m => m.Nit,
+                                    new
+                                    {
+                                        @class = "form-control",
+                                        maxlength = "13",
+                                        placeholder = "Ej: 1234567890123"
+                                    })
+
+                                @Html.ValidationMessageFor(m => m.Nit, "",
+                                    new { @class = "text-danger small" })
+
+                                <small class="text-muted">
+                                    13 caracteres numéricos
+                                </small>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group-custom">
-                                    <label>Dirección</label>
-                                    @Html.TextBoxFor(m => m.Direccion, new { @class = "form-control-custom" })
-                                </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    Razón Social <span class="text-danger">*</span>
+                                </label>
+
+                                @Html.TextBoxFor(m => m.RazonSocial,
+                                    new
+                                    {
+                                        @class = "form-control",
+                                        placeholder = "Ej: Distribuidora Central S.A."
+                                    })
+
+                                @Html.ValidationMessageFor(m => m.RazonSocial, "",
+                                    new { @class = "text-danger small" })
                             </div>
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group-custom">
-                                    <label>Política de Devolución <span class="text-danger">*</span></label>
-                                    @Html.DropDownListFor(m => m.MantenimientoId, (SelectList)ViewBag.Politicas, "Seleccione una política...", new { @class = "form-control-custom", required = "required" })
-                                    @Html.ValidationMessageFor(m => m.MantenimientoId, "", new { @class = "text-danger" })
-                                    <small class="text-muted">Define los días máximos para realizar devoluciones</small>
-                                </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    Nombre Contacto
+                                </label>
+
+                                @Html.TextBoxFor(m => m.Contacto,
+                                    new
+                                    {
+                                        @class = "form-control",
+                                        placeholder = "Persona de contacto"
+                                    })
+
+                                @Html.ValidationMessageFor(m => m.Contacto, "",
+                                    new { @class = "text-danger small" })
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group-custom">
-                                    <label>Política Personalizada</label>
-                                    @Html.TextAreaFor(m => m.PoliticaDevolucion, new { @class = "form-control-custom", rows = 2 })
-                                </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    Teléfono
+                                </label>
+
+                                @Html.TextBoxFor(m => m.Telefono,
+                                    new
+                                    {
+                                        @class = "form-control",
+                                        maxlength = "8",
+                                        placeholder = "Ej: 22334455"
+                                    })
+
+                                @Html.ValidationMessageFor(m => m.Telefono, "",
+                                    new { @class = "text-danger small" })
+
+                                <small class="text-muted">
+                                    8 dígitos numéricos
+                                </small>
                             </div>
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group-custom">
-                                    <label>Nombres (Persona) <span class="text-danger">*</span></label>
-                                    @Html.TextBoxFor(m => m.Nombres, new { @class = "form-control-custom", required = "required" })
-                                    @Html.ValidationMessageFor(m => m.Nombres, "", new { @class = "text-danger" })
-                                </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    Correo Electrónico
+                                </label>
+
+                                @Html.TextBoxFor(m => m.Correo,
+                                    new
+                                    {
+                                        @class = "form-control",
+                                        type = "email",
+                                        placeholder = "proveedor@ejemplo.com"
+                                    })
+
+                                @Html.ValidationMessageFor(m => m.Correo, "",
+                                    new { @class = "text-danger small" })
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-group-custom">
-                                    <label>Apellidos (Persona) <span class="text-danger">*</span></label>
-                                    @Html.TextBoxFor(m => m.Apellidos, new { @class = "form-control-custom", required = "required" })
-                                    @Html.ValidationMessageFor(m => m.Apellidos, "", new { @class = "text-danger" })
-                                </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    Dirección
+                                </label>
+
+                                @Html.TextBoxFor(m => m.Direccion,
+                                    new
+                                    {
+                                        @class = "form-control",
+                                        placeholder = "Dirección del proveedor"
+                                    })
                             </div>
                         </div>
 
-                        <div class="form-group-custom">
-                            <label>Estado</label>
-                            @Html.DropDownListFor(m => m.Activo, new SelectList(new[] { new { Value = "true", Text = "Activo" }, new { Value = "false", Text = "Inactivo" } }, "Value", "Text", Model.Activo), new { @class = "form-control-custom" })
+                        <!-- POLÍTICAS -->
+                        <div class="section-title mt-4">
+                            <i class="fas fa-handshake"></i>
+                            Políticas de Devolución
                         </div>
 
-                        <div class="text-right mt-3">
-                            <button type="submit" class="btn-custom">
-                                <i class="fas fa-save"></i> Guardar Cambios
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    Política de Devolución
+                                </label>
+
+                                @Html.DropDownListFor(m => m.MantenimientoId,
+                                    (SelectList)ViewBag.Politicas,
+                                    "Seleccione una política...",
+                                    new
+                                    {
+                                        @class = "form-select",
+                                        id = "MantenimientoId"
+                                    })
+
+                                @Html.ValidationMessageFor(m => m.MantenimientoId, "",
+                                    new { @class = "text-danger small" })
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    Días de Devolución
+                                </label>
+
+                                <input type="number"
+                                       id="DiasPersonalizados"
+                                       name="DiasPersonalizados"
+                                       class="form-control"
+                                       placeholder="Ej: 5, 10, 15"
+                                       min="1"
+                                       max="180"
+                                       value="@(Model.DiasMaximosDevolucion > 0 ? Model.DiasMaximosDevolucion.ToString() : "")" />
+
+                                <small class="text-muted">
+                                    Cantidad máxima de días permitidos
+                                </small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                Política Personalizada
+                            </label>
+
+                            @Html.TextAreaFor(m => m.PoliticaDevolucion,
+                                new
+                                {
+                                    @class = "form-control",
+                                    rows = 3,
+                                    placeholder = "Ej: Se aceptan devoluciones hasta 5 días después de la compra"
+                                })
+
+                            @Html.ValidationMessageFor(m => m.PoliticaDevolucion, "",
+                                new { @class = "text-danger small" })
+                        </div>
+
+                        <!-- PERSONA -->
+                        <div class="section-title mt-4">
+                            <i class="fas fa-user"></i>
+                            Persona de Contacto
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    Nombres <span class="text-danger">*</span>
+                                </label>
+
+                                @Html.TextBoxFor(m => m.Nombres,
+                                    new
+                                    {
+                                        @class = "form-control",
+                                        placeholder = "Nombres del contacto"
+                                    })
+
+                                @Html.ValidationMessageFor(m => m.Nombres, "",
+                                    new { @class = "text-danger small" })
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">
+                                    Apellidos <span class="text-danger">*</span>
+                                </label>
+
+                                @Html.TextBoxFor(m => m.Apellidos,
+                                    new
+                                    {
+                                        @class = "form-control",
+                                        placeholder = "Apellidos del contacto"
+                                    })
+
+                                @Html.ValidationMessageFor(m => m.Apellidos, "",
+                                    new { @class = "text-danger small" })
+                            </div>
+                        </div>
+
+                        <!-- ESTADO -->
+                        <div class="section-title mt-4">
+                            <i class="fas fa-check-circle"></i>
+                            Estado
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                Estado del Proveedor
+                            </label>
+
+                            @Html.DropDownListFor(m => m.Activo,
+                                new SelectList(
+                                    new[]
+                                    {
+                                        new { Value = "true", Text = "Activo" },
+                                        new { Value = "false", Text = "Inactivo" }
+                                    },
+                                    "Value",
+                                    "Text",
+                                    Model.Activo
+                                ),
+                                new { @class = "form-select" })
+                        </div>
+
+                        <!-- BOTONES -->
+                        <div class="d-flex justify-content-end gap-2 mt-4 flex-wrap">
+                            <a href="@Url.Action("Index")"
+                               class="btn btn-secondary-custom">
+                                <i class="fas fa-times me-1"></i>
+                                Cancelar
+                            </a>
+
+                            <button type="submit"
+                                    class="btn btn-primary-custom">
+                                <i class="fas fa-save me-1"></i>
+                                Guardar Cambios
                             </button>
                         </div>
                     }
@@ -135,71 +312,151 @@
     </div>
 </div>
 
-@section Scripts {
+@section Scripts{
     <script>
         $(document).ready(function () {
+
             $('#Telefono').on('input', function () {
                 this.value = this.value.replace(/[^0-9]/g, '').slice(0, 8);
             });
 
             $('#Nit').on('input', function () {
-                this.value = this.value.replace(/[^0-9-]/g, '').slice(0, 13);
+                this.value = this.value.replace(/[^0-9]/g, '').slice(0, 13);
             });
+
+            $('#DiasPersonalizados').on('keyup change', function () {
+
+                var dias = $(this).val();
+
+                if (dias && dias > 0) {
+                    $('#PoliticaDevolucion')
+                        .val('Se aceptan devoluciones hasta ' + dias + ' días después de la compra');
+                }
+            });
+
+            $('#MantenimientoId').on('change', function () {
+
+                var texto = $(this).find('option:selected').text();
+
+                if (texto && texto !== 'Seleccione una política...') {
+
+                    var match = texto.match(/\d+/);
+
+                    if (match && match[0]) {
+
+                        $('#DiasPersonalizados').val(match[0]);
+
+                        $('#PoliticaDevolucion')
+                            .val('Se aceptan devoluciones hasta ' + match[0] + ' días después de la compra');
+                    }
+                }
+            });
+
         });
     </script>
 }
 
 <style>
-    .alert-success {
-        background: #d4edda;
-        color: #155724;
-        padding: 12px;
-        border-radius: 8px;
-        margin-bottom: 20px;
-        border: 1px solid #c3e6cb;
-    }
 
-    .text-danger {
-        color: #E74C3C;
-        font-size: 0.75rem;
-        margin-top: 5px;
-        display: block;
-    }
-
-    .text-muted {
-        color: #6c757d;
-        font-size: 0.7rem;
-        display: block;
-        margin-top: 5px;
-    }
-
-    .form-group-custom {
-        margin-bottom: 20px;
-    }
-
-    .form-control-custom {
+    .proveedor-card {
         width: 100%;
-        padding: 10px 12px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
+        max-width: 100%;
+        border-radius: 20px;
+        overflow: hidden;
+        background: #fff;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
     }
 
-    .btn-custom {
-        background: linear-gradient(135deg, #8B4513, #D35400);
+    .card-header-custom {
+        padding: 1.5rem 2rem;
+        background: linear-gradient(135deg, #c95a00 0%, #a04700 100%);
+    }
+
+    .card-body-custom {
+        padding: 2rem;
+        background: #fff;
+    }
+
+    .section-title {
+        background: linear-gradient(135deg, #c95a00 0%, #a04700 100%);
         color: white;
-        border: none;
-        padding: 12px 25px;
-        border-radius: 5px;
-        cursor: pointer;
-        transition: all 0.3s ease;
+        padding: 12px 18px;
+        border-radius: 10px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        font-size: 1rem;
     }
 
-        .btn-custom:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+        .section-title i {
+            margin-right: 8px;
         }
 
-    .text-right {
-        text-align: right;
+    .form-control,
+    .form-select {
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        padding: 11px 14px;
+        transition: all 0.2s ease;
+    }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #c95a00;
+            box-shadow: 0 0 0 3px rgba(201,90,0,0.12);
+        }
+
+    .form-label {
+        color: #495057;
+        font-size: 0.9rem;
+        margin-bottom: 6px;
+    }
+
+    .btn-primary-custom {
+        background: linear-gradient(135deg, #c95a00, #a04700);
+        border: none;
+        color: white;
+        padding: 10px 24px;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+
+        .btn-primary-custom:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 14px rgba(201,90,0,0.25);
+            color: white;
+        }
+
+    .btn-secondary-custom {
+        background: #6c757d;
+        border: none;
+        color: white;
+        padding: 10px 24px;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+
+        .btn-secondary-custom:hover {
+            background: #5a6268;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+    .alert-success {
+        border-radius: 12px;
+    }
+
+    @@media (max-width: 768px) {
+
+        .card-header-custom {
+            padding: 1rem;
+        }
+
+            .card-header-custom h2 {
+                font-size: 1.4rem;
+            }
+
+        .card-body-custom {
+            padding: 1.2rem;
+        }
     }
 </style>

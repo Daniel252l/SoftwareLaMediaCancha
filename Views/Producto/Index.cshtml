@@ -1,28 +1,28 @@
-@model IEnumerable<LaMediaCancha.Models.ProductoModels.Producto>
+@model IEnumerable<LaMediaCancha.Models.ProductoModels.ProductoCompra>
 
 @{
-    ViewBag.Title = "Productos";
+    ViewBag.Title = "Materias Primas / Insumos";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container-fluid">
-    <div class="row">
+<div class="container-fluid px-4 py-4">
+    <div class="row justify-content-center">
         <div class="col-12">
             <div class="card-custom card-custom-full">
                 <div class="card-header-custom">
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div>
                             <h2 class="text-white mb-1">
-                                <i class="fas fa-boxes me-2"></i> Productos
+                                <i class="fas fa-boxes me-2"></i> Materias Primas / Insumos
                             </h2>
-                            <p class="mb-0 text-white-50">Gestión de productos del restaurante</p>
+                            <p class="mb-0 text-white-50">Productos que se compran a proveedores</p>
                         </div>
-                        <div class="mt-2 mt-sm-0">
-                            <a href="@Url.Action("Index", "Home")" class="btn btn-outline-light me-2" title="Regresar">
+                        <div class="mt-3 mt-md-0 d-flex flex-wrap gap-2">
+                            <a href="@Url.Action("Index", "Home")" class="btn btn-outline-light">
                                 <i class="fas fa-arrow-left me-1"></i> Regresar
                             </a>
-                            <a href="@Url.Action("Crear")" class="btn btn-light me-2">
-                                <i class="fas fa-plus-circle me-1"></i> Nuevo Producto
+                            <a href="@Url.Action("Crear")" class="btn btn-light">
+                                <i class="fas fa-plus-circle me-1"></i> Nueva Materia Prima
                             </a>
                             <a href="@Url.Action("Inventario")" class="btn btn-outline-light">
                                 <i class="fas fa-chart-line me-1"></i> Inventario
@@ -31,138 +31,100 @@
                     </div>
                 </div>
 
-                <div class="card-body-custom p-0">
-
-                    @* Mensajes de éxito/error *@
-                    @if (TempData["SuccessCrear"] != null)
-                    {
-                        <div class="alert alert-success d-flex align-items-center gap-2 mx-3 mt-3" role="alert"
-                             style="border-radius: 10px; border-left: 4px solid #28a745;">
-                            <i class="fas fa-check-circle text-success" style="font-size: 1.3rem;"></i>
-                            <span class="fw-semibold">@TempData["SuccessCrear"]</span>
-                        </div>
-                    }
+                <div class="card-body-custom p-4">
                     @if (TempData["Success"] != null)
                     {
-                        <div class="alert alert-success d-flex align-items-center gap-2 mx-3 mt-3" role="alert"
-                             style="border-radius: 10px; border-left: 4px solid #28a745;">
-                            <i class="fas fa-check-circle text-success" style="font-size: 1.3rem;"></i>
-                            <span class="fw-semibold">@TempData["Success"]</span>
+                        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                            <i class="fas fa-check-circle me-2"></i> @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     }
                     @if (TempData["Error"] != null)
                     {
-                        <div class="alert alert-danger d-flex align-items-center gap-2 mx-3 mt-3" role="alert"
-                             style="border-radius: 10px; border-left: 4px solid #dc3545;">
-                            <i class="fas fa-times-circle text-danger" style="font-size: 1.3rem;"></i>
-                            <span class="fw-semibold">@TempData["Error"]</span>
+                        <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i> @TempData["Error"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     }
 
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0">
+                        <table class="table table-hover align-middle mb-0">
                             <thead class="table-dark">
                                 <tr>
-                                    <th style="width: 10%">Código</th>
-                                    <th style="width: 20%">Nombre</th>
-                                    <th style="width: 30%">Descripción</th>
-                                    <th style="width: 10%" class="text-end">Precio Compra</th>
-                                    <th style="width: 10%" class="text-end">Precio Venta</th>
-                                    <th style="width: 10%" class="text-center">Estado</th>
-                                    <th style="width: 10%" class="text-center">Acciones</th>
+                                    <th>Código</th>
+                                    <th>Nombre</th>
+                                    <th>Unidad</th>
+                                    <th>Categoría</th>
+                                    <th class="text-end">Precio Compra</th>
+                                    <th class="text-center">Stock Actual</th>
+                                    <th class="text-center">Stock Mínimo</th>
+                                    <th class="text-center">Estado</th>
+                                    <th class="text-center">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @if (Model != null && Model.Any())
+                                @foreach (var item in Model)
                                 {
-                                    foreach (var item in Model)
-                                    {
-                                        <tr>
-                                            <td><span class="badge bg-light text-dark px-2 py-1">@item.Codigo</span></td>
-                                            <td class="fw-bold">@item.Nombre</td>
-                                            <td class="text-muted">@(string.IsNullOrEmpty(item.Descripcion) ? "—" : (item.Descripcion.Length > 45 ? item.Descripcion.Substring(0, 45) + "..." : item.Descripcion))</td>
-                                            <td class="text-end">@(item.PrecioCompra?.ToString("C") ?? "—")</td>
-                                            <td class="text-end text-success fw-bold">@item.PrecioVenta.ToString("C")</td>
-                                            <td class="text-center">
+                                    <tr>
+                                        <td><span class="badge bg-light text-dark">@item.Codigo</span></td>
+                                        <td class="fw-bold">@item.Nombre</td>
+                                        <td>@item.UnidadMedida</td>
+                                        <td>@item.Categoria</td>
+                                        <td class="text-end text-success fw-bold">Q @string.Format("{0:N2}", item.PrecioCompra)</td>
+                                        <td class="text-center">
+                                            @if (item.StockActual <= item.StockMinimo)
+                                            {
+                                                <span class="text-danger fw-bold">@item.StockActual</span>
+                                            }
+                                            else
+                                            {
+                                                <span>@item.StockActual</span>
+                                            }
+                                        </td>
+                                        <td class="text-center">@item.StockMinimo</td>
+                                        <td class="text-center">
+                                            @if (item.Activo)
+                                            {
+                                                <span class="badge bg-success rounded-pill px-3 py-2">
+                                                    <i class="fas fa-check-circle me-1"></i>Activo
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary rounded-pill px-3 py-2">
+                                                    <i class="fas fa-ban me-1"></i>Inactivo
+                                                </span>
+                                            }
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="d-flex justify-content-center flex-wrap gap-2">
+                                                <a href="@Url.Action("Detalle", new { id = item.ProductoCompraId })" class="btn btn-info btn-sm text-white">
+                                                    <i class="fas fa-eye me-1"></i>Ver
+                                                </a>
+                                                <a href="@Url.Action("Editar", new { id = item.ProductoCompraId })" class="btn btn-warning btn-sm text-white">
+                                                    <i class="fas fa-edit me-1"></i>Editar
+                                                </a>
+                                                <a href="@Url.Action("Lotes", new { id = item.ProductoCompraId })" class="btn btn-secondary btn-sm">
+                                                    <i class="fas fa-layer-group me-1"></i>Lotes
+                                                </a>
                                                 @if (item.Activo)
                                                 {
-                                                    <span class="badge bg-success rounded-pill px-3 py-1"><i class="fas fa-check-circle me-1"></i> Activo</span>
+                                                    <button type="button" class="btn btn-danger btn-sm" onclick="cambiarEstado(@item.ProductoCompraId, '@item.Nombre.Replace("'", "\\'")', false)">
+                                                        <i class="fas fa-toggle-off me-1"></i>Inactivar
+                                                    </button>
                                                 }
                                                 else
                                                 {
-                                                    <span class="badge bg-secondary rounded-pill px-3 py-1"><i class="fas fa-ban me-1"></i> Inactivo</span>
+                                                    <button type="button" class="btn btn-success btn-sm" onclick="cambiarEstado(@item.ProductoCompraId, '@item.Nombre.Replace("'", "\\'")', true)">
+                                                        <i class="fas fa-toggle-on me-1"></i>Activar
+                                                    </button>
                                                 }
-                                            </td>
-                                            <td class="text-center">
-                                                <div class="d-flex justify-content-center gap-2">
-                                                    <a href="@Url.Action("Detalle", new { id = item.ProductoId })"
-                                                       class="btn btn-sm btn-info text-white"
-                                                       title="Ver detalles"
-                                                       style="border-radius: 8px; padding: 5px 12px;">
-                                                        <i class="fas fa-eye me-1"></i> Ver
-                                                    </a>
-                                                    <a href="@Url.Action("Editar", new { id = item.ProductoId })"
-                                                       class="btn btn-sm btn-warning text-white"
-                                                       title="Editar producto"
-                                                       style="border-radius: 8px; padding: 5px 12px;">
-                                                        <i class="fas fa-edit me-1"></i> Editar
-                                                    </a>
-                                                    @if (item.Activo)
-                                                    {
-                                                        <button type="button"
-                                                                class="btn btn-sm btn-danger"
-                                                                title="Inactivar"
-                                                                style="border-radius: 8px; padding: 5px 12px;"
-                                                                onclick="cambiarEstadoProducto(@item.ProductoId, '@item.Nombre.Replace("'", "\\'")', false)">
-                                                            <i class="fas fa-toggle-off me-1"></i> Inactivar
-                                                        </button>
-                                                    }
-                                                    else
-                                                    {
-                                                        <button type="button"
-                                                                class="btn btn-sm btn-success"
-                                                                title="Activar"
-                                                                style="border-radius: 8px; padding: 5px 12px;"
-                                                                onclick="cambiarEstadoProducto(@item.ProductoId, '@item.Nombre.Replace("'", "\\'")', true)">
-                                                            <i class="fas fa-toggle-on me-1"></i> Activar
-                                                        </button>
-                                                    }
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    }
-                                }
-                                else
-                                {
-                                    <tr>
-                                        <td colspan="7" class="text-center py-5">
-                                            <i class="fas fa-box-open fa-3x text-muted mb-3 d-block"></i>
-                                            <p class="text-muted mb-0">No hay productos registrados</p>
-                                            <a href="@Url.Action("Crear")" class="btn btn-primary mt-3">Crear primer producto</a>
+                                            </div>
                                         </td>
                                     </tr>
                                 }
                             </tbody>
                         </table>
-                    </div>
-                </div>
-
-                <div class="card-footer-custom">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap">
-                        <div>
-                            <i class="fas fa-database me-1 text-warning"></i>
-                            <strong>Total:</strong> <span class="badge bg-secondary rounded-pill">@(Model?.Count() ?? 0)</span> productos
-                        </div>
-                        <div>
-                            <i class="fas fa-check-circle text-success me-1"></i>
-                            <strong>Activos:</strong> <span class="badge bg-success rounded-pill">@(Model?.Count(p => p.Activo) ?? 0)</span>
-                            <i class="fas fa-ban text-danger ms-3 me-1"></i>
-                            <strong>Inactivos:</strong> <span class="badge bg-secondary rounded-pill">@(Model?.Count(p => !p.Activo) ?? 0)</span>
-                        </div>
-                        <div>
-                            <i class="fas fa-clock me-1 text-info"></i>
-                            Última actualización: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")
-                        </div>
                     </div>
                 </div>
             </div>
@@ -173,51 +135,35 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        function cambiarEstadoProducto(id, nombre, activar) {
-            var titulo = activar ? "¿Activar producto?" : "¿Inactivar producto?";
-            var texto = activar
-                ? '¿Está seguro de <strong>activar</strong> "' + nombre + '"?'
-                : '¿Está seguro de <strong>inactivar</strong> "' + nombre + '"?<br><small class="text-muted">El producto no se eliminará, solo quedará oculto</small>';
-            var icono = activar ? "question" : "warning";
-            var btnColor = activar ? "#28a745" : "#d33";
-            var btnTexto = activar ? "Sí, activar" : "Sí, inactivar";
+        function cambiarEstado(id, nombre, activar) {
+            var titulo = activar ? "¿Activar materia prima?" : "¿Inactivar materia prima?";
+            var texto = activar ? `¿Desea activar "${nombre}"?` : `¿Desea inactivar "${nombre}"?`;
 
             Swal.fire({
                 title: titulo,
-                html: texto,
-                icon: icono,
+                text: texto,
+                icon: activar ? "question" : "warning",
                 showCancelButton: true,
-                confirmButtonColor: btnColor,
+                confirmButtonColor: activar ? "#28a745" : "#dc3545",
                 cancelButtonColor: "#6c757d",
-                confirmButtonText: btnTexto,
+                confirmButtonText: activar ? "Sí, activar" : "Sí, inactivar",
                 cancelButtonText: "Cancelar"
             }).then((result) => {
                 if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Procesando...',
-                        text: 'Por favor espere',
-                        allowOutsideClick: false,
-                        didOpen: () => { Swal.showLoading(); }
-                    });
-
                     $.ajax({
                         url: '@Url.Action("CambiarEstado", "Producto")',
                         type: 'POST',
                         data: { id: id, activo: activar },
                         success: function (response) {
                             if (response.success) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: activar ? '¡Producto activado!' : '¡Producto inactivado!',
-                                    text: response.message,
-                                    confirmButtonColor: '#28a745'
-                                }).then(() => { location.reload(); });
+                                Swal.fire({ icon: 'success', title: 'Éxito', text: response.message, confirmButtonColor: '#28a745' })
+                                    .then(() => location.reload());
                             } else {
-                                Swal.fire('Error', response.message, 'error');
+                                Swal.fire({ icon: 'error', title: 'Error', text: response.message });
                             }
                         },
                         error: function () {
-                            Swal.fire('Error', 'Error al cambiar el estado del producto', 'error');
+                            Swal.fire({ icon: 'error', title: 'Error', text: 'Error al cambiar el estado' });
                         }
                     });
                 }
@@ -227,209 +173,90 @@
 }
 
 <style>
+    .container-fluid {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 30px !important;
+        padding-right: 30px !important;
+    }
+
     .card-custom {
-        background: white;
+        width: 100%;
+        background: #fff;
         border-radius: 20px;
         overflow: hidden;
         box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-        margin-bottom: 20px;
     }
 
     .card-custom-full {
+        width: 100% !important;
         max-width: 100% !important;
     }
 
     .card-header-custom {
-        padding: 1.5rem;
-        background: linear-gradient(135deg, #c95a00 0%, #a04700 100%) !important;
+        padding: 1.5rem 2rem;
+        background: linear-gradient(135deg,#c95a00 0%,#a04700 100%);
     }
-
-        .card-header-custom h2 {
-            margin-bottom: 5px;
-            font-weight: 600;
-            letter-spacing: -0.5px;
-        }
-
-        .card-header-custom .btn-light {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            transition: all 0.3s ease;
-            border-radius: 10px;
-            padding: 8px 18px;
-        }
-
-            .card-header-custom .btn-light:hover {
-                background: rgba(255,255,255,0.3);
-                transform: translateY(-2px);
-            }
-
-        .card-header-custom .btn-outline-light {
-            border: 1px solid rgba(255,255,255,0.5);
-            color: white;
-            border-radius: 10px;
-            padding: 8px 18px;
-        }
-
-            .card-header-custom .btn-outline-light:hover {
-                background: rgba(255,255,255,0.2);
-                transform: translateY(-2px);
-            }
 
     .card-body-custom {
-        padding: 0;
-    }
-
-    .card-footer-custom {
-        padding: 12px 20px;
-        background: #f8f9fa;
-        border-top: 1px solid #e9ecef;
-        font-size: 0.85rem;
-        color: #6c757d;
+        padding: 20px;
     }
 
     .table {
+        width: 100%;
         margin-bottom: 0;
     }
 
-    .table-dark th {
-        background-color: #2c3e30;
-        color: white;
-        font-weight: 500;
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding: 12px 8px;
+        .table th {
+            padding: 14px 12px;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            white-space: nowrap;
+        }
+
+        .table td {
+            padding: 14px 12px;
+            vertical-align: middle;
+        }
+
+    .table-hover tbody tr:hover {
+        background: rgba(201,90,0,0.05);
+    }
+
+    .btn {
+        border-radius: 10px;
+        transition: all .2s ease;
+    }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+    .btn-primary {
+        background: linear-gradient(135deg,#c95a00,#a04700);
         border: none;
     }
 
-    .table td {
-        vertical-align: middle;
-        font-size: 0.9rem;
-        padding: 12px 8px;
-    }
-
-    .table-hover tbody tr:hover {
-        background-color: rgba(201, 90, 0, 0.05);
-        cursor: pointer;
-    }
-
-    .badge {
-        font-weight: 500;
-        font-size: 0.7rem;
-        padding: 5px 12px;
-    }
-
-    .bg-success {
-        background-color: #27AE60 !important;
-    }
-
-    .bg-secondary {
-        background-color: #95a5a6 !important;
-    }
-
-    .badge.bg-light {
-        background-color: #f8f9fa !important;
-        color: #495057 !important;
-        font-weight: 600;
-    }
-
-    .btn-info {
-        background-color: #17a2b8;
-        border-color: #17a2b8;
-        transition: all 0.2s ease;
-    }
-
-        .btn-info:hover {
-            background-color: #138496;
-            border-color: #138496;
-            transform: translateY(-2px);
-            box-shadow: 0 2px 8px rgba(23, 162, 184, 0.3);
-        }
-
     .btn-warning {
-        background-color: #c95a00;
+        background: #c95a00;
         border-color: #c95a00;
-        transition: all 0.2s ease;
+        color: white;
     }
 
         .btn-warning:hover {
-            background-color: #a04700;
-            border-color: #a04700;
-            transform: translateY(-2px);
-            box-shadow: 0 2px 8px rgba(201, 90, 0, 0.3);
-        }
-
-    .btn-danger {
-        background-color: #dc3545;
-        border-color: #dc3545;
-        transition: all 0.2s ease;
-    }
-
-        .btn-danger:hover {
-            background-color: #c82333;
-            border-color: #bd2130;
-            transform: translateY(-2px);
-            box-shadow: 0 2px 8px rgba(220, 53, 69, 0.3);
-        }
-
-    .btn-success {
-        background-color: #28a745;
-        border-color: #28a745;
-        transition: all 0.2s ease;
-    }
-
-        .btn-success:hover {
-            background-color: #218838;
-            border-color: #1e7e34;
-            transform: translateY(-2px);
-            box-shadow: 0 2px 8px rgba(40, 167, 69, 0.3);
-        }
-
-    .btn-sm {
-        font-size: 0.75rem;
-        font-weight: 500;
-    }
-
-    .table-responsive::-webkit-scrollbar {
-        height: 6px;
-    }
-
-    .table-responsive::-webkit-scrollbar-track {
-        background: #f1f1f1;
-        border-radius: 10px;
-    }
-
-    .table-responsive::-webkit-scrollbar-thumb {
-        background: #c95a00;
-        border-radius: 10px;
-    }
-
-        .table-responsive::-webkit-scrollbar-thumb:hover {
             background: #a04700;
+            border-color: #a04700;
+            color: white;
         }
 
-    @@media (max-width: 768px) {
-        .card-header-custom {
-            padding: 1rem;
-        }
+    .badge {
+        font-size: .75rem;
+        font-weight: 600;
+    }
 
-            .card-header-custom h2 {
-                font-size: 1.3rem;
-            }
-
-        .d-flex.gap-2 {
-            flex-wrap: wrap;
-            gap: 5px !important;
-        }
-
-        .btn-sm {
-            padding: 3px 8px !important;
-            font-size: 0.7rem;
-        }
-
-            .btn-sm i {
-                margin-right: 2px !important;
-            }
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
     }
 </style>

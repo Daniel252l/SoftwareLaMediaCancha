@@ -1,0 +1,121 @@
+﻿@{
+    Layout = null;
+    ViewBag.Title = "Reporte";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Reporte - La Media Cancha</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f4f7f6;
+        }
+
+        .toolbar {
+            background: linear-gradient(135deg, #c95a00 0%, #a04700 100%);
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+            .toolbar h2 {
+                color: white;
+                margin: 0;
+                font-size: 1.3rem;
+            }
+
+            .toolbar p {
+                color: rgba(255,255,255,0.8);
+                margin: 5px 0 0 0;
+                font-size: 0.8rem;
+            }
+
+        .toolbar-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 18px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-light {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: none;
+        }
+
+            .btn-light:hover {
+                background: rgba(255,255,255,0.3);
+                transform: translateY(-2px);
+            }
+
+        .btn-outline-light {
+            background: transparent;
+            color: white;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+            .btn-outline-light:hover {
+                background: rgba(255,255,255,0.2);
+                transform: translateY(-2px);
+            }
+
+        .report-container {
+            height: calc(100vh - 100px);
+            background: white;
+            margin: 15px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="toolbar">
+        <div>
+            <h2><i class="fas fa-chart-line"></i> Reporte: @ViewBag.TipoReporte</h2>
+            <p>Período: @ViewBag.FechaInicio - @ViewBag.FechaFin</p>
+        </div>
+        <div class="toolbar-buttons">
+            <a href="@Url.Action("Index")" class="btn btn-light">
+                <i class="fas fa-arrow-left"></i> Nuevo Reporte
+            </a>
+            <a href="@Url.Action("Dashboard", "Home")" class="btn btn-outline-light">
+                <i class="fas fa-home"></i> Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="report-container">
+        <iframe id="reportFrame" src="@Url.Action("RenderReport", "Reporte")?tipo=@ViewBag.TipoReporte&fechaInicio=@ViewBag.FechaInicio&fechaFin=@ViewBag.FechaFin"></iframe>
+    </div>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+</body>
+</html>

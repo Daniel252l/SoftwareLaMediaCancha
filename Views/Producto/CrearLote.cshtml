@@ -1,0 +1,249 @@
+﻿@{
+    ViewBag.Title = "Agregar Lote";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container-fluid py-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-xl-8">
+            <div class="card-custom">
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                        <div>
+                            <h2 class="text-white mb-1">
+                                <i class="fas fa-plus-circle me-2"></i> Agregar Lote
+                            </h2>
+                            <p class="mb-0 text-white-50">Ingrese los datos del nuevo lote para: <strong>@ViewBag.NombreProducto</strong></p>
+                        </div>
+                        <a href="@Url.Action("Lotes", new { id = ViewBag.ProductoCompraId })" class="btn btn-light">
+                            <i class="fas fa-arrow-left me-1"></i> Regresar
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body-custom p-4">
+                    <form id="frmCrearLote">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" id="productoCompraId" name="productoCompraId" value="@ViewBag.ProductoCompraId" />
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Número de Lote <span class="text-danger">*</span></label>
+                                <input type="text" id="numeroLote" name="numeroLote" class="form-control" placeholder="Ej: LOTE-001" required />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Proveedor <span class="text-danger">*</span></label>
+                                <select id="proveedorId" name="proveedorId" class="form-select" required>
+                                    <option value="">Seleccione un proveedor...</option>
+                                    @if (ViewBag.Proveedores != null)
+                                    {
+                                        foreach (var item in ViewBag.Proveedores as SelectList)
+                                        {
+                                            if (!string.IsNullOrEmpty(item.Value))
+                                            {
+                                                <option value="@item.Value">@item.Text</option>
+                                            }
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Cantidad <span class="text-danger">*</span></label>
+                                <input type="number" id="cantidad" name="cantidad" class="form-control" step="0.01" min="0.01" placeholder="0.00" required />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Precio Unitario (Q) <span class="text-danger">*</span></label>
+                                <input type="number" id="precioUnitario" name="precioUnitario" class="form-control" step="0.01" min="0" placeholder="0.00" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Fecha de Vencimiento</label>
+                            <input type="date" id="fechaVencimiento" name="fechaVencimiento" class="form-control" />
+                            <small class="text-muted">Opcional - Solo si el producto tiene fecha de caducidad</small>
+                        </div>
+
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Al agregar este lote, el stock del producto se actualizará automáticamente.
+                        </div>
+
+                        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                            <a href="@Url.Action("Lotes", new { id = ViewBag.ProductoCompraId })" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i> Cancelar
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Guardar Lote
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $(document).ready(function() {
+            $('#frmCrearLote').submit(function(e) {
+                e.preventDefault();
+
+                var productoCompraId = $('#productoCompraId').val();
+                var proveedorId = $('#proveedorId').val();
+                var numeroLote = $('#numeroLote').val();
+                var cantidad = $('#cantidad').val();
+                var precioUnitario = $('#precioUnitario').val();
+                var fechaVencimiento = $('#fechaVencimiento').val();
+                var token = $('input[name="__RequestVerificationToken"]').val();
+
+                // Validaciones
+                if (!proveedorId || proveedorId === '') {
+                    Swal.fire('Error', 'Seleccione un proveedor', 'error');
+                    return;
+                }
+
+                if (!numeroLote || numeroLote.trim() === '') {
+                    Swal.fire('Error', 'Ingrese el número de lote', 'error');
+                    return;
+                }
+
+                if (!cantidad || parseFloat(cantidad) <= 0) {
+                    Swal.fire('Error', 'Ingrese una cantidad válida mayor a 0', 'error');
+                    return;
+                }
+
+                if (!precioUnitario || parseFloat(precioUnitario) <= 0) {
+                    Swal.fire('Error', 'Ingrese un precio unitario válido mayor a 0', 'error');
+                    return;
+                }
+
+                // Mostrar loading
+                Swal.fire({
+                    title: 'Guardando...',
+                    text: 'Por favor espere',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+
+                $.ajax({
+                    url: '@Url.Action("CrearLote", "Producto")',
+                    type: 'POST',
+                    data: {
+                        __RequestVerificationToken: token,
+                        productoCompraId: productoCompraId,
+                        proveedorId: proveedorId,
+                        numeroLote: numeroLote,
+                        cantidad: cantidad,
+                        precioUnitario: precioUnitario,
+                        fechaVencimiento: fechaVencimiento || null
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            Swal.fire('Éxito', response.message, 'success').then(() => {
+                                window.location.href = '@Url.Action("Lotes", "Producto")?id=' + productoCompraId;
+                            });
+                        } else {
+                            Swal.fire('Error', response.message, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('Error:', xhr.responseText);
+                        Swal.fire('Error', 'Error al guardar el lote: ' + (xhr.responseText || error), 'error');
+                    }
+                });
+            });
+        });
+    </script>
+}
+
+<style>
+    .card-custom {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        width: 100%;
+        max-width: 1400px;
+        margin: auto;
+    }
+
+    .card-header-custom {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #c95a00 0%, #a04700 100%) !important;
+    }
+
+        .card-header-custom .btn-light {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            transition: all 0.3s ease;
+            border-radius: 10px;
+            padding: 8px 18px;
+        }
+
+            .card-header-custom .btn-light:hover {
+                background: rgba(255,255,255,0.3);
+                transform: translateY(-2px);
+            }
+
+    .card-body-custom {
+        background: #fff;
+    }
+
+    .form-control, .form-select {
+        border-radius: 10px;
+        border: 1px solid #ddd;
+        padding: 12px;
+        transition: all 0.2s ease;
+    }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #c95a00;
+            box-shadow: 0 0 0 3px rgba(201,90,0,0.15);
+            outline: none;
+        }
+
+    .form-label {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 6px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #c95a00, #a04700);
+        border: none;
+        padding: 10px 25px;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #a04700, #8b3a00);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(201,90,0,0.3);
+        }
+
+    .btn-secondary {
+        background: #6c757d;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+    .border-top {
+        border-top: 1px solid #e9ecef !important;
+    }
+</style>

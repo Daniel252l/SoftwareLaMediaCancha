@@ -1,4 +1,5 @@
 ﻿@model LaMediaCancha.Models.ViewModels.BuscarFacturaViewModel
+
 @{
     ViewBag.Title = "Facturas";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -9,17 +10,19 @@
         <div class="col-12">
             <div class="card-custom card-custom-full">
                 <div class="card-header-custom">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div>
-                            <h2><i class="fas fa-file-invoice"></i> Facturas</h2>
-                            <p>Búsqueda y gestión de facturas emitidas</p>
+                            <h2 class="text-white mb-1">
+                                <i class="fas fa-file-invoice me-2"></i> Facturas
+                            </h2>
+                            <p class="mb-0 text-white-50">Búsqueda y gestión de facturas emitidas</p>
                         </div>
-                        <a href="@Url.Action("Dashboard", "Home")" class="btn-custom" style="width: auto; padding: 10px 20px; background: #6c757d;">
-                            <i class="fas fa-arrow-left"></i> Regresar
+                        <a href="@Url.Action("Dashboard", "Home")" class="btn btn-light">
+                            <i class="fas fa-arrow-left me-1"></i> Regresar
                         </a>
                     </div>
                 </div>
-                <div class="card-body-custom">
+                <div class="card-body-custom p-3">
 
                     <!-- TABS -->
                     <div class="tabs-container">
@@ -33,50 +36,49 @@
 
                     <!-- Filtros de búsqueda -->
                     <div class="filtros-busqueda">
-                        <div class="row">
+                        <div class="row g-3">
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label><i class="fas fa-hashtag"></i> Número Factura</label>
-                                    <input type="text" id="txtNumeroFactura" class="form-control" placeholder="Ej: FAC-001" />
+                                    <label class="form-label fw-bold"><i class="fas fa-hashtag"></i> Número Factura</label>
+                                    <input type="text" id="txtNumeroFactura" class="form-control" placeholder="Ej: VEN-20260509..." />
                                 </div>
                             </div>
                             <div class="col-md-3">
                                 <div class="form-group">
-                                    <label id="lblDocumento"><i class="fas fa-id-card"></i> Documento</label>
+                                    <label class="form-label fw-bold" id="lblDocumento"><i class="fas fa-id-card"></i> Documento</label>
                                     <input type="text" id="txtNumeroDocumento" class="form-control" placeholder="Cédula/NIT" />
                                 </div>
                             </div>
                             <div class="col-md-2">
                                 <div class="form-group">
-                                    <label><i class="fas fa-calendar-alt"></i> Fecha Inicio</label>
+                                    <label class="form-label fw-bold"><i class="fas fa-calendar-alt"></i> Fecha Inicio</label>
                                     <input type="date" id="txtFechaInicio" class="form-control" />
                                 </div>
                             </div>
                             <div class="col-md-2">
                                 <div class="form-group">
-                                    <label><i class="fas fa-calendar-alt"></i> Fecha Fin</label>
+                                    <label class="form-label fw-bold"><i class="fas fa-calendar-alt"></i> Fecha Fin</label>
                                     <input type="date" id="txtFechaFin" class="form-control" />
                                 </div>
                             </div>
                             <div class="col-md-2">
                                 <div class="form-group">
-                                    <label><i class="fas fa-filter"></i> Estado</label>
-                                    <select id="cmbEstado" class="form-control">
+                                    <label class="form-label fw-bold"><i class="fas fa-filter"></i> Estado</label>
+                                    <select id="cmbEstado" class="form-select">
                                         <option value="">Todos</option>
-                                        <option value="Vigente">Vigente</option>
-                                        <option value="Anulada">Anulada</option>
                                         <option value="Completada">Completada</option>
+                                        <option value="Anulada">Anulada</option>
                                     </select>
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-12 text-right">
-                                <button type="button" id="btnBuscar" class="btn-buscar">
-                                    <i class="fas fa-search"></i> Buscar
+                        <div class="row mt-3">
+                            <div class="col-md-12 text-end">
+                                <button type="button" id="btnBuscar" class="btn btn-success px-4">
+                                    <i class="fas fa-search me-1"></i> Buscar
                                 </button>
-                                <button type="button" id="btnLimpiar" class="btn-limpiar">
-                                    <i class="fas fa-eraser"></i> Limpiar
+                                <button type="button" id="btnLimpiar" class="btn btn-secondary px-4 ms-2">
+                                    <i class="fas fa-eraser me-1"></i> Limpiar
                                 </button>
                             </div>
                         </div>
@@ -93,23 +95,24 @@
                     <!-- Tabla Ventas -->
                     <div id="tablaVentas">
                         <div class="table-responsive">
-                            <table class="table-custom">
-                                <thead>
+                            <table class="table table-hover mb-0">
+                                <thead class="table-dark">
                                     <tr>
                                         <th>Factura</th>
                                         <th>Fecha</th>
                                         <th>Cliente</th>
                                         <th>Documento</th>
-                                        <th class="text-right">Total</th>
-                                        <th>Estado</th>
+                                        <th class="text-end">Total</th>
+                                        <th class="text-center">Estado</th>
                                         <th class="text-center">Nota Crédito</th>
                                         <th class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tbodyVentas">
                                     <tr>
-                                        <td colspan="8" class="text-center">
-                                            <i class="fas fa-info-circle"></i> Use los filtros para buscar facturas de ventas
+                                        <td colspan="8" class="text-center text-muted py-5">
+                                            <i class="fas fa-info-circle fa-2x mb-2 d-block"></i>
+                                            Use los filtros para buscar facturas de ventas
                                         </td>
                                     </tr>
                                 </tbody>
@@ -118,25 +121,26 @@
                     </div>
 
                     <!-- Tabla Compras -->
-                    <div id="tablaCompras" style="display:none;">
+                    <div id="tablaCompras" style="display: none;">
                         <div class="table-responsive">
-                            <table class="table-custom">
-                                <thead>
+                            <table class="table table-hover mb-0">
+                                <thead class="table-dark">
                                     <tr>
                                         <th>Factura</th>
                                         <th>Fecha</th>
                                         <th>Proveedor</th>
                                         <th>Documento</th>
-                                        <th class="text-right">Total</th>
-                                        <th>Estado</th>
+                                        <th class="text-end">Total</th>
+                                        <th class="text-center">Estado</th>
                                         <th class="text-center">Nota Crédito</th>
                                         <th class="text-center">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody id="tbodyCompras">
                                     <tr>
-                                        <td colspan="8" class="text-center">
-                                            <i class="fas fa-info-circle"></i> Use los filtros para buscar facturas de compras
+                                        <td colspan="8" class="text-center text-muted py-5">
+                                            <i class="fas fa-info-circle fa-2x mb-2 d-block"></i>
+                                            Use los filtros para buscar facturas de compras
                                         </td>
                                     </tr>
                                 </tbody>
@@ -150,26 +154,25 @@
     </div>
 </div>
 
-<!-- Modal Anular Factura (Ventas y Compras) -->
-<div id="modalAnularFactura" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+<!-- Modal Anular Factura -->
+<div id="modalAnularFactura" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center;">
     <div style="background: white; border-radius: 15px; width: 500px; max-width: 90%; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
-        <div style="background: #E74C3C; color: white; padding: 20px; text-align: center;">
+        <div style="background: #dc3545; color: white; padding: 20px; text-align: center;">
             <i class="fas fa-exclamation-triangle" style="font-size: 2rem; margin-bottom: 10px;"></i>
             <h3 style="margin: 0;">Anular Factura</h3>
             <p style="margin: 5px 0 0; opacity: 0.9;">Esta acción no se puede deshacer</p>
         </div>
         <div style="padding: 25px;">
             <input type="hidden" id="anularFacturaId" />
-            <input type="hidden" id="anularTipoFactura" />
             <div style="text-align: center; margin-bottom: 20px;">
-                <i class="fas fa-file-invoice" style="font-size: 3rem; color: #E74C3C;"></i>
-                <p style="font-size: 1.1rem; margin-top: 10px;">¿Está seguro que desea anular la factura?</p>
-                <p><strong id="anularNumeroFactura" style="font-size: 1.2rem; color: #E74C3C;"></strong></p>
+                <i class="fas fa-file-invoice" style="font-size: 3rem; color: #dc3545;"></i>
+                <p style="font-size: 1rem; margin-top: 10px;">¿Está seguro que desea anular la factura?</p>
+                <p><strong id="anularNumeroFactura" style="font-size: 1.1rem; color: #dc3545;"></strong></p>
                 <p id="mensajeAnulacion" style="color: #555;">Esta acción generará una <strong>Nota de Crédito</strong> y no se puede deshacer.</p>
             </div>
-            <div class="form-group">
-                <label style="display: block; margin-bottom: 8px; font-weight: 600;">Motivo de anulación <span style="color: red;">*</span></label>
-                <select id="cmbMotivoAnulacion" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Motivo de anulación <span class="text-danger">*</span></label>
+                <select id="cmbMotivoAnulacion" class="form-select">
                     <option value="">Seleccione...</option>
                     <option value="Error en el monto">Error en el monto</option>
                     <option value="Error en el cliente">Error en el cliente</option>
@@ -181,69 +184,54 @@
             </div>
         </div>
         <div style="padding: 15px 20px; border-top: 1px solid #eee; text-align: right; background: #f8f9fa;">
-            <button type="button" id="cancelarAnularBtn" style="background: #6c757d; color: white; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
-                <i class="fas fa-times"></i> Cancelar
-            </button>
-            <button type="button" id="btnConfirmarAnular" style="background: #E74C3C; color: white; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer;">
-                <i class="fas fa-ban"></i> Anular Factura
-            </button>
+            <button type="button" id="cancelarAnularBtn" class="btn btn-secondary">Cancelar</button>
+            <button type="button" id="btnConfirmarAnular" class="btn btn-danger ms-2">Anular Factura</button>
         </div>
     </div>
 </div>
 
-<!-- Modal Nota de Crédito (Ventas) -->
-<div id="modalNotaCredito" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
-    <div style="background: white; border-radius: 5px; width: 750px; max-width: 95%; overflow: auto; max-height: 90%; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
+<!-- Modal Nota de Crédito -->
+<div id="modalNotaCredito" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 15px; width: 750px; max-width: 95%; max-height: 90%; overflow: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
         <div style="padding: 25px;" id="notaCreditoBody"></div>
         <div style="padding: 15px 20px; border-top: 1px solid #eee; text-align: right; background: #f8f9fa;">
-            <button type="button" id="cerrarNotaFooterBtn" style="background: #6c757d; color: white; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
-                <i class="fas fa-times"></i> Cerrar
-            </button>
-            <button type="button" id="btnImprimirNota" style="background: #27AE60; color: white; border: none; padding: 10px 25px; border-radius: 5px; cursor: pointer;">
-                <i class="fas fa-print"></i> Imprimir
-            </button>
+            <button type="button" id="cerrarNotaFooterBtn" class="btn btn-secondary">Cerrar</button>
+            <button type="button" id="btnImprimirNota" class="btn btn-primary ms-2">Imprimir</button>
         </div>
     </div>
 </div>
 
-<!-- Modal Registrar Nota de Crédito del Proveedor (Compras) -->
-<div id="modalNCProveedor" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+<!-- Modal Registrar Nota de Crédito del Proveedor -->
+<div id="modalNCProveedor" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; align-items: center; justify-content: center;">
     <div style="background: white; border-radius: 15px; width: 600px; max-width: 95%; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.3);">
-        <div style="background: linear-gradient(135deg, #8B4513, #D35400); color: white; padding: 20px; text-align: center;">
+        <div style="background: linear-gradient(135deg, #c95a00, #a04700); color: white; padding: 20px; text-align: center;">
             <i class="fas fa-file-invoice" style="font-size: 2rem; margin-bottom: 10px;"></i>
             <h3 style="margin: 0;">Registrar Nota de Crédito del Proveedor</h3>
             <p style="margin: 5px 0 0; opacity: 0.9; font-size: 0.85rem;">El stock será restado automáticamente</p>
         </div>
         <div style="padding: 25px;">
             <input type="hidden" id="ncProveedorCompraId" />
-            <div style="background: #fff3e0; border: 1px solid #ffcc80; border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 0.85rem; color: #E67E22;">
+            <div class="alert alert-warning py-2 mb-3">
                 <i class="fas fa-info-circle"></i>
-                <strong>Compra:</strong> <span id="ncProveedorNumeroFactura"></span>
+                <strong>Factura:</strong> <span id="ncProveedorNumeroFactura"></span>
             </div>
-
-            <div class="form-group">
-                <label>Número de NC del Proveedor <span style="color: red;">*</span></label>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Número de NC del Proveedor <span class="text-danger">*</span></label>
                 <input type="text" id="ncNumeroNC" class="form-control" placeholder="Ej: NC-PROV-001" />
             </div>
-
             <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label>Fecha de Emisión <span style="color: red;">*</span></label>
-                        <input type="date" id="ncFechaEmision" class="form-control" />
-                    </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Fecha de Emisión <span class="text-danger">*</span></label>
+                    <input type="date" id="ncFechaEmision" class="form-control" />
                 </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label>Monto Total <span style="color: red;">*</span></label>
-                        <input type="number" id="ncMontoTotal" class="form-control" step="0.01" min="0" placeholder="0.00" />
-                    </div>
+                <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Monto Total <span class="text-danger">*</span></label>
+                    <input type="number" id="ncMontoTotal" class="form-control" step="0.01" min="0" placeholder="0.00" />
                 </div>
             </div>
-
-            <div class="form-group">
-                <label>Motivo <span style="color: red;">*</span></label>
-                <select id="ncMotivo" class="form-control">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Motivo <span class="text-danger">*</span></label>
+                <select id="ncMotivo" class="form-select">
                     <option value="">Seleccione...</option>
                     <option value="Producto defectuoso">Producto defectuoso</option>
                     <option value="Devolución por vencimiento">Devolución por vencimiento</option>
@@ -253,278 +241,18 @@
                     <option value="Otro">Otro</option>
                 </select>
             </div>
-
-            <div class="form-group">
-                <label>Documento NC (PDF/imagen) — Opcional</label>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Documento NC (PDF/imagen) — Opcional</label>
                 <input type="file" id="ncArchivo" class="form-control" accept=".pdf,.jpg,.jpeg,.png" />
                 <small class="text-muted">Formatos permitidos: PDF, JPG, PNG (máx 5MB)</small>
             </div>
         </div>
         <div style="padding: 15px 20px; border-top: 1px solid #eee; text-align: right; background: #f8f9fa;">
-            <button type="button" id="cancelarNCBtn" class="btn-cancelar">Cancelar</button>
-            <button type="button" id="guardarNCBtn" class="btn-guardar-nc">Registrar NC</button>
+            <button type="button" id="cancelarNCBtn" class="btn btn-secondary">Cancelar</button>
+            <button type="button" id="guardarNCBtn" class="btn btn-primary">Registrar NC</button>
         </div>
     </div>
 </div>
-
-<style>
-    /* Tabs */
-    .tabs-container {
-        display: flex;
-        gap: 5px;
-        margin-bottom: 20px;
-        border-bottom: 2px solid #e0e0e0;
-        padding-bottom: 0;
-    }
-
-    .tab-btn {
-        background: #f0f0f0;
-        color: #555;
-        border: none;
-        padding: 12px 25px;
-        border-radius: 8px 8px 0 0;
-        cursor: pointer;
-        font-size: 0.9rem;
-        font-weight: 600;
-        transition: all 0.2s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: -2px;
-        border: 2px solid transparent;
-        border-bottom: none;
-    }
-
-        .tab-btn:hover {
-            background: #e0e0e0;
-            color: #333;
-        }
-
-        .tab-btn.active {
-            background: white;
-            color: #8B4513;
-            border-color: #e0e0e0;
-            border-bottom-color: white;
-        }
-
-    /* Indicador tab activo */
-    .indicador-tab {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 6px 16px;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-        margin-bottom: 15px;
-    }
-
-    .indicador-ventas {
-        background: #e8f5e9;
-        color: #27AE60;
-        border: 1px solid #a5d6a7;
-    }
-
-    .indicador-compras {
-        background: #fff3e0;
-        color: #E67E22;
-        border: 1px solid #ffcc80;
-    }
-
-    /* Filtros */
-    .filtros-busqueda {
-        background: #f8f9fa;
-        padding: 20px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-    }
-
-    .btn-buscar {
-        background: #27AE60;
-        color: white;
-        border: none;
-        padding: 8px 20px;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-
-        .btn-buscar:hover {
-            background: #1E8449;
-        }
-
-    .btn-limpiar {
-        background: #6c757d;
-        color: white;
-        border: none;
-        padding: 8px 20px;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-left: 10px;
-    }
-
-        .btn-limpiar:hover {
-            background: #5a6268;
-        }
-
-    /* Tabla */
-    .table-custom {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-        .table-custom th, .table-custom td {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-            vertical-align: middle;
-        }
-
-        .table-custom th {
-            background: #8B4513;
-            color: white;
-        }
-
-    .factura-anulada {
-        background: #fdf2f2 !important;
-    }
-
-    .btn-ver, .btn-imprimir, .btn-anular, .btn-ver-nc, .btn-nc-proveedor {
-        margin: 0 3px;
-        padding: 6px 12px;
-        border-radius: 5px;
-        display: inline-block;
-        text-decoration: none;
-        font-size: 0.75rem;
-    }
-
-    .btn-ver {
-        background: #3498DB;
-        color: white;
-    }
-
-        .btn-ver:hover {
-            background: #2980B9;
-            color: white;
-        }
-
-    .btn-imprimir {
-        background: #27AE60;
-        color: white;
-    }
-
-        .btn-imprimir:hover {
-            background: #1E8449;
-            color: white;
-        }
-
-    .btn-anular {
-        background: #E74C3C;
-        color: white;
-    }
-
-        .btn-anular:hover {
-            background: #C0392B;
-            color: white;
-        }
-
-    .btn-ver-nc {
-        background: #8B4513;
-        color: white;
-    }
-
-        .btn-ver-nc:hover {
-            background: #5D2E0C;
-            color: white;
-        }
-
-    .btn-nc-proveedor {
-        background: #F39C12;
-        color: white;
-    }
-
-        .btn-nc-proveedor:hover {
-            background: #D68910;
-            color: white;
-        }
-
-    .btn-guardar-nc {
-        background: linear-gradient(135deg, #8B4513, #D35400);
-        color: white;
-        border: none;
-        padding: 10px 25px;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-
-    .btn-cancelar {
-        background: #6c757d;
-        color: white;
-        border: none;
-        padding: 10px 25px;
-        border-radius: 5px;
-        cursor: pointer;
-        margin-right: 10px;
-    }
-
-    .badge-vigente {
-        background: #27AE60;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        display: inline-block;
-    }
-
-    .badge-anulada {
-        background: #E74C3C;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        display: inline-block;
-    }
-
-    .badge-info {
-        background: #3498DB;
-        color: white;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        display: inline-block;
-    }
-
-    .text-right {
-        text-align: right;
-    }
-
-    .text-center {
-        text-align: center;
-    }
-
-    .form-group {
-        margin-bottom: 15px;
-    }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            font-size: 0.8rem;
-            color: #555;
-        }
-
-    .form-control {
-        width: 100%;
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-    }
-
-    hr {
-        margin: 20px 0;
-        border: none;
-        border-top: 1px solid #eee;
-    }
-</style>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -534,7 +262,7 @@
         function cambiarTab(tab) {
             tabActivo = tab;
             $('#tabVentas, #tabCompras').removeClass('active');
-            $('#tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).addClass('active');
+            $('#' + tab + 'Tab').addClass('active');
             $('#tablaVentas').toggle(tab === 'ventas');
             $('#tablaCompras').toggle(tab === 'compras');
 
@@ -570,7 +298,7 @@
             };
 
             var tbody = tabActivo === 'ventas' ? '#tbodyVentas' : '#tbodyCompras';
-            $(tbody).html('<tr><td colspan="8" class="text-center"><i class="fas fa-spinner fa-spin"></i> Cargando...<\/td><\/tr>');
+            $(tbody).html('<tr><td colspan="8" class="text-center py-4"><i class="fas fa-spinner fa-spin fa-2x text-muted"></i><br><small class="text-muted mt-2 d-block">Cargando...</small></td></tr>');
 
             var url = tabActivo === 'ventas'
                 ? '@Url.Action("BuscarVentas", "Factura")'
@@ -580,34 +308,28 @@
                 url: url,
                 type: 'POST',
                 data: filtro,
-                success: function(data) {
+                success: function (data) {
                     $(tbody).html(data);
                 },
-                error: function() {
-                    $(tbody).html('<tr><td colspan="8" class="text-center text-danger">Error al cargar las facturas<\/td><\/tr>');
+                error: function () {
+                    $(tbody).html('<tr><td colspan="8" class="text-center text-danger py-4"><i class="fas fa-exclamation-circle fa-2x mb-2 d-block"></i>Error al cargar las facturas</td></tr>');
                 }
             });
         }
 
-        function anularFactura(facturaId, numeroFactura, tipo) {
+        function anularFacturaVenta(facturaId, numeroFactura) {
             $('#anularFacturaId').val(facturaId);
             $('#anularNumeroFactura').text(numeroFactura);
-            $('#anularTipoFactura').val(tipo);
             $('#cmbMotivoAnulacion').val('');
-
-            if (tipo === 'venta') {
-                $('#mensajeAnulacion').html('Esta acción generará una <strong>Nota de Crédito</strong> y devolverá el stock al inventario.');
-            } else {
-                $('#mensajeAnulacion').html('Esta acción anulará la compra y restará el stock del inventario.');
-            }
-
             $('#modalAnularFactura').css('display', 'flex');
         }
 
         function cerrarModalAnular() { $('#modalAnularFactura').hide(); }
+        function cerrarModalNota() { $('#modalNotaCredito').hide(); }
+        function cerrarModalNCProveedor() { $('#modalNCProveedor').hide(); }
 
-        function abrirModalNCProveedor(compraId, numeroFactura) {
-            $('#ncProveedorCompraId').val(compraId);
+        function abrirModalNCProveedor(facturaId, numeroFactura) {
+            $('#ncProveedorCompraId').val(facturaId);
             $('#ncProveedorNumeroFactura').text(numeroFactura);
             $('#ncNumeroNC').val('');
             $('#ncFechaEmision').val(new Date().toISOString().split('T')[0]);
@@ -617,174 +339,46 @@
             $('#modalNCProveedor').css('display', 'flex');
         }
 
-        function cerrarModalNCProveedor() { $('#modalNCProveedor').hide(); }
-
-        function verNotaCredito(notaCreditoId) {
-            $.ajax({
-                url: '@Url.Action("ObtenerNotaCredito", "Factura")',
-                type: 'GET',
-                data: { id: notaCreditoId },
-                success: function(data) {
-                    if (data.success) {
-                        var html = `
-                            <div style="font-family: 'Times New Roman', Arial, serif;">
-                                <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:15px; margin-bottom:20px;">
-                                    <div style="font-size:22px; font-weight:bold; letter-spacing:2px;">LA MEDIA CANCHA ASADERA</div>
-                                    <div style="font-size:11px; color:#555;">Av. Principal #123, Ciudad - Tel: (555) 123-4567</div>
-                                    <div style="font-size:11px; color:#555;">NIT: 123456789-0 - Régimen Común</div>
-                                    <div style="font-size:11px; color:#555;">www.lamediacancha.com</div>
-                                </div>
-                                <div style="text-align:center; margin-bottom:25px;">
-                                    <div style="font-size:18px; font-weight:bold; text-transform:uppercase; letter-spacing:3px;">Nota de Crédito</div>
-                                    <div style="font-size:11px; color:#555;">Documento equivalente a factura - Anulación</div>
-                                </div>
-                                <div style="border:1px solid #000; padding:12px; margin-bottom:20px;">
-                                    <table style="width:100%; border-collapse:collapse; font-size:11px;">
-                                        <tr>
-                                            <td style="width:20%; padding:5px;"><strong>NÚMERO:</strong><table>
-                                            <td style="width:30%; padding:5px;">${data.NumeroNotaCredito}</td>
-                                            <td style="width:20%; padding:5px;"><strong>FECHA EMISIÓN:</strong></td>
-                                            <td style="width:30%; padding:5px;">${data.FechaEmision}</td>
-                                        </tr>
-                                        <tr>
-                                            <td style="padding:5px;"><strong>FACTURA ORIGINAL:</strong></td>
-                                            <td style="padding:5px;">${data.FacturaOriginalNumero}</td>
-                                            <td style="padding:5px;"><strong>AUTORIZACIÓN:</strong></td>
-                                            <td style="padding:5px;">ANUL-${data.NumeroNotaCredito.substring(0,15)}</td
-                                        </tr
-                                    </table
-                                </div>
-                                <div style="border:1px solid #000; padding:12px; margin-bottom:20px;">
-                                    <div style="font-weight:bold; font-size:12px; margin-bottom:10px; border-bottom:1px solid #000; padding-bottom:5px;">DATOS DEL CLIENTE</div>
-                                    <table style="width:100%; border-collapse:collapse; font-size:11px;">
-                                        <tr>
-                                            <td style="width:20%; padding:5px;"><strong>Cliente:</strong></td
-                                            <td style="width:30%; padding:5px;">${data.ClienteNombre}</td
-                                            <td style="width:20%; padding:5px;"><strong>Documento:</strong></td
-                                            <td style="width:30%; padding:5px;">${data.ClienteDocumento || '—'}</td
-                                        </tr
-                                    </table
-                                </div>
-                                <div style="border:1px solid #000; padding:12px; margin-bottom:20px;">
-                                    <div style="font-weight:bold; font-size:12px; margin-bottom:10px; border-bottom:1px solid #000; padding-bottom:5px;">DETALLE DE LA ANULACIÓN</div>
-                                    <table style="width:100%; border-collapse:collapse; font-size:11px;">
-                                        <tr>
-                                            <td style="width:20%; padding:5px;"><strong>Concepto:</strong></td
-                                            <td style="padding:5px;">Anulación de factura por ${data.Motivo.toLowerCase()}</td
-                                        </tr
-                                        <tr>
-                                            <td style="padding:5px;"><strong>Motivo:</strong></td
-                                            <td style="padding:5px;">${data.Motivo}</td
-                                        </tr
-                                        <tr>
-                                            <td style="padding:5px;"><strong>Anulado por:</strong></td
-                                            <td style="padding:5px;">${data.UsuarioNombre}</td
-                                        </tr
-                                    </table
-                                </div>
-                                <div style="border:1px solid #000; padding:12px; margin-bottom:20px; background:#f9f9f9;">
-                                    <table style="width:100%; border-collapse:collapse; font-size:12px;">
-                                        <tr>
-                                            <td style="width:70%; text-align:right; padding:5px;"><strong>MONTO ACREDITABLE:</strong></td
-                                            <td style="width:30%; text-align:right; padding:5px; font-weight:bold; font-size:14px;">Q ${parseFloat(data.MontoTotal).toFixed(2)}</td
-                                        </tr
-                                    </table
-                                </div>
-                                <div style="margin-top:20px; padding-top:10px; border-top:1px solid #ccc; font-size:9px; color:#555; text-align:center;">
-                                    <div>Este documento es una Nota de Crédito válida para efectos fiscales según la legislación vigente.</div>
-                                    <div>Documento generado electrónicamente por La Media Cancha Asadera.</div>
-                                    <div style="margin-top:15px;">_________________________</div>
-                                    <div>Firma y sello de la empresa</div>
-                                </div>
-                                <div style="margin-top:15px; font-size:8px; color:#999; text-align:center;">
-                                    Estado: <span style="color:#27AE60;">${data.Estado}</span>
-                                </div>
-                            </div>
-                        `;
-                        $('#notaCreditoBody').html(html);
-                        $('#modalNotaCredito').css('display', 'flex');
-                    } else {
-                        Swal.fire('Error', data.message, 'error');
-                    }
-                },
-                error: function() {
-                    Swal.fire('Error', 'Error al cargar la Nota de Crédito', 'error');
-                }
-            });
-        }
-
-        function cerrarModalNota() { $('#modalNotaCredito').hide(); }
-
-        function imprimirNotaCredito() {
-            var content = $('#notaCreditoBody').html();
-            var w = window.open('', '_blank');
-            w.document.write(`
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <title>Nota de Crédito</title>
-                    <meta charset="utf-8" />
-                    <style>
-                        * { margin: 0; padding: 0; box-sizing: border-box; }
-                        body { font-family: 'Times New Roman', Arial, serif; padding: 40px; background: white; }
-                        @@media print { body { padding: 20px; } }
-                        .nota-container { max-width: 750px; margin: 0 auto; }
-                        table { width: 100%; border-collapse: collapse; }
-                        td { padding: 5px; }
-                    </style>
-                </head>
-                <body>
-                    <div class="nota-container">${content}</div>
-                    <script>
-                        window.onload = function() { window.print(); setTimeout(function() { window.close(); }, 1000); }
-                    <\/script>
-                </body>
-                </html>
-            `);
-            w.document.close();
-        }
-
-        $(document).ready(function() {
+        $(document).ready(function () {
             $('#btnBuscar').click(buscarFacturas);
-
-            $('#btnLimpiar').click(function() {
+            $('#btnLimpiar').click(function () {
                 limpiarFiltros();
-                var tbody = tabActivo === 'ventas' ? '#tbodyVentas' : '#tbodyCompras';
-                var msg = tabActivo === 'ventas'
-                    ? 'Use los filtros para buscar facturas de ventas'
-                    : 'Use los filtros para buscar facturas de compras';
-                $(tbody).html('<tr><td colspan="8" class="text-center"><i class="fas fa-info-circle"></i> ' + msg + '</td</tr');
+                buscarFacturas();
             });
 
-            $('#cancelarAnularBtn').click(cerrarModalAnular);
-            $('#cerrarNotaFooterBtn').click(cerrarModalNota);
-            $('#cancelarNCBtn').click(cerrarModalNCProveedor);
+            $('#cancelarAnularBtn, #cancelarNCBtn, #cerrarNotaFooterBtn').click(function () {
+                cerrarModalAnular();
+                cerrarModalNota();
+                cerrarModalNCProveedor();
+            });
 
-            $('#modalAnularFactura').click(function(e) { if (e.target === this) cerrarModalAnular(); });
-            $('#modalNotaCredito').click(function(e) { if (e.target === this) cerrarModalNota(); });
-            $('#modalNCProveedor').click(function(e) { if (e.target === this) cerrarModalNCProveedor(); });
+            $('#modalAnularFactura, #modalNotaCredito, #modalNCProveedor').click(function (e) {
+                if (e.target === this) $(this).hide();
+            });
 
-            $('#btnConfirmarAnular').click(function() {
+            $('#btnConfirmarAnular').click(function () {
                 var facturaId = $('#anularFacturaId').val();
                 var motivo = $('#cmbMotivoAnulacion').val();
-                var tipo = $('#anularTipoFactura').val();
 
                 if (!motivo) {
                     Swal.fire('Atención', 'Seleccione un motivo de anulación', 'warning');
                     return;
                 }
 
-                var url = tipo === 'venta'
-                    ? '@Url.Action("AnularVenta", "Factura")'
-                    : '@Url.Action("Anular", "Factura")';
+                Swal.fire({
+                    title: 'Procesando...',
+                    text: 'Anulando factura',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
 
                 $.ajax({
-                    url: url,
+                    url: '@Url.Action("AnularVenta", "Factura")',
                     type: 'POST',
-                    data: { FacturaId: facturaId, MotivoAnulacion: motivo },
-                    success: function(response) {
+                    data: { facturaId: facturaId, motivoAnulacion: motivo },
+                    success: function (response) {
                         if (response.success) {
-                            Swal.fire('Éxito', response.message, 'success').then(function() {
+                            Swal.fire('Éxito', response.message, 'success').then(function () {
                                 cerrarModalAnular();
                                 buscarFacturas();
                             });
@@ -792,88 +386,408 @@
                             Swal.fire('Error', response.message, 'error');
                         }
                     },
-                    error: function() {
+                    error: function () {
                         Swal.fire('Error', 'Error al anular la factura', 'error');
                     }
                 });
             });
 
-            $('#btnImprimirNota').click(imprimirNotaCredito);
-
-            $('#txtNumeroFactura, #txtNumeroDocumento').keypress(function(e) {
-                if (e.which === 13) buscarFacturas();
-            });
-
-            // Guardar NC del Proveedor
-            $('#guardarNCBtn').click(function() {
-                var compraId = $('#ncProveedorCompraId').val();
-                var numeroNC = $('#ncNumeroNC').val().trim();
+            $('#guardarNCBtn').click(function () {
+                var facturaId = $('#ncProveedorCompraId').val();
+                var numeroNC = $.trim($('#ncNumeroNC').val());
                 var fecha = $('#ncFechaEmision').val();
                 var monto = $('#ncMontoTotal').val();
                 var motivo = $('#ncMotivo').val();
 
-                if (!numeroNC || !fecha || !monto || !motivo) {
-                    Swal.fire('Atención', 'Complete todos los campos obligatorios', 'warning');
-                    return;
-                }
+                if (!facturaId) { Swal.fire('Atención', 'Error: FacturaId no encontrado', 'warning'); return; }
+                if (!numeroNC) { Swal.fire('Atención', 'Ingrese el número de NC', 'warning'); return; }
+                if (!fecha) { Swal.fire('Atención', 'Seleccione la fecha', 'warning'); return; }
+                if (!monto || parseFloat(monto) <= 0) { Swal.fire('Atención', 'Ingrese un monto válido', 'warning'); return; }
+                if (!motivo) { Swal.fire('Atención', 'Seleccione un motivo', 'warning'); return; }
 
-                if (parseFloat(monto) <= 0) {
-                    Swal.fire('Atención', 'El monto debe ser mayor a 0', 'warning');
-                    return;
-                }
+                $('#modalNCProveedor').hide();
 
                 Swal.fire({
                     title: 'Confirmar registro',
-                    html: `<strong>NC:</strong> ${numeroNC}<br><strong>Monto:</strong> Q ${parseFloat(monto).toFixed(2)}<br><br>
-                           <span style="color:#E74C3C;"><i class="fas fa-exclamation-triangle"></i> El stock será restado automáticamente</span>`,
+                    html: '<strong>NC:</strong> ' + numeroNC + '<br><strong>Monto:</strong> Q ' + parseFloat(monto).toFixed(2),
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonText: 'Sí, registrar',
                     cancelButtonText: 'Cancelar'
                 }).then((result) => {
-                    if (result.isConfirmed) {
-                        $('#guardarNCBtn').html('<i class="fas fa-spinner fa-spin"></i> Registrando...');
-                        $('#guardarNCBtn').prop('disabled', true);
-
-                        var formData = new FormData();
-                        formData.append('CompraId', compraId);
-                        formData.append('NumeroNCProveedor', numeroNC);
-                        formData.append('FechaEmision', fecha);
-                        formData.append('MontoTotal', monto);
-                        formData.append('Motivo', motivo);
-
-                        var archivo = document.getElementById('ncArchivo');
-                        if (archivo.files.length > 0) {
-                            formData.append('archivo', archivo.files[0]);
-                        }
-
-                        $.ajax({
-                            url: '@Url.Action("RegistrarNCProveedor", "Factura")',
-                            type: 'POST',
-                            data: formData,
-                            processData: false,
-                            contentType: false,
-                            success: function(response) {
-                                if (response.success) {
-                                    Swal.fire('Éxito', response.message, 'success').then(function() {
-                                        cerrarModalNCProveedor();
-                                        buscarFacturas();
-                                    });
-                                } else {
-                                    Swal.fire('Error', response.message, 'error');
-                                    $('#guardarNCBtn').html('Registrar NC');
-                                    $('#guardarNCBtn').prop('disabled', false);
-                                }
-                            },
-                            error: function() {
-                                Swal.fire('Error', 'Error al registrar la NC', 'error');
-                                $('#guardarNCBtn').html('Registrar NC');
-                                $('#guardarNCBtn').prop('disabled', false);
-                            }
-                        });
+                    if (!result.isConfirmed) {
+                        $('#modalNCProveedor').css('display', 'flex');
+                        return;
                     }
+
+                    Swal.fire({ title: 'Registrando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+                    var formData = new FormData();
+                    formData.append('CompraId', facturaId);
+                    formData.append('NumeroNCProveedor', numeroNC);
+                    formData.append('FechaEmision', fecha);
+                    formData.append('MontoTotal', monto);
+                    formData.append('Motivo', motivo);
+
+                    var archivo = document.getElementById('ncArchivo');
+                    if (archivo && archivo.files.length > 0) formData.append('archivo', archivo.files[0]);
+
+                    $.ajax({
+                        url: '@Url.Action("RegistrarNCProveedor", "Factura")',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function (response) {
+                            if (response.success) {
+                                Swal.fire('Éxito', response.message, 'success').then(function () { buscarFacturas(); });
+                            } else {
+                                Swal.fire('Error', response.message, 'error').then(function () { $('#modalNCProveedor').css('display', 'flex'); });
+                            }
+                        },
+                        error: function () {
+                            Swal.fire('Error', 'Error al registrar la NC', 'error').then(function () { $('#modalNCProveedor').css('display', 'flex'); });
+                        }
+                    });
                 });
+            });
+
+            $('#txtNumeroFactura, #txtNumeroDocumento').keypress(function (e) {
+                if (e.which === 13) buscarFacturas();
             });
         });
     </script>
 }
+
+<style>
+    .card-custom {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+
+    .card-custom-full {
+        max-width: 100% !important;
+    }
+
+    .card-header-custom {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #c95a00 0%, #a04700 100%) !important;
+    }
+
+    .tabs-container {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #e9ecef;
+    }
+
+    .tab-btn {
+        background: #f8f9fa;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 10px 10px 0 0;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+
+        .tab-btn.active {
+            background: white;
+            color: #c95a00;
+            border-bottom: 2px solid #c95a00;
+        }
+
+    .filtros-busqueda {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 20px;
+    }
+
+    .indicador-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 16px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .indicador-ventas {
+        background: #e8f5e9;
+        color: #27AE60;
+        border: 1px solid #a5d6a7;
+    }
+
+    .indicador-compras {
+        background: #fff3e0;
+        color: #E67E22;
+        border: 1px solid #ffcc80;
+    }
+
+    /* =========================
+       TABLA
+    ========================= */
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .table {
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    .table-dark th {
+        background-color: #2c3e30;
+        color: white;
+        font-weight: 600;
+        font-size: 0.76rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 12px 10px;
+        vertical-align: middle;
+    }
+
+    .table td {
+        vertical-align: middle;
+        padding: 12px 10px;
+        font-size: 0.82rem;
+        word-wrap: break-word;
+    }
+
+        /* =========================
+       ANCHOS COLUMNAS
+    ========================= */
+
+        .table th:nth-child(1),
+        .table td:nth-child(1) {
+            width: 120px;
+        }
+
+        .table th:nth-child(2),
+        .table td:nth-child(2) {
+            width: 190px;
+        }
+
+        .table th:nth-child(3),
+        .table td:nth-child(3) {
+            width: 230px;
+        }
+
+        .table th:nth-child(4),
+        .table td:nth-child(4) {
+            width: 140px;
+        }
+
+        .table th:nth-child(5),
+        .table td:nth-child(5) {
+            width: 100px;
+        }
+
+        .table th:nth-child(6),
+        .table td:nth-child(6) {
+            width: 120px;
+            text-align: center;
+        }
+
+        .table th:nth-child(7),
+        .table td:nth-child(7) {
+            width: 170px;
+            text-align: center;
+        }
+
+        .table th:nth-child(8),
+        .table td:nth-child(8) {
+            width: 260px;
+            text-align: center;
+        }
+
+    /* =========================
+       BOTONES ACCIONES
+    ========================= */
+
+    .acciones-btns {
+        display: flex;
+        flex-wrap: nowrap;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-ver,
+    .btn-imprimir,
+    .btn-anular,
+    .btn-nc {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        border: none;
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 0.68rem;
+        font-weight: 600;
+        text-decoration: none !important;
+        white-space: nowrap;
+        transition: all 0.2s ease;
+        min-width: 72px;
+        height: 32px;
+    }
+
+    .btn-ver {
+        background: #17a2b8;
+        color: white !important;
+    }
+
+        .btn-ver:hover {
+            background: #138496;
+            color: white !important;
+            transform: translateY(-1px);
+        }
+
+    .btn-imprimir {
+        background: #27AE60;
+        color: white !important;
+    }
+
+        .btn-imprimir:hover {
+            background: #1e8449;
+            color: white !important;
+            transform: translateY(-1px);
+        }
+
+    .btn-anular {
+        background: #dc3545;
+        color: white !important;
+    }
+
+        .btn-anular:hover {
+            background: #c82333;
+            color: white !important;
+            transform: translateY(-1px);
+        }
+
+    .btn-nc {
+        background: linear-gradient(135deg, #1565C0, #0d47a1);
+        color: white !important;
+    }
+
+        .btn-nc:hover {
+            background: linear-gradient(135deg, #0d47a1, #082d6e);
+            color: white !important;
+            transform: translateY(-1px);
+        }
+
+    /* =========================
+       BADGES
+    ========================= */
+
+    .badge-vigente {
+        background: linear-gradient(135deg, #27AE60, #1e8449);
+        color: white;
+        padding: 5px 14px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-anulada {
+        background: linear-gradient(135deg, #dc3545, #c82333);
+        color: white;
+        padding: 5px 14px;
+        border-radius: 20px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-nc {
+        display: inline-block;
+        background: linear-gradient(135deg, #1565C0, #0d47a1);
+        color: white;
+        padding: 5px 12px;
+        border-radius: 20px;
+        font-size: 0.68rem;
+        font-weight: 700;
+        max-width: 150px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .badge-nc-vacio {
+        color: #adb5bd;
+        font-size: 0.8rem;
+    }
+
+    /* =========================
+       BOTONES GENERALES
+    ========================= */
+
+    .btn-success {
+        background: #27AE60;
+        border: none;
+    }
+
+        .btn-success:hover {
+            background: #1e8449;
+            transform: translateY(-1px);
+        }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #c95a00, #a04700);
+        border: none;
+    }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #a04700, #8b3a00);
+            transform: translateY(-1px);
+        }
+
+    .form-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+        color: #555;
+    }
+
+    /* =========================
+       RESPONSIVE
+    ========================= */
+
+    @@media (max-width: 768px) {
+
+        .table {
+            min-width: 1200px;
+        }
+
+        .acciones-btns {
+            flex-wrap: wrap;
+        }
+
+        .btn-ver,
+        .btn-imprimir,
+        .btn-anular,
+        .btn-nc {
+            min-width: 65px;
+            font-size: 0.62rem;
+            padding: 5px 8px;
+            height: 30px;
+        }
+
+        .tab-btn {
+            padding: 8px 15px;
+            font-size: 0.8rem;
+        }
+
+        .filtros-busqueda {
+            padding: 15px;
+        }
+    }
+</style>

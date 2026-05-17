@@ -78,7 +78,6 @@ namespace LaMediaCancha.Services
         public void ActualizarEstadoMesa(int mesaId, string estado, SqlConnection conn = null, SqlTransaction transaction = null)
         {
             string query = "UPDATE Mesa SET Estado = @Estado WHERE MesaId = @MesaId";
-
             Action<SqlConnection, SqlTransaction> action = (connection, transactionParam) =>
             {
                 using (var cmd = new SqlCommand(query, connection, transactionParam))
@@ -216,16 +215,27 @@ namespace LaMediaCancha.Services
         }
 
         // ==================== OFERTAS ====================
-        public List<Oferta> ObtenerOfertasActivas()
+        public List<OfertaViewModel> ObtenerOfertasActivas()
         {
-            var ofertas = new List<Oferta>();
+            var ofertas = new List<OfertaViewModel>();
             string query = @"
-                SELECT OfertaId, Nombre, Descripcion, ProductoId, 
-                       (SELECT Nombre FROM Producto WHERE ProductoId = O.ProductoId) AS ProductoNombre,
-                       DescuentoPorcentaje, FechaInicio, FechaFin
-                FROM Oferta O
-                WHERE Activo = 1 
-                AND GETDATE() BETWEEN FechaInicio AND FechaFin";
+                SELECT 
+                    o.OfertaId, 
+                    o.Nombre, 
+                    o.Descripcion, 
+                    o.ProductoId, 
+                    p.Nombre AS ProductoNombre,
+                    p.PrecioVenta AS PrecioOriginal,
+                    o.DescuentoPorcentaje,
+                    (p.PrecioVenta - (p.PrecioVenta * o.DescuentoPorcentaje / 100)) AS PrecioOferta,
+                    o.FechaInicio, 
+                    o.FechaFin,
+                    DATEDIFF(DAY, GETDATE(), o.FechaFin) AS DiasRestantes
+                FROM Oferta o
+                INNER JOIN Producto p ON o.ProductoId = p.ProductoId
+                WHERE o.Activo = 1 
+                AND GETDATE() BETWEEN o.FechaInicio AND o.FechaFin
+                ORDER BY o.FechaFin ASC";
 
             using (var conn = new SqlConnection(_connectionString))
             using (var cmd = new SqlCommand(query, conn))
@@ -235,16 +245,19 @@ namespace LaMediaCancha.Services
                 {
                     while (reader.Read())
                     {
-                        ofertas.Add(new Oferta
+                        ofertas.Add(new OfertaViewModel
                         {
                             OfertaId = (int)reader["OfertaId"],
                             Nombre = reader["Nombre"].ToString(),
                             Descripcion = reader["Descripcion"]?.ToString(),
                             ProductoId = (int)reader["ProductoId"],
                             ProductoNombre = reader["ProductoNombre"].ToString(),
+                            PrecioOriginal = (decimal)reader["PrecioOriginal"],
+                            PrecioOferta = (decimal)reader["PrecioOferta"],
                             DescuentoPorcentaje = (decimal)reader["DescuentoPorcentaje"],
                             FechaInicio = (DateTime)reader["FechaInicio"],
-                            FechaFin = (DateTime)reader["FechaFin"]
+                            FechaFin = (DateTime)reader["FechaFin"],
+                            DiasRestantes = reader["DiasRestantes"] != DBNull.Value ? (int)reader["DiasRestantes"] : 0
                         });
                     }
                 }
@@ -399,23 +412,16 @@ namespace LaMediaCancha.Services
                         }
 
                         string updateOrden = @"
-                    UPDATE Orden 
-                    SET Estado = 'Cerrada', FechaCierre = GETDATE() 
-                    WHERE OrdenId = @OrdenId";
+                            UPDATE Orden 
+                            SET Estado = 'Cerrada', FechaCierre = GETDATE() 
+                            WHERE OrdenId = @OrdenId";
                         using (var cmd = new SqlCommand(updateOrden, conn, transaction))
                         {
                             cmd.Parameters.AddWithValue("@OrdenId", ordenId);
                             cmd.ExecuteNonQuery();
                         }
 
-                        // Actualizar estado de la mesa a Disponible
-                        string updateMesa = "UPDATE Mesa SET Estado = 'Disponible' WHERE MesaId = @MesaId";
-                        using (var cmd = new SqlCommand(updateMesa, conn, transaction))
-                        {
-                            cmd.Parameters.AddWithValue("@MesaId", mesaId);
-                            cmd.ExecuteNonQuery();
-                        }
-
+                        ActualizarEstadoMesa(mesaId, "Disponible", conn, transaction);
                         transaction.Commit();
                     }
                     catch
@@ -445,28 +451,31 @@ namespace LaMediaCancha.Services
             }
         }
 
-        public void AgregarDetalleOrdenPersona(int ordenPersonaId, DetalleOrden detalle)
+        public void AgregarDetalleOrdenPersona(int ordenPersonaId, OrdenModels.DetalleOrden detalle)
         {
             string query = @"
-                INSERT INTO DetalleOrdenPersona (OrdenPersonaId, ProductoId, ProductoNombre, 
-                                                Cantidad, PrecioUnitario, Subtotal, EsDeCombo, ComboId, Nota)
-                VALUES (@OrdenPersonaId, @ProductoId, @ProductoNombre, 
-                        @Cantidad, @PrecioUnitario, @Subtotal, @EsDeCombo, @ComboId, @Nota)";
+        INSERT INTO DetalleOrdenPersona (OrdenPersonaId, ProductoId, ProductoNombre, 
+                                        Cantidad, PrecioUnitario, Subtotal, EsDeCombo, ComboId, Nota)
+        VALUES (@OrdenPersonaId, @ProductoId, @ProductoNombre, 
+                @Cantidad, @PrecioUnitario, @Subtotal, @EsDeCombo, @ComboId, @Nota)";
 
             using (var conn = new SqlConnection(_connectionString))
             using (var cmd = new SqlCommand(query, conn))
             {
                 cmd.Parameters.AddWithValue("@OrdenPersonaId", ordenPersonaId);
                 cmd.Parameters.AddWithValue("@ProductoId", detalle.ProductoId);
-                cmd.Parameters.AddWithValue("@ProductoNombre", detalle.ProductoNombre);
+                cmd.Parameters.AddWithValue("@ProductoNombre", detalle.ProductoNombre ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@Cantidad", detalle.Cantidad);
                 cmd.Parameters.AddWithValue("@PrecioUnitario", detalle.PrecioUnitario);
                 cmd.Parameters.AddWithValue("@Subtotal", detalle.Subtotal);
                 cmd.Parameters.AddWithValue("@EsDeCombo", detalle.EsDeCombo);
                 cmd.Parameters.AddWithValue("@ComboId", detalle.ComboId ?? (object)DBNull.Value);
                 cmd.Parameters.AddWithValue("@Nota", detalle.Nota ?? (object)DBNull.Value);
+
                 conn.Open();
-                cmd.ExecuteNonQuery();
+                int rowsAffected = cmd.ExecuteNonQuery();
+
+                System.Diagnostics.Debug.WriteLine($"Agregado detalle - PersonaId: {ordenPersonaId}, Producto: {detalle.ProductoNombre}, Subtotal: {detalle.Subtotal}, Filas: {rowsAffected}");
             }
         }
 
@@ -517,14 +526,13 @@ namespace LaMediaCancha.Services
             return cuentas;
         }
 
-        // Método único para obtener detalles de OrdenPersona (sin duplicados)
-        private List<DetalleOrdenPersona> ObtenerDetallesPorOrdenPersona(int ordenPersonaId)
+        private List<OrdenModels.DetalleOrdenPersona> ObtenerDetallesPorOrdenPersona(int ordenPersonaId)
         {
-            var detalles = new List<DetalleOrdenPersona>();
+            var detalles = new List<OrdenModels.DetalleOrdenPersona>();
             string query = @"
-                SELECT ProductoId, ProductoNombre, Cantidad, PrecioUnitario, Subtotal, EsDeCombo, ComboId, Nota
-                FROM DetalleOrdenPersona
-                WHERE OrdenPersonaId = @OrdenPersonaId";
+        SELECT ProductoId, ProductoNombre, Cantidad, PrecioUnitario, Subtotal, EsDeCombo, ComboId, Nota
+        FROM DetalleOrdenPersona
+        WHERE OrdenPersonaId = @OrdenPersonaId";
 
             using (var conn = new SqlConnection(_connectionString))
             using (var cmd = new SqlCommand(query, conn))
@@ -535,7 +543,7 @@ namespace LaMediaCancha.Services
                 {
                     while (reader.Read())
                     {
-                        detalles.Add(new DetalleOrdenPersona
+                        detalles.Add(new OrdenModels.DetalleOrdenPersona
                         {
                             ProductoId = (int)reader["ProductoId"],
                             ProductoNombre = reader["ProductoNombre"]?.ToString(),
@@ -555,155 +563,230 @@ namespace LaMediaCancha.Services
         // ==================== TICKETS ====================
         public TicketViewModel GenerarTicket(int ordenId, int? ordenPersonaId = null)
         {
-            var ticket = new TicketViewModel();
-
-            string query = @"
-                SELECT o.OrdenId, o.NumeroOrden, o.MesaId, m.NumeroMesa, o.ClienteNombre, o.FechaApertura as Fecha,
-                       o.Subtotal, o.Impuesto, o.Total
-                FROM Orden o
-                INNER JOIN Mesa m ON o.MesaId = m.MesaId
-                WHERE o.OrdenId = @OrdenId";
-
-            using (var conn = new SqlConnection(_connectionString))
-            using (var cmd = new SqlCommand(query, conn))
+            var ticket = new TicketViewModel
             {
-                cmd.Parameters.AddWithValue("@OrdenId", ordenId);
-                conn.Open();
-                using (var reader = cmd.ExecuteReader())
+                Detalles = new List<TicketDetalleViewModel>()
+            };
+
+            try
+            {
+                using (var conn = new SqlConnection(_connectionString))
                 {
-                    if (reader.Read())
+                    conn.Open();
+
+                    if (ordenPersonaId.HasValue && ordenPersonaId.Value > 0)
                     {
-                        ticket.OrdenId = (int)reader["OrdenId"];
-                        ticket.NumeroOrden = reader["NumeroOrden"].ToString();
-                        ticket.MesaId = (int)reader["MesaId"];
-                        ticket.NumeroMesa = (int)reader["NumeroMesa"];
-                        ticket.ClienteNombre = reader["ClienteNombre"]?.ToString();
-                        ticket.Fecha = (DateTime)reader["Fecha"];
-                        ticket.Subtotal = (decimal)reader["Subtotal"];
-                        ticket.Impuesto = (decimal)reader["Impuesto"];
-                        ticket.Total = (decimal)reader["Total"];
+                        // ========== CUENTA SEPARADA ==========
+                        ticket.EsCuentaSeparada = true;
+
+                        // Obtener datos de la persona y orden
+                        string queryPersona = @"
+                    SELECT 
+                        op.NombreCliente,
+                        op.Subtotal,
+                        op.Impuesto,
+                        op.Total,
+                        o.NumeroOrden,
+                        o.MesaId,
+                        o.ClienteNombre,
+                        o.FechaApertura as Fecha,
+                        m.NumeroMesa
+                    FROM OrdenPersona op
+                    INNER JOIN Orden o ON op.OrdenId = o.OrdenId
+                    INNER JOIN Mesa m ON o.MesaId = m.MesaId
+                    WHERE op.OrdenPersonaId = @OrdenPersonaId";
+
+                        using (var cmd = new SqlCommand(queryPersona, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@OrdenPersonaId", ordenPersonaId.Value);
+                            using (var reader = cmd.ExecuteReader())
+                            {
+                                if (reader.Read())
+                                {
+                                    ticket.OrdenId = ordenId;
+                                    ticket.NumeroOrden = reader["NumeroOrden"]?.ToString() ?? "";
+                                    ticket.MesaId = (int)reader["MesaId"];
+                                    ticket.NumeroMesa = (int)reader["NumeroMesa"];
+                                    ticket.ClienteNombre = reader["ClienteNombre"]?.ToString() ?? "";
+                                    ticket.Fecha = (DateTime)reader["Fecha"];
+                                    ticket.NombrePersona = reader["NombreCliente"]?.ToString() ?? "";
+                                    ticket.Subtotal = (decimal)reader["Subtotal"];
+                                    ticket.Impuesto = (decimal)reader["Impuesto"];
+                                    ticket.Total = (decimal)reader["Total"];
+                                }
+                            }
+                        }
+
+                        // Obtener detalles de la persona
+                        string queryDetalles = @"
+                    SELECT 
+                        ProductoNombre,
+                        Cantidad,
+                        PrecioUnitario,
+                        Subtotal,
+                        Nota,
+                        EsDeCombo,
+                        ComboId
+                    FROM DetalleOrdenPersona
+                    WHERE OrdenPersonaId = @OrdenPersonaId
+                    ORDER BY DetalleOrdenPersonaId ASC";
+
+                        using (var cmd = new SqlCommand(queryDetalles, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@OrdenPersonaId", ordenPersonaId.Value);
+                            using (var reader = cmd.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    ticket.Detalles.Add(new TicketDetalleViewModel
+                                    {
+                                        ProductoNombre = reader["ProductoNombre"]?.ToString() ?? "Producto",
+                                        Cantidad = Convert.ToInt32(reader["Cantidad"]),
+                                        PrecioUnitario = (decimal)reader["PrecioUnitario"],
+                                        Subtotal = (decimal)reader["Subtotal"],
+                                        Nota = reader["Nota"]?.ToString(),
+                                        EsDeCombo = (bool)reader["EsDeCombo"],
+                                        ComboNombre = null
+                                    });
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // ========== ORDEN NORMAL ==========
+                        ticket.EsCuentaSeparada = false;
+
+                        string queryOrden = @"
+                    SELECT 
+                        o.NumeroOrden,
+                        o.MesaId,
+                        o.ClienteNombre,
+                        o.FechaApertura as Fecha,
+                        o.Subtotal,
+                        o.Impuesto,
+                        o.Total,
+                        m.NumeroMesa
+                    FROM Orden o
+                    INNER JOIN Mesa m ON o.MesaId = m.MesaId
+                    WHERE o.OrdenId = @OrdenId";
+
+                        using (var cmd = new SqlCommand(queryOrden, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@OrdenId", ordenId);
+                            using (var reader = cmd.ExecuteReader())
+                            {
+                                if (reader.Read())
+                                {
+                                    ticket.OrdenId = ordenId;
+                                    ticket.NumeroOrden = reader["NumeroOrden"]?.ToString() ?? "";
+                                    ticket.MesaId = (int)reader["MesaId"];
+                                    ticket.NumeroMesa = (int)reader["NumeroMesa"];
+                                    ticket.ClienteNombre = reader["ClienteNombre"]?.ToString() ?? "";
+                                    ticket.Fecha = (DateTime)reader["Fecha"];
+                                    ticket.Subtotal = (decimal)reader["Subtotal"];
+                                    ticket.Impuesto = (decimal)reader["Impuesto"];
+                                    ticket.Total = (decimal)reader["Total"];
+                                }
+                            }
+                        }
+
+                        string queryDetalles = @"
+                    SELECT 
+                        ProductoNombre,
+                        Cantidad,
+                        PrecioUnitario,
+                        Subtotal,
+                        Nota,
+                        EsDeCombo,
+                        ComboId
+                    FROM DetalleOrden
+                    WHERE OrdenId = @OrdenId
+                    ORDER BY DetalleOrdenId ASC";
+
+                        using (var cmd = new SqlCommand(queryDetalles, conn))
+                        {
+                            cmd.Parameters.AddWithValue("@OrdenId", ordenId);
+                            using (var reader = cmd.ExecuteReader())
+                            {
+                                while (reader.Read())
+                                {
+                                    ticket.Detalles.Add(new TicketDetalleViewModel
+                                    {
+                                        ProductoNombre = reader["ProductoNombre"]?.ToString() ?? "Producto",
+                                        Cantidad = Convert.ToInt32(reader["Cantidad"]),
+                                        PrecioUnitario = (decimal)reader["PrecioUnitario"],
+                                        Subtotal = (decimal)reader["Subtotal"],
+                                        Nota = reader["Nota"]?.ToString(),
+                                        EsDeCombo = (bool)reader["EsDeCombo"],
+                                        ComboNombre = null
+                                    });
+                                }
+                            }
+                        }
                     }
                 }
             }
-
-            if (ordenPersonaId.HasValue)
+            catch (Exception ex)
             {
-                ticket.EsCuentaSeparada = true;
-                ticket.Detalles = ObtenerDetallesTicketPorPersona(ordenPersonaId.Value);
-
-                string queryPersona = "SELECT NombreCliente FROM OrdenPersona WHERE OrdenPersonaId = @OrdenPersonaId";
-                using (var conn = new SqlConnection(_connectionString))
-                using (var cmd = new SqlCommand(queryPersona, conn))
-                {
-                    cmd.Parameters.AddWithValue("@OrdenPersonaId", ordenPersonaId.Value);
-                    conn.Open();
-                    ticket.NombrePersona = cmd.ExecuteScalar()?.ToString();
-                }
-            }
-            else
-            {
-                ticket.EsCuentaSeparada = false;
-                ticket.Detalles = ObtenerDetallesTicketPorOrden(ordenId);
+                System.Diagnostics.Debug.WriteLine($"Error en GenerarTicket: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"StackTrace: {ex.StackTrace}");
             }
 
             return ticket;
         }
 
-        private List<TicketDetalleViewModel> ObtenerDetallesTicketPorOrden(int ordenId)
-        {
-            var detalles = new List<TicketDetalleViewModel>();
-            string query = @"
-                SELECT ProductoNombre, Cantidad, PrecioUnitario, Subtotal, Nota, EsDeCombo, ComboId
-                FROM DetalleOrden
-                WHERE OrdenId = @OrdenId";
 
-            using (var conn = new SqlConnection(_connectionString))
-            using (var cmd = new SqlCommand(query, conn))
-            {
-                cmd.Parameters.AddWithValue("@OrdenId", ordenId);
-                conn.Open();
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        string comboNombre = null;
-                        if (reader["ComboId"] != DBNull.Value && reader["ComboId"] != null)
-                        {
-                            comboNombre = ObtenerNombreCombo((int)reader["ComboId"]);
-                        }
-
-                        detalles.Add(new TicketDetalleViewModel
-                        {
-                            ProductoNombre = reader["ProductoNombre"]?.ToString() ?? "Producto",
-                            Cantidad = (decimal)reader["Cantidad"],
-                            PrecioUnitario = (decimal)reader["PrecioUnitario"],
-                            Subtotal = (decimal)reader["Subtotal"],
-                            Nota = reader["Nota"]?.ToString(),
-                            EsDeCombo = (bool)reader["EsDeCombo"],
-                            ComboNombre = comboNombre
-                        });
-                    }
-                }
-            }
-            return detalles;
-        }
-
-        private List<TicketDetalleViewModel> ObtenerDetallesTicketPorPersona(int ordenPersonaId)
-        {
-            var detalles = new List<TicketDetalleViewModel>();
-            string query = @"
-                SELECT ProductoNombre, Cantidad, PrecioUnitario, Subtotal, Nota, EsDeCombo, ComboId
-                FROM DetalleOrdenPersona
-                WHERE OrdenPersonaId = @OrdenPersonaId";
-
-            using (var conn = new SqlConnection(_connectionString))
-            using (var cmd = new SqlCommand(query, conn))
-            {
-                cmd.Parameters.AddWithValue("@OrdenPersonaId", ordenPersonaId);
-                conn.Open();
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        string comboNombre = null;
-                        if (reader["ComboId"] != DBNull.Value && reader["ComboId"] != null)
-                        {
-                            comboNombre = ObtenerNombreCombo((int)reader["ComboId"]);
-                        }
-
-                        detalles.Add(new TicketDetalleViewModel
-                        {
-                            ProductoNombre = reader["ProductoNombre"]?.ToString() ?? "Producto",
-                            Cantidad = (decimal)reader["Cantidad"],
-                            PrecioUnitario = (decimal)reader["PrecioUnitario"],
-                            Subtotal = (decimal)reader["Subtotal"],
-                            Nota = reader["Nota"]?.ToString(),
-                            EsDeCombo = (bool)reader["EsDeCombo"],
-                            ComboNombre = comboNombre
-                        });
-                    }
-                }
-            }
-            return detalles;
-        }
-
-        private string ObtenerNombreCombo(int comboId)
-        {
-            string query = "SELECT Nombre FROM Combo WHERE ComboId = @ComboId";
-            using (var conn = new SqlConnection(_connectionString))
-            using (var cmd = new SqlCommand(query, conn))
-            {
-                cmd.Parameters.AddWithValue("@ComboId", comboId);
-                conn.Open();
-                var result = cmd.ExecuteScalar();
-                return result?.ToString();
-            }
-        }
 
         // ==================== MÉTODOS DE UTILIDAD ====================
         public string GenerarNumeroOrden()
         {
             return $"ORD-{DateTime.Now:yyyyMMddHHmmss}";
+        }
+
+        public List<VentaModels.LoteDisponible> ObtenerLotesPorProducto(int productoId)
+        {
+            string query = @"
+                SELECT 
+                    l.LoteId,
+                    ISNULL(l.NumeroLoteInterno, '') AS NumeroLote,
+                    ISNULL(l.CantidadActual, 0) AS Cantidad,
+                    ISNULL(l.PrecioUnitario, 0) AS PrecioUnitario,
+                    l.FechaIngreso,
+                    l.FechaVencimiento
+                FROM Lote l
+                WHERE l.ProductoId = @ProductoId
+                  AND l.Activo = 1
+                  AND l.Estado = 'Activo'
+                  AND l.CantidadActual > 0
+                ORDER BY l.FechaIngreso ASC";
+
+            var lotes = new List<VentaModels.LoteDisponible>();
+
+            using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand(query, conn))
+            {
+                cmd.Parameters.AddWithValue("@ProductoId", productoId);
+                conn.Open();
+
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        lotes.Add(new VentaModels.LoteDisponible
+                        {
+                            LoteId = Convert.ToInt32(reader["LoteId"]),
+                            NumeroLote = reader["NumeroLote"]?.ToString()?.Trim() ?? "",
+                            Cantidad = reader["Cantidad"] != DBNull.Value ? Convert.ToDecimal(reader["Cantidad"]) : 0,
+                            PrecioUnitario = reader["PrecioUnitario"] != DBNull.Value ? Convert.ToDecimal(reader["PrecioUnitario"]) : 0,
+                            FechaIngreso = reader["FechaIngreso"] != DBNull.Value ? Convert.ToDateTime(reader["FechaIngreso"]) : DateTime.Now,
+                            FechaVencimiento = reader["FechaVencimiento"] != DBNull.Value ? (DateTime?)reader["FechaVencimiento"] : null
+                        });
+                    }
+                }
+            }
+
+            return lotes;
         }
     }
 }
