@@ -21,17 +21,21 @@
                             <a href="@Url.Action("Index", "Home")" class="btn btn-outline-light">
                                 <i class="fas fa-arrow-left me-1"></i> Regresar
                             </a>
-                            <a href="@Url.Action("Crear")" class="btn btn-light">
+                            <a href="@Url.Action("Crear", "Producto")" class="btn btn-light">
                                 <i class="fas fa-plus-circle me-1"></i> Nueva Materia Prima
                             </a>
-                            <a href="@Url.Action("Inventario")" class="btn btn-outline-light">
+                            <a href="@Url.Action("Inventario", "Producto")" class="btn btn-outline-light">
                                 <i class="fas fa-chart-line me-1"></i> Inventario
+                            </a>
+                            <a href="@Url.Action("StockBajo", "Producto")" class="btn btn-outline-light">
+                                <i class="fas fa-exclamation-triangle me-1"></i> Alertas
                             </a>
                         </div>
                     </div>
                 </div>
 
                 <div class="card-body-custom p-4">
+
                     @if (TempData["Success"] != null)
                     {
                         <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
@@ -39,6 +43,7 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     }
+
                     @if (TempData["Error"] != null)
                     {
                         <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
@@ -47,8 +52,26 @@
                         </div>
                     }
 
+                    <!-- BUSCADOR -->
+                    <div class="buscador-container mb-4">
+                        <div class="row">
+                            <div class="col-md-8 col-lg-6">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white">
+                                        <i class="fas fa-search text-muted"></i>
+                                    </span>
+                                    <input type="text" id="buscadorProducto" class="form-control" placeholder="Buscar por código, nombre o categoría..." autocomplete="off">
+                                    <button type="button" id="btnLimpiarBusqueda" class="btn btn-outline-secondary" style="display: none;">
+                                        <i class="fas fa-times"></i> Limpiar
+                                    </button>
+                                </div>
+                                <small class="text-muted mt-1 d-block" id="contadorResultados"></small>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="table-responsive">
-                        <table class="table table-hover align-middle mb-0">
+                        <table class="table table-hover align-middle mb-0" id="tablaProductos">
                             <thead class="table-dark">
                                 <tr>
                                     <th>Código</th>
@@ -58,6 +81,8 @@
                                     <th class="text-end">Precio Compra</th>
                                     <th class="text-center">Stock Actual</th>
                                     <th class="text-center">Stock Mínimo</th>
+                                    <th class="text-center">Lotes Activos</th>
+                                    <th class="text-center">Estado Stock</th>
                                     <th class="text-center">Estado</th>
                                     <th class="text-center">Acciones</th>
                                 </tr>
@@ -65,66 +90,115 @@
                             <tbody>
                                 @foreach (var item in Model)
                                 {
+                                    var estadoStock = "";
+                                    var estadoStockBadge = "";
+
+                                    if (item.StockActual <= 0)
+                                    {
+                                        estadoStock = "AGOTADO";
+                                        estadoStockBadge = "bg-dark";
+                                    }
+                                    else if (item.StockActual <= item.StockMinimo)
+                                    {
+                                        estadoStock = "STOCK BAJO";
+                                        estadoStockBadge = "bg-danger";
+                                    }
+                                    else if (item.StockActual <= item.StockMinimo * 1.5)
+                                    {
+                                        estadoStock = "ALERTA";
+                                        estadoStockBadge = "bg-warning";
+                                    }
+                                    else
+                                    {
+                                        estadoStock = "NORMAL";
+                                        estadoStockBadge = "bg-success";
+                                    }
+
                                     <tr>
                                         <td><span class="badge bg-light text-dark">@item.Codigo</span></td>
-                                        <td class="fw-bold">@item.Nombre</td>
-                                        <td>@item.UnidadMedida</td>
-                                        <td>@item.Categoria</td>
-                                        <td class="text-end text-success fw-bold">Q @string.Format("{0:N2}", item.PrecioCompra)</td>
-                                        <td class="text-center">
-                                            @if (item.StockActual <= item.StockMinimo)
-                                            {
-                                                <span class="text-danger fw-bold">@item.StockActual</span>
-                                            }
-                                            else
-                                            {
-                                                <span>@item.StockActual</span>
-                                            }
-                                        </td>
-                                        <td class="text-center">@item.StockMinimo</td>
-                                        <td class="text-center">
-                                            @if (item.Activo)
-                                            {
-                                                <span class="badge bg-success rounded-pill px-3 py-2">
-                                                    <i class="fas fa-check-circle me-1"></i>Activo
-                                                </span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-secondary rounded-pill px-3 py-2">
-                                                    <i class="fas fa-ban me-1"></i>Inactivo
-                                                </span>
-                                            }
-                                        </td>
-                                        <td class="text-center">
-                                            <div class="d-flex justify-content-center flex-wrap gap-2">
-                                                <a href="@Url.Action("Detalle", new { id = item.ProductoCompraId })" class="btn btn-info btn-sm text-white">
-                                                    <i class="fas fa-eye me-1"></i>Ver
-                                                </a>
-                                                <a href="@Url.Action("Editar", new { id = item.ProductoCompraId })" class="btn btn-warning btn-sm text-white">
-                                                    <i class="fas fa-edit me-1"></i>Editar
-                                                </a>
-                                                <a href="@Url.Action("Lotes", new { id = item.ProductoCompraId })" class="btn btn-secondary btn-sm">
-                                                    <i class="fas fa-layer-group me-1"></i>Lotes
-                                                </a>
-                                                @if (item.Activo)
-                                                {
-                                                    <button type="button" class="btn btn-danger btn-sm" onclick="cambiarEstado(@item.ProductoCompraId, '@item.Nombre.Replace("'", "\\'")', false)">
-                                                        <i class="fas fa-toggle-off me-1"></i>Inactivar
-                                                    </button>
-                                                }
-                                                else
-                                                {
-                                                    <button type="button" class="btn btn-success btn-sm" onclick="cambiarEstado(@item.ProductoCompraId, '@item.Nombre.Replace("'", "\\'")', true)">
-                                                        <i class="fas fa-toggle-on me-1"></i>Activar
-                                                    </button>
-                                                }
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
+                                        <td class="fw-bold">
+                                            @item.Nombre
+                                    </td>
+                                    <td>
+                                        @item.UnidadMedida
+                                </td>
+                                <td>
+                                    @item.Categoria
+                            </td>
+                            <td class="text-end text-success fw-bold">Q @item.PrecioCompra.ToString("N2")
+            </td>
+            <td class="text-center stock-actual">
+                @if (item.StockActual <= item.StockMinimo)
+                {
+                    <span class="text-danger fw-bold">@item.StockActual</span>
+                }
+                else
+                {
+                    <span>@item.StockActual</span>
+                }
+            </td>
+            <td class="text-center">@item.StockMinimo
+        </td>
+        <td class="text-center">
+            <span class="badge bg-info">@item.LotesActivos</span>
+        </td>
+        <td class="text-center">
+            <span class="badge @estadoStockBadge px-3 py-2 estado-stock">
+                @estadoStock
+            </span>
+        </td>
+        <td class="text-center">
+            @if (item.Activo)
+            {
+                <span class="badge bg-success rounded-pill px-3 py-2">
+                    <i class="fas fa-check-circle me-1"></i>Activo
+                </span>
+            }
+            else
+            {
+                <span class="badge bg-secondary rounded-pill px-3 py-2">
+                    <i class="fas fa-ban me-1"></i>Inactivo
+                </span>
+            }
+        </td>
+        <td class="text-center">
+            <div class="d-flex justify-content-center flex-wrap gap-2">
+                <a href="@Url.Action("Detalle", "Producto", new { id = item.ProductoCompraId })" class="btn btn-info btn-sm text-white" title="Ver detalle">
+                    <i class="fas fa-eye"></i>
+                </a>
+                <a href="@Url.Action("Editar", "Producto", new { id = item.ProductoCompraId })" class="btn btn-warning btn-sm text-white" title="Editar producto">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <a href="@Url.Action("Lotes", "Producto", new { id = item.ProductoCompraId })" class="btn btn-secondary btn-sm" title="Ver lotes">
+                    <i class="fas fa-layer-group"></i>
+                </a>
+                <a href="@Url.Action("CrearLote", "Producto", new { productoCompraId = item.ProductoCompraId })" class="btn btn-success btn-sm" title="Agregar lote">
+                    <i class="fas fa-plus-circle"></i>
+                </a>
+                @if (item.Activo)
+                {
+                    <button type="button" class="btn btn-danger btn-sm" title="Inactivar" onclick="cambiarEstado(@item.ProductoCompraId, '@item.Nombre.Replace("'", "\\'")', false)">
+                        <i class="fas fa-ban"></i>
+                    </button>
+                }
+                else
+                {
+                    <button type="button" class="btn btn-success btn-sm" title="Activar" onclick="cambiarEstado(@item.ProductoCompraId, '@item.Nombre.Replace("'", "\\'")', true)">
+                        <i class="fas fa-check-circle"></i>
+                    </button>
+                }
+            </div>
+        </td>
+    </tr>
+}
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Mensaje cuando no hay resultados -->
+                    <div id="sinResultados" class="text-center py-5" style="display: none;">
+                        <i class="fas fa-search fa-4x text-muted mb-3"></i>
+                        <p class="text-muted">No se encontraron productos con el criterio de búsqueda</p>
                     </div>
                 </div>
             </div>
@@ -135,9 +209,10 @@
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // Función para cambiar estado
         function cambiarEstado(id, nombre, activar) {
             var titulo = activar ? "¿Activar materia prima?" : "¿Inactivar materia prima?";
-            var texto = activar ? `¿Desea activar "${nombre}"?` : `¿Desea inactivar "${nombre}"?`;
+            var texto = activar ? `¿Desea activar "${nombre}"?` : `¿Desea inactivar "${nombre}"? El producto seguirá recibiendo lotes.`;
 
             Swal.fire({
                 title: titulo,
@@ -169,6 +244,67 @@
                 }
             });
         }
+
+        // BUSCADOR EN TIEMPO REAL
+        $(document).ready(function() {
+            var buscador = $('#buscadorProducto');
+            var tabla = $('#tablaProductos');
+            var filas = tabla.find('tbody tr');
+            var sinResultados = $('#sinResultados');
+            var btnLimpiar = $('#btnLimpiarBusqueda');
+            var contadorResultados = $('#contadorResultados');
+
+            function filtrarProductos() {
+                var textoBusqueda = buscador.val().toLowerCase().trim();
+                var resultadosVisibles = 0;
+
+                if (textoBusqueda === "") {
+                    btnLimpiar.hide();
+                    filas.show();
+                    resultadosVisibles = filas.length;
+                    sinResultados.hide();
+                    tabla.show();
+                } else {
+                    btnLimpiar.show();
+                    filas.each(function() {
+                        var codigo = $(this).find('td:eq(0)').text().toLowerCase();
+                        var nombre = $(this).find('td:eq(1)').text().toLowerCase();
+                        var categoria = $(this).find('td:eq(3)').text().toLowerCase();
+
+                        if (codigo.indexOf(textoBusqueda) > -1 ||
+                            nombre.indexOf(textoBusqueda) > -1 ||
+                            categoria.indexOf(textoBusqueda) > -1) {
+                            $(this).show();
+                            resultadosVisibles++;
+                        } else {
+                            $(this).hide();
+                        }
+                    });
+
+                    if (resultadosVisibles === 0) {
+                        tabla.hide();
+                        sinResultados.show();
+                    } else {
+                        tabla.show();
+                        sinResultados.hide();
+                    }
+                }
+
+                // Actualizar contador
+                contadorResultados.text(`${resultadosVisibles} producto${resultadosVisibles !== 1 ? 's' : ''} encontrado${resultadosVisibles !== 1 ? 's' : ''}`);
+            }
+
+            buscador.on('keyup', filtrarProductos);
+
+            btnLimpiar.on('click', function() {
+                buscador.val('');
+                filtrarProductos();
+                buscador.focus();
+            });
+
+            // Contador inicial
+            contadorResultados.text(`${filas.length} productos encontrados`);
+        });
     </script>
 }
 
@@ -195,33 +331,52 @@
 
     .card-header-custom {
         padding: 1.5rem 2rem;
-        background: linear-gradient(135deg,#c95a00 0%,#a04700 100%);
+        background: linear-gradient(135deg, #c95a00 0%, #a04700 100%);
     }
 
     .card-body-custom {
         padding: 20px;
     }
 
-    .table {
-        width: 100%;
-        margin-bottom: 0;
+    /* Estilos del buscador */
+    .buscador-container {
+        background: #f8f9fa;
+        padding: 15px 20px;
+        border-radius: 12px;
+        margin-bottom: 20px;
     }
 
-        .table th {
-            padding: 14px 12px;
-            font-size: 0.82rem;
-            text-transform: uppercase;
-            letter-spacing: .5px;
-            white-space: nowrap;
+    .input-group-text {
+        border-radius: 10px 0 0 10px;
+        border: 1px solid #ddd;
+        border-right: none;
+    }
+
+    #buscadorProducto {
+        border-radius: 0 10px 10px 0;
+        border-left: none;
+    }
+
+        #buscadorProducto:focus {
+            border-color: #c95a00;
+            box-shadow: none;
         }
 
-        .table td {
-            padding: 14px 12px;
-            vertical-align: middle;
-        }
+    .table th {
+        padding: 14px 12px;
+        font-size: 0.82rem;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        white-space: nowrap;
+    }
+
+    .table td {
+        padding: 14px 12px;
+        vertical-align: middle;
+    }
 
     .table-hover tbody tr:hover {
-        background: rgba(201,90,0,0.05);
+        background: rgba(201, 90, 0, 0.05);
     }
 
     .btn {
@@ -233,23 +388,6 @@
             transform: translateY(-2px);
         }
 
-    .btn-primary {
-        background: linear-gradient(135deg,#c95a00,#a04700);
-        border: none;
-    }
-
-    .btn-warning {
-        background: #c95a00;
-        border-color: #c95a00;
-        color: white;
-    }
-
-        .btn-warning:hover {
-            background: #a04700;
-            border-color: #a04700;
-            color: white;
-        }
-
     .badge {
         font-size: .75rem;
         font-weight: 600;
@@ -258,5 +396,37 @@
     .table-responsive {
         width: 100%;
         overflow-x: auto;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .container-fluid {
+            padding-left: 10px !important;
+            padding-right: 10px !important;
+        }
+
+        .card-header-custom {
+            padding: 1rem;
+        }
+
+            .card-header-custom h2 {
+                font-size: 1.3rem;
+            }
+
+        .table th,
+        .table td {
+            white-space: nowrap;
+            font-size: .8rem;
+        }
+
+        .btn-sm {
+            font-size: .7rem;
+            padding: 5px 10px;
+        }
+
+        .buscador-container .row {
+            flex-direction: column;
+            gap: 10px;
+        }
     }
 </style>

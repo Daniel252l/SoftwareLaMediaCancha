@@ -35,15 +35,17 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Unidad de Medida <span class="text-danger">*</span></label>
-                                @Html.DropDownListFor(m => m.UnidadMedida, new SelectList(new[]
-                                     {
-                                    new { Value = "Libra", Text = "Libra" },
-                                    new { Value = "Kilogramo", Text = "Kilogramo" },
-                                    new { Value = "Litro", Text = "Litro" },
-                                    new { Value = "Unidad", Text = "Unidad" },
-                                    new { Value = "Caja", Text = "Caja" },
-                                    new { Value = "Paquete", Text = "Paquete" }
-                                }, "Value", "Text", Model.UnidadMedida), new { @class = "form-select", required = "required" })
+                                <select name="UnidadMedida" class="form-select" required>
+                                    <option value="">Seleccione...</option>
+                                    <option value="Kilogramo" @(Model.UnidadMedida == "Kilogramo" ? "selected" : "")>Kilogramo (kg)</option>
+                                    <option value="Gramo" @(Model.UnidadMedida == "Gramo" ? "selected" : "")>Gramo (g)</option>
+                                    <option value="Libra" @(Model.UnidadMedida == "Libra" ? "selected" : "")>Libra (lb)</option>
+                                    <option value="Litro" @(Model.UnidadMedida == "Litro" ? "selected" : "")>Litro (L)</option>
+                                    <option value="Mililitro" @(Model.UnidadMedida == "Mililitro" ? "selected" : "")>Mililitro (ml)</option>
+                                    <option value="Unidad" @(Model.UnidadMedida == "Unidad" ? "selected" : "")>Unidad (unid)</option>
+                                    <option value="Paquete" @(Model.UnidadMedida == "Paquete" ? "selected" : "")>Paquete (pq)</option>
+                                    <option value="Caja" @(Model.UnidadMedida == "Caja" ? "selected" : "")>Caja (cj)</option>
+                                </select>
                             </div>
                         </div>
 
@@ -61,10 +63,12 @@
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Categoría</label>
                                 @Html.DropDownListFor(m => m.CategoriaId, ViewBag.CategoriasCompra as SelectList, "Seleccione una categoría...", new { @class = "form-select" })
+                                <small class="text-muted">Clasifique el producto para mejor organización</small>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Precio Compra (Q) <span class="text-danger">*</span></label>
                                 @Html.TextBoxFor(m => m.PrecioCompra, new { @class = "form-control", type = "number", step = "0.01", min = "0", required = "required" })
+                                <small class="text-muted">Precio de compra actual al proveedor</small>
                             </div>
                         </div>
 
@@ -72,26 +76,52 @@
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Stock Actual</label>
                                 @Html.TextBoxFor(m => m.StockActual, new { @class = "form-control", type = "number", step = "0.01", @readonly = "readonly", style = "background: #f5f5f5;" })
-                                <small class="text-muted">El stock se actualiza con las compras</small>
+                                <small class="text-muted">El stock se actualiza automáticamente con las compras y ventas</small>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Stock Mínimo</label>
-                                @Html.TextBoxFor(m => m.StockMinimo, new { @class = "form-control", type = "number", step = "0.01", min = "0" })
+                                <label class="form-label fw-bold">Stock Mínimo <span class="text-danger">*</span></label>
+                                @Html.TextBoxFor(m => m.StockMinimo, new { @class = "form-control", type = "number", step = "0.01", min = "0", required = "required" })
+                                <small class="text-muted">Cuando el stock baje de este nivel, se mostrará una alerta</small>
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Estado</label>
-                            @Html.DropDownListFor(m => m.Activo, new SelectList(new[]
-                                 {
-                                new { Value = "true", Text = "Activo" },
-                                new { Value = "false", Text = "Inactivo" }
-                            }, "Value", "Text", Model.Activo), new { @class = "form-select" })
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="alert alert-info mb-0">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    <strong>Stock Actual:</strong> @Model.StockActual unidades
+                                    @if (Model.StockActual <= Model.StockMinimo)
+                                    {
+                                        <span class="badge bg-danger ms-2">¡Stock Bajo!</span>
+                                    }
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Estado</label>
+                                <select name="Activo" class="form-select">
+                                    <option value="true" @(Model.Activo ? "selected" : "")>Activo</option>
+                                    <option value="false" @(!Model.Activo ? "selected" : "")>Inactivo</option>
+                                </select>
+                                <small class="text-muted">Los productos inactivos no aparecerán en ventas pero seguirán recibiendo lotes</small>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Nota:</strong> El stock actual no se puede modificar manualmente. Se actualiza automáticamente al:
+                            <ul class="mb-0 mt-2">
+                                <li>Agregar nuevos lotes (compra)</li>
+                                <li>Vender productos (descuento automático por FIFO)</li>
+                                <li>Registrar devoluciones</li>
+                            </ul>
                         </div>
 
                         <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
                             <a href="@Url.Action("Index", "Producto")" class="btn btn-secondary">
                                 <i class="fas fa-times me-1"></i> Cancelar
+                            </a>
+                            <a href="@Url.Action("Detalle", new { id = Model.ProductoCompraId })" class="btn btn-info">
+                                <i class="fas fa-eye me-1"></i> Ver Detalle
                             </a>
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save me-1"></i> Guardar Cambios
@@ -185,8 +215,27 @@
             transform: translateY(-2px);
         }
 
+    .btn-info {
+        background: #17a2b8;
+        border: none;
+        color: white;
+        padding: 10px 25px;
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+
+        .btn-info:hover {
+            background: #138496;
+            transform: translateY(-2px);
+            color: white;
+        }
+
     .border-top {
         border-top: 1px solid #e9ecef !important;
+    }
+
+    .alert-warning ul {
+        padding-left: 20px;
     }
 
     @@media (max-width: 768px) {
@@ -198,8 +247,9 @@
                 font-size: 1.3rem;
             }
 
-        .btn-primary, .btn-secondary {
+        .btn-primary, .btn-secondary, .btn-info {
             width: 100%;
+            margin-top: 10px;
         }
 
         .d-flex.justify-content-end {

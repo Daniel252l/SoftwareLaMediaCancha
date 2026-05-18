@@ -409,6 +409,20 @@
     <Content Include="Views\Combo\Detalle.cshtml" />
     <Content Include="Views\Combo\Crear.cshtml" />
     <Content Include="Views\Combo\Editar.cshtml" />
+    <Content Include="Views\Producto\Movimientos.cshtml" />
+    <Content Include="Views\Producto\StockBajo.cshtml" />
+    <Content Include="Views\ProductoVenta\Index.cshtml" />
+    <Content Include="Views\ProductoVenta\Detalle.cshtml" />
+    <Content Include="Views\ProductoVenta\Crear.cshtml" />
+    <Content Include="Views\ProductoVenta\Editar.cshtml" />
+    <Content Include="Views\ProductoVenta\Inventario.cshtml" />
+    <Content Include="Views\ProductoVenta\Lotes.cshtml" />
+    <Content Include="Views\ProductoVenta\CrearLote.cshtml" />
+    <Content Include="Views\Receta\Index.cshtml" />
+    <Content Include="Views\Receta\Crear.cshtml" />
+    <Content Include="Views\Receta\Editar.cshtml" />
+    <Content Include="Views\Receta\Detalle.cshtml" />
+    <Content Include="Views\Receta\SeleccionarProducto.cshtml" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

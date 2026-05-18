@@ -1,4 +1,5 @@
 ﻿using LaMediaCancha.Models;
+using LaMediaCancha.Services;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -11,15 +12,17 @@ namespace LaMediaCancha.Controllers
     public class ProductoController : Controller
     {
         private readonly string _connectionString;
+        private readonly InventarioService _inventarioService;
 
         public ProductoController()
         {
             _connectionString = ConfigurationManager.ConnectionStrings["LaMediaCanchaDB"].ConnectionString;
+            _inventarioService = new InventarioService();
         }
 
-        // ==================== PRODUCTOS DE COMPRA (MATERIAS PRIMAS) ====================
+        // ==================== MATERIAS PRIMAS ====================
 
-        // GET: Producto/Index - Muestra TODOS los productos (activos e inactivos)
+        // GET: Producto/Index
         public ActionResult Index()
         {
             if (Session["UserRol"] == null)
@@ -39,7 +42,14 @@ namespace LaMediaCancha.Controllers
                     pc.StockMinimo,
                     ISNULL(cc.Nombre, 'Sin categoría') AS Categoria,
                     pc.Activo,
-                    pc.FechaCreacion
+                    pc.FechaCreacion,
+                    ISNULL((
+                        SELECT COUNT(*) 
+                        FROM LoteCompra l 
+                        WHERE l.ProductoCompraId = pc.ProductoCompraId 
+                          AND l.Activo = 1 
+                          AND l.CantidadActual > 0
+                    ), 0) AS LotesActivos
                 FROM ProductoCompra pc
                 LEFT JOIN CategoriaCompra cc ON pc.CategoriaId = cc.CategoriaCompraId
                 ORDER BY pc.Activo DESC, pc.Nombre";
@@ -52,19 +62,35 @@ namespace LaMediaCancha.Controllers
                 {
                     while (reader.Read())
                     {
+                        // Manejo seguro de conversión de decimal a int
+                        object stockActualObj = reader["StockActual"];
+                        object stockMinimoObj = reader["StockMinimo"];
+
+                        decimal stockActualDecimal = 0;
+                        decimal stockMinimoDecimal = 0;
+
+                        if (stockActualObj != DBNull.Value)
+                            stockActualDecimal = Convert.ToDecimal(stockActualObj);
+                        if (stockMinimoObj != DBNull.Value)
+                            stockMinimoDecimal = Convert.ToDecimal(stockMinimoObj);
+
+                        int stockActualInt = (int)Math.Floor(stockActualDecimal);
+                        int stockMinimoInt = (int)Math.Floor(stockMinimoDecimal);
+
                         productos.Add(new ProductoModels.ProductoCompra
                         {
-                            ProductoCompraId = (int)reader["ProductoCompraId"],
-                            Codigo = reader["Codigo"].ToString(),
-                            Nombre = reader["Nombre"].ToString(),
+                            ProductoCompraId = Convert.ToInt32(reader["ProductoCompraId"]),
+                            Codigo = reader["Codigo"]?.ToString() ?? "",
+                            Nombre = reader["Nombre"]?.ToString() ?? "",
                             Descripcion = reader["Descripcion"]?.ToString(),
-                            UnidadMedida = reader["UnidadMedida"].ToString(),
-                            PrecioCompra = (decimal)reader["PrecioCompra"],
-                            StockActual = (decimal)reader["StockActual"],
-                            StockMinimo = (decimal)reader["StockMinimo"],
-                            Categoria = reader["Categoria"].ToString(),
-                            Activo = (bool)reader["Activo"],
-                            FechaCreacion = (DateTime)reader["FechaCreacion"]
+                            UnidadMedida = reader["UnidadMedida"]?.ToString() ?? "",
+                            PrecioCompra = Convert.ToDecimal(reader["PrecioCompra"]),
+                            StockActual = stockActualInt,
+                            StockMinimo = stockMinimoInt,
+                            Categoria = reader["Categoria"]?.ToString() ?? "Sin categoría",
+                            Activo = Convert.ToBoolean(reader["Activo"]),
+                            FechaCreacion = Convert.ToDateTime(reader["FechaCreacion"]),
+                            LotesActivos = Convert.ToInt32(reader["LotesActivos"])
                         });
                     }
                 }
@@ -83,9 +109,17 @@ namespace LaMediaCancha.Controllers
 
             string query = @"
                 SELECT 
-                    pc.ProductoCompraId, pc.Codigo, pc.Nombre, pc.Descripcion,
-                    pc.UnidadMedida, pc.PrecioCompra, pc.StockActual, pc.StockMinimo,
-                    pc.CategoriaId, ISNULL(cc.Nombre, 'Sin categoría') AS Categoria, pc.Activo,
+                    pc.ProductoCompraId, 
+                    pc.Codigo, 
+                    pc.Nombre, 
+                    pc.Descripcion,
+                    pc.UnidadMedida,
+                    pc.PrecioCompra,
+                    pc.StockActual,
+                    pc.StockMinimo,
+                    pc.CategoriaId,
+                    ISNULL(cc.Nombre, 'Sin categoría') AS Categoria,
+                    pc.Activo,
                     pc.FechaCreacion
                 FROM ProductoCompra pc
                 LEFT JOIN CategoriaCompra cc ON pc.CategoriaId = cc.CategoriaCompraId
@@ -96,24 +130,41 @@ namespace LaMediaCancha.Controllers
             {
                 cmd.Parameters.AddWithValue("@ProductoCompraId", id);
                 conn.Open();
+
                 using (var reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
                     {
+                        // Manejo seguro de conversión
+                        object stockActualObj = reader["StockActual"];
+                        object stockMinimoObj = reader["StockMinimo"];
+
+                        decimal stockActualDecimal = 0;
+                        decimal stockMinimoDecimal = 0;
+
+                        if (stockActualObj != DBNull.Value)
+                            stockActualDecimal = Convert.ToDecimal(stockActualObj);
+                        if (stockMinimoObj != DBNull.Value)
+                            stockMinimoDecimal = Convert.ToDecimal(stockMinimoObj);
+
+                        int stockActualInt = (int)Math.Floor(stockActualDecimal);
+                        int stockMinimoInt = (int)Math.Floor(stockMinimoDecimal);
+
                         producto = new ProductoModels.ProductoCompra
                         {
-                            ProductoCompraId = (int)reader["ProductoCompraId"],
-                            Codigo = reader["Codigo"].ToString(),
-                            Nombre = reader["Nombre"].ToString(),
+                            ProductoCompraId = Convert.ToInt32(reader["ProductoCompraId"]),
+                            Codigo = reader["Codigo"]?.ToString() ?? "",
+                            Nombre = reader["Nombre"]?.ToString() ?? "",
                             Descripcion = reader["Descripcion"]?.ToString(),
-                            UnidadMedida = reader["UnidadMedida"].ToString(),
-                            PrecioCompra = (decimal)reader["PrecioCompra"],
-                            StockActual = (decimal)reader["StockActual"],
-                            StockMinimo = (decimal)reader["StockMinimo"],
+                            UnidadMedida = reader["UnidadMedida"]?.ToString() ?? "",
+                            PrecioCompra = Convert.ToDecimal(reader["PrecioCompra"]),
+                            StockActual = stockActualInt,
+                            StockMinimo = stockMinimoInt,
                             CategoriaId = reader["CategoriaId"] as int?,
-                            Categoria = reader["Categoria"].ToString(),
-                            Activo = (bool)reader["Activo"],
-                            FechaCreacion = (DateTime)reader["FechaCreacion"]
+                            Categoria = reader["Categoria"]?.ToString() ?? "Sin categoría",
+                            Activo = Convert.ToBoolean(reader["Activo"]),
+                            FechaCreacion = Convert.ToDateTime(reader["FechaCreacion"]),
+                            Lotes = ObtenerLotesPorProducto(id)
                         };
                     }
                 }
@@ -121,9 +172,6 @@ namespace LaMediaCancha.Controllers
 
             if (producto == null)
                 return HttpNotFound();
-
-            // Obtener los lotes del producto
-            producto.Lotes = ObtenerLotesPorProducto(id);
 
             return View(producto);
         }
@@ -154,14 +202,13 @@ namespace LaMediaCancha.Controllers
 
             try
             {
-                // Verificar si el código ya existe
                 string checkQuery = "SELECT COUNT(*) FROM ProductoCompra WHERE Codigo = @Codigo";
                 using (var conn = new SqlConnection(_connectionString))
                 using (var cmd = new SqlCommand(checkQuery, conn))
                 {
                     cmd.Parameters.AddWithValue("@Codigo", model.Codigo);
                     conn.Open();
-                    int existe = (int)cmd.ExecuteScalar();
+                    int existe = Convert.ToInt32(cmd.ExecuteScalar());
                     if (existe > 0)
                     {
                         TempData["Error"] = "Ya existe un producto con este código";
@@ -222,23 +269,38 @@ namespace LaMediaCancha.Controllers
             {
                 cmd.Parameters.AddWithValue("@ProductoCompraId", id);
                 conn.Open();
+
                 using (var reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
                     {
+                        object stockActualObj = reader["StockActual"];
+                        object stockMinimoObj = reader["StockMinimo"];
+
+                        decimal stockActualDecimal = 0;
+                        decimal stockMinimoDecimal = 0;
+
+                        if (stockActualObj != DBNull.Value)
+                            stockActualDecimal = Convert.ToDecimal(stockActualObj);
+                        if (stockMinimoObj != DBNull.Value)
+                            stockMinimoDecimal = Convert.ToDecimal(stockMinimoObj);
+
+                        int stockActualInt = (int)Math.Floor(stockActualDecimal);
+                        int stockMinimoInt = (int)Math.Floor(stockMinimoDecimal);
+
                         producto = new ProductoModels.ProductoCompra
                         {
-                            ProductoCompraId = (int)reader["ProductoCompraId"],
-                            Codigo = reader["Codigo"].ToString(),
-                            Nombre = reader["Nombre"].ToString(),
+                            ProductoCompraId = Convert.ToInt32(reader["ProductoCompraId"]),
+                            Codigo = reader["Codigo"]?.ToString() ?? "",
+                            Nombre = reader["Nombre"]?.ToString() ?? "",
                             Descripcion = reader["Descripcion"]?.ToString(),
-                            UnidadMedida = reader["UnidadMedida"].ToString(),
-                            PrecioCompra = (decimal)reader["PrecioCompra"],
-                            StockActual = (decimal)reader["StockActual"],
-                            StockMinimo = (decimal)reader["StockMinimo"],
+                            UnidadMedida = reader["UnidadMedida"]?.ToString() ?? "",
+                            PrecioCompra = Convert.ToDecimal(reader["PrecioCompra"]),
+                            StockActual = stockActualInt,
+                            StockMinimo = stockMinimoInt,
                             CategoriaId = reader["CategoriaId"] as int?,
-                            Categoria = reader["Categoria"].ToString(),
-                            Activo = (bool)reader["Activo"]
+                            Categoria = reader["Categoria"]?.ToString() ?? "Sin categoría",
+                            Activo = Convert.ToBoolean(reader["Activo"])
                         };
                     }
                 }
@@ -306,7 +368,7 @@ namespace LaMediaCancha.Controllers
             }
         }
 
-        // POST: Producto/CambiarEstado - Inactivar/Activar producto
+        // POST: Producto/CambiarEstado
         [HttpPost]
         public JsonResult CambiarEstado(int id, bool activo)
         {
@@ -342,7 +404,6 @@ namespace LaMediaCancha.Controllers
             var lotes = ObtenerLotesPorProducto(id);
             string nombreProducto = "";
 
-            // Obtener nombre del producto
             string queryNombre = "SELECT Nombre FROM ProductoCompra WHERE ProductoCompraId = @ProductoCompraId";
             using (var conn = new SqlConnection(_connectionString))
             using (var cmd = new SqlCommand(queryNombre, conn))
@@ -368,7 +429,6 @@ namespace LaMediaCancha.Controllers
             ViewBag.ProductoCompraId = productoCompraId;
             ViewBag.Proveedores = ObtenerProveedores();
 
-            // Obtener nombre del producto
             string queryNombre = "SELECT Nombre FROM ProductoCompra WHERE ProductoCompraId = @ProductoCompraId";
             using (var conn = new SqlConnection(_connectionString))
             using (var cmd = new SqlCommand(queryNombre, conn))
@@ -385,79 +445,7 @@ namespace LaMediaCancha.Controllers
 
         // POST: Producto/CrearLote
         [HttpPost]
-        public JsonResult CrearLote(int productoCompraId, int proveedorId, string numeroLote, decimal cantidad, decimal precioUnitario, DateTime? fechaVencimiento)
-        {
-            if (Session["UserRol"] == null)
-                return Json(new { success = false, message = "Sesión expirada" });
-
-            // Validaciones básicas
-            if (productoCompraId <= 0)
-                return Json(new { success = false, message = "ID de producto inválido" });
-
-            if (proveedorId <= 0)
-                return Json(new { success = false, message = "Debe seleccionar un proveedor" });
-
-            if (string.IsNullOrEmpty(numeroLote))
-                return Json(new { success = false, message = "Debe ingresar un número de lote" });
-
-            if (cantidad <= 0)
-                return Json(new { success = false, message = "La cantidad debe ser mayor a 0" });
-
-            if (precioUnitario <= 0)
-                return Json(new { success = false, message = "El precio unitario debe ser mayor a 0" });
-
-            try
-            {
-                using (var conn = new SqlConnection(_connectionString))
-                {
-                    conn.Open();
-
-                    // Insertar el lote
-                    string insertLote = @"
-                INSERT INTO LoteCompra (ProductoCompraId, ProveedorId, NumeroLote, CantidadInicial, CantidadActual, PrecioUnitario, FechaIngreso, FechaVencimiento, Activo)
-                VALUES (@ProductoCompraId, @ProveedorId, @NumeroLote, @Cantidad, @Cantidad, @PrecioUnitario, GETDATE(), @FechaVencimiento, 1)";
-
-                    using (var cmd = new SqlCommand(insertLote, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@ProductoCompraId", productoCompraId);
-                        cmd.Parameters.AddWithValue("@ProveedorId", proveedorId);
-                        cmd.Parameters.AddWithValue("@NumeroLote", numeroLote);
-                        cmd.Parameters.AddWithValue("@Cantidad", cantidad);
-                        cmd.Parameters.AddWithValue("@PrecioUnitario", precioUnitario);
-                        cmd.Parameters.AddWithValue("@FechaVencimiento", fechaVencimiento.HasValue ? (object)fechaVencimiento.Value : DBNull.Value);
-                        cmd.ExecuteNonQuery();
-                    }
-
-                    // Actualizar el stock del producto
-                    string updateStock = @"
-                UPDATE ProductoCompra 
-                SET StockActual = ISNULL(StockActual, 0) + @Cantidad
-                WHERE ProductoCompraId = @ProductoCompraId";
-
-                    using (var cmd = new SqlCommand(updateStock, conn))
-                    {
-                        cmd.Parameters.AddWithValue("@ProductoCompraId", productoCompraId);
-                        cmd.Parameters.AddWithValue("@Cantidad", cantidad);
-                        cmd.ExecuteNonQuery();
-                    }
-                }
-
-                return Json(new { success = true, message = "Lote agregado y stock actualizado exitosamente" });
-            }
-            catch (SqlException ex)
-            {
-                // Error específico de SQL
-                return Json(new { success = false, message = "Error de base de datos: " + ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "Error al guardar: " + ex.Message });
-            }
-        }
-
-        // POST: Producto/ConsumirStock
-        [HttpPost]
-        public JsonResult ConsumirStock(int loteId, decimal cantidad, string motivo)
+        public JsonResult CrearLote(int productoCompraId, int proveedorId, string numeroLote, int cantidad, decimal precioUnitario, DateTime? fechaFabricacion, DateTime? fechaVencimiento, decimal costoCompra)
         {
             if (Session["UserRol"] == null)
                 return Json(new { success = false, message = "Sesión expirada" });
@@ -471,20 +459,100 @@ namespace LaMediaCancha.Controllers
                     {
                         try
                         {
-                            // Obtener el ProductoCompraId del lote
+                            // 1. Insertar el lote
+                            string insertLote = @"
+                        INSERT INTO LoteCompra (ProductoCompraId, ProveedorId, NumeroLote, CantidadInicial, CantidadActual, PrecioUnitario, CostoCompra, FechaIngreso, FechaFabricacion, FechaVencimiento, Activo)
+                        VALUES (@ProductoCompraId, @ProveedorId, @NumeroLote, @Cantidad, @Cantidad, @PrecioUnitario, @CostoCompra, GETDATE(), @FechaFabricacion, @FechaVencimiento, 1)";
+
+                            using (var cmd = new SqlCommand(insertLote, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@ProductoCompraId", productoCompraId);
+                                cmd.Parameters.AddWithValue("@ProveedorId", proveedorId);
+                                cmd.Parameters.AddWithValue("@NumeroLote", numeroLote);
+                                cmd.Parameters.AddWithValue("@Cantidad", cantidad);
+                                cmd.Parameters.AddWithValue("@PrecioUnitario", precioUnitario);
+                                cmd.Parameters.AddWithValue("@CostoCompra", costoCompra);
+                                cmd.Parameters.AddWithValue("@FechaFabricacion", fechaFabricacion.HasValue ? (object)fechaFabricacion.Value : DBNull.Value);
+                                cmd.Parameters.AddWithValue("@FechaVencimiento", fechaVencimiento.HasValue ? (object)fechaVencimiento.Value : DBNull.Value);
+                                cmd.ExecuteNonQuery();
+                            }
+
+                            // 2. Actualizar el stock del producto
+                            string updateStock = @"
+                        UPDATE ProductoCompra 
+                        SET StockActual = ISNULL(StockActual, 0) + @Cantidad
+                        WHERE ProductoCompraId = @ProductoCompraId";
+
+                            using (var cmd = new SqlCommand(updateStock, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@ProductoCompraId", productoCompraId);
+                                cmd.Parameters.AddWithValue("@Cantidad", cantidad);
+                                cmd.ExecuteNonQuery();
+                            }
+
+                            // 3. ACTUALIZAR EL PRECIO COMPRA DEL PRODUCTO CON EL PRECIO DEL NUEVO LOTE
+                            string updatePrecioCompra = @"
+                        UPDATE ProductoCompra 
+                        SET PrecioCompra = @PrecioUnitario
+                        WHERE ProductoCompraId = @ProductoCompraId";
+
+                            using (var cmd = new SqlCommand(updatePrecioCompra, conn, transaction))
+                            {
+                                cmd.Parameters.AddWithValue("@ProductoCompraId", productoCompraId);
+                                cmd.Parameters.AddWithValue("@PrecioUnitario", precioUnitario);
+                                int rows = cmd.ExecuteNonQuery();
+
+                                System.Diagnostics.Debug.WriteLine($"Actualizando PrecioCompra - ProductoId: {productoCompraId}, NuevoPrecio: {precioUnitario}, Filas afectadas: {rows}");
+                            }
+
+                            transaction.Commit();
+                        }
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            System.Diagnostics.Debug.WriteLine($"Error en transacción: {ex.Message}");
+                            throw;
+                        }
+                    }
+                }
+
+                return Json(new { success = true, message = "Lote agregado y stock actualizado exitosamente" });
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error general: {ex.Message}");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        // POST: Producto/ConsumirStock
+        [HttpPost]
+        public JsonResult ConsumirStock(int loteId, int cantidad, string motivo)
+        {
+            if (Session["UserRol"] == null)
+                return Json(new { success = false, message = "Sesión expirada" });  // ← CORREGIDO
+
+            try
+            {
+                using (var conn = new SqlConnection(_connectionString))
+                {
+                    conn.Open();
+                    using (var transaction = conn.BeginTransaction())
+                    {
+                        try
+                        {
                             int productoCompraId = 0;
                             string getProducto = "SELECT ProductoCompraId FROM LoteCompra WHERE LoteCompraId = @LoteCompraId";
                             using (var cmd = new SqlCommand(getProducto, conn, transaction))
                             {
                                 cmd.Parameters.AddWithValue("@LoteCompraId", loteId);
-                                productoCompraId = (int)cmd.ExecuteScalar();
+                                productoCompraId = Convert.ToInt32(cmd.ExecuteScalar());
                             }
 
-                            // Actualizar el lote
                             string updateLote = @"
-                                UPDATE LoteCompra 
-                                SET CantidadActual = CantidadActual - @Cantidad
-                                WHERE LoteCompraId = @LoteCompraId AND CantidadActual >= @Cantidad";
+                        UPDATE LoteCompra 
+                        SET CantidadActual = CantidadActual - @Cantidad
+                        WHERE LoteCompraId = @LoteCompraId AND CantidadActual >= @Cantidad";
 
                             using (var cmd = new SqlCommand(updateLote, conn, transaction))
                             {
@@ -496,11 +564,10 @@ namespace LaMediaCancha.Controllers
                                     return Json(new { success = false, message = "No hay suficiente stock en este lote" });
                             }
 
-                            // Actualizar el stock del producto
                             string updateStock = @"
-                                UPDATE ProductoCompra 
-                                SET StockActual = StockActual - @Cantidad
-                                WHERE ProductoCompraId = @ProductoCompraId";
+                        UPDATE ProductoCompra 
+                        SET StockActual = StockActual - @Cantidad
+                        WHERE ProductoCompraId = @ProductoCompraId";
 
                             using (var cmd = new SqlCommand(updateStock, conn, transaction))
                             {
@@ -527,6 +594,121 @@ namespace LaMediaCancha.Controllers
             }
         }
 
+        // ==================== INVENTARIO ====================
+
+        // GET: Producto/Inventario
+        public ActionResult Inventario()
+        {
+            if (Session["UserRol"] == null)
+                return RedirectToAction("Login", "Account");
+
+            var inventario = new List<ProductoModels.InventarioCompra>();
+
+            string query = @"
+                SELECT 
+                    pc.ProductoCompraId,
+                    pc.Codigo,
+                    pc.Nombre,
+                    pc.UnidadMedida,
+                    pc.PrecioCompra,
+                    pc.StockActual,
+                    pc.StockMinimo,
+                    ISNULL(cc.Nombre, 'Sin categoría') AS Categoria,
+                    pc.Activo,
+                    ISNULL((
+                        SELECT COUNT(*) 
+                        FROM LoteCompra l 
+                        WHERE l.ProductoCompraId = pc.ProductoCompraId 
+                          AND l.Activo = 1 
+                          AND l.CantidadActual > 0
+                    ), 0) AS LotesActivos,
+                    CASE 
+                        WHEN pc.StockActual <= pc.StockMinimo THEN 'Bajo'
+                        WHEN pc.StockActual <= pc.StockMinimo * 1.5 THEN 'Alerta'
+                        ELSE 'Normal'
+                    END AS EstadoStock
+                FROM ProductoCompra pc
+                LEFT JOIN CategoriaCompra cc ON pc.CategoriaId = cc.CategoriaCompraId
+                ORDER BY pc.Nombre";
+
+            using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand(query, conn))
+            {
+                conn.Open();
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        object stockActualObj = reader["StockActual"];
+                        object stockMinimoObj = reader["StockMinimo"];
+
+                        decimal stockActualDecimal = 0;
+                        decimal stockMinimoDecimal = 0;
+
+                        if (stockActualObj != DBNull.Value)
+                            stockActualDecimal = Convert.ToDecimal(stockActualObj);
+                        if (stockMinimoObj != DBNull.Value)
+                            stockMinimoDecimal = Convert.ToDecimal(stockMinimoObj);
+
+                        int stockActualInt = (int)Math.Floor(stockActualDecimal);
+                        int stockMinimoInt = (int)Math.Floor(stockMinimoDecimal);
+
+                        inventario.Add(new ProductoModels.InventarioCompra
+                        {
+                            ProductoCompraId = Convert.ToInt32(reader["ProductoCompraId"]),
+                            Codigo = reader["Codigo"]?.ToString() ?? "",
+                            Nombre = reader["Nombre"]?.ToString() ?? "",
+                            UnidadMedida = reader["UnidadMedida"]?.ToString() ?? "",
+                            PrecioCompra = Convert.ToDecimal(reader["PrecioCompra"]),
+                            StockActual = stockActualInt,
+                            StockMinimo = stockMinimoInt,
+                            Categoria = reader["Categoria"]?.ToString() ?? "Sin categoría",
+                            Activo = Convert.ToBoolean(reader["Activo"]),
+                            EstadoStock = reader["EstadoStock"]?.ToString() ?? "Normal",
+                            LotesActivos = Convert.ToInt32(reader["LotesActivos"])
+                        });
+                    }
+                }
+            }
+
+            return View(inventario);
+        }
+
+        // GET: Producto/StockBajo
+        public ActionResult StockBajo()
+        {
+            if (Session["UserRol"] == null)
+                return RedirectToAction("Login", "Account");
+
+            var stockBajo = _inventarioService.ObtenerProductosStockBajo();
+            return View(stockBajo);
+        }
+
+        // GET: Producto/Movimientos
+        public ActionResult Movimientos(int id)
+        {
+            if (Session["UserRol"] == null)
+                return RedirectToAction("Login", "Account");
+
+            var movimientos = _inventarioService.ObtenerMovimientosPorProducto(id);
+            string nombreProducto = "";
+
+            string queryNombre = "SELECT Nombre FROM ProductoCompra WHERE ProductoCompraId = @ProductoCompraId";
+            using (var conn = new SqlConnection(_connectionString))
+            using (var cmd = new SqlCommand(queryNombre, conn))
+            {
+                cmd.Parameters.AddWithValue("@ProductoCompraId", id);
+                conn.Open();
+                var result = cmd.ExecuteScalar();
+                if (result != null)
+                    nombreProducto = result.ToString();
+            }
+
+            ViewBag.ProductoNombre = nombreProducto;
+            ViewBag.ProductoCompraId = id;
+            return View(movimientos);
+        }
+
         // ==================== MÉTODOS AUXILIARES ====================
 
         private List<ProductoModels.LoteCompra> ObtenerLotesPorProducto(int productoCompraId)
@@ -540,35 +722,45 @@ namespace LaMediaCancha.Controllers
                     l.CantidadInicial,
                     l.CantidadActual,
                     l.PrecioUnitario,
+                    l.CostoCompra,
                     l.FechaIngreso,
+                    l.FechaFabricacion,
                     l.FechaVencimiento,
                     l.Activo,
-                    p.RazonSocial AS ProveedorNombre
+                    p.RazonSocial AS ProveedorNombre,
+                    CASE 
+                        WHEN l.FechaVencimiento IS NOT NULL AND l.FechaVencimiento < GETDATE() THEN 1
+                        ELSE 0
+                    END AS EstaVencido
                 FROM LoteCompra l
                 LEFT JOIN Proveedor p ON l.ProveedorId = p.ProveedorId
                 WHERE l.ProductoCompraId = @ProductoCompraId
-                ORDER BY l.FechaIngreso DESC";
+                ORDER BY ISNULL(l.FechaVencimiento, '9999-12-31') ASC, l.FechaIngreso ASC";
 
             using (var conn = new SqlConnection(_connectionString))
             using (var cmd = new SqlCommand(query, conn))
             {
                 cmd.Parameters.AddWithValue("@ProductoCompraId", productoCompraId);
                 conn.Open();
+
                 using (var reader = cmd.ExecuteReader())
                 {
                     while (reader.Read())
                     {
                         lotes.Add(new ProductoModels.LoteCompra
                         {
-                            LoteCompraId = (int)reader["LoteCompraId"],
-                            NumeroLote = reader["NumeroLote"].ToString(),
-                            CantidadInicial = (decimal)reader["CantidadInicial"],
-                            CantidadActual = (decimal)reader["CantidadActual"],
-                            PrecioUnitario = (decimal)reader["PrecioUnitario"],
-                            FechaIngreso = (DateTime)reader["FechaIngreso"],
+                            LoteCompraId = Convert.ToInt32(reader["LoteCompraId"]),
+                            NumeroLote = reader["NumeroLote"]?.ToString() ?? "",
+                            CantidadInicial = Convert.ToInt32(reader["CantidadInicial"]),
+                            CantidadActual = Convert.ToInt32(reader["CantidadActual"]),
+                            PrecioUnitario = Convert.ToDecimal(reader["PrecioUnitario"]),
+                            CostoCompra = Convert.ToDecimal(reader["CostoCompra"]),
+                            FechaIngreso = Convert.ToDateTime(reader["FechaIngreso"]),
+                            FechaFabricacion = reader["FechaFabricacion"] as DateTime?,
                             FechaVencimiento = reader["FechaVencimiento"] as DateTime?,
-                            Activo = (bool)reader["Activo"],
-                            ProveedorNombre = reader["ProveedorNombre"]?.ToString() ?? "N/A"
+                            Activo = Convert.ToBoolean(reader["Activo"]),
+                            ProveedorNombre = reader["ProveedorNombre"]?.ToString() ?? "N/A",
+                            EstaVencido = Convert.ToInt32(reader["EstaVencido"]) == 1
                         });
                     }
                 }
@@ -628,60 +820,40 @@ namespace LaMediaCancha.Controllers
 
             return new SelectList(proveedores, "Value", "Text");
         }
-        // GET: Producto/Inventario
-        public ActionResult Inventario()
+        [HttpPost]
+        public JsonResult RecalcularPreciosProductos()
         {
             if (Session["UserRol"] == null)
-                return RedirectToAction("Login", "Account");
+                return Json(new { success = false, message = "Sesión expirada" });
 
-            var inventario = new List<ProductoModels.InventarioCompra>();
-
-            string query = @"
-        SELECT 
-            pc.ProductoCompraId,
-            pc.Codigo,
-            pc.Nombre,
-            pc.UnidadMedida,
-            pc.PrecioCompra,
-            pc.StockActual,
-            pc.StockMinimo,
-            ISNULL(cc.Nombre, 'Sin categoría') AS Categoria,
-            pc.Activo,
-            CASE 
-                WHEN pc.StockActual <= pc.StockMinimo THEN 'Bajo'
-                WHEN pc.StockActual <= pc.StockMinimo * 1.5 THEN 'Alerta'
-                ELSE 'Normal'
-            END AS EstadoStock
-        FROM ProductoCompra pc
-        LEFT JOIN CategoriaCompra cc ON pc.CategoriaId = cc.CategoriaCompraId
-        ORDER BY pc.Nombre";
-
-            using (var conn = new SqlConnection(_connectionString))
-            using (var cmd = new SqlCommand(query, conn))
+            try
             {
-                conn.Open();
-                using (var reader = cmd.ExecuteReader())
+                using (var conn = new SqlConnection(_connectionString))
                 {
-                    while (reader.Read())
+                    conn.Open();
+
+                    string query = @"
+                UPDATE pc
+                SET pc.PrecioCompra = (
+                    SELECT TOP 1 l.PrecioUnitario 
+                    FROM LoteCompra l 
+                    WHERE l.ProductoCompraId = pc.ProductoCompraId 
+                    ORDER BY l.FechaIngreso DESC
+                )
+                FROM ProductoCompra pc
+                WHERE EXISTS (SELECT 1 FROM LoteCompra WHERE ProductoCompraId = pc.ProductoCompraId)";
+
+                    using (var cmd = new SqlCommand(query, conn))
                     {
-                        inventario.Add(new ProductoModels.InventarioCompra
-                        {
-                            ProductoCompraId = (int)reader["ProductoCompraId"],
-                            Codigo = reader["Codigo"].ToString(),
-                            Nombre = reader["Nombre"].ToString(),
-                            UnidadMedida = reader["UnidadMedida"].ToString(),
-                            PrecioCompra = (decimal)reader["PrecioCompra"],
-                            StockActual = (decimal)reader["StockActual"],
-                            StockMinimo = (decimal)reader["StockMinimo"],
-                            Categoria = reader["Categoria"].ToString(),
-                            Activo = (bool)reader["Activo"],
-                            EstadoStock = reader["EstadoStock"].ToString()
-                        });
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        return Json(new { success = true, message = $"{rowsAffected} productos actualizados" });
                     }
                 }
             }
-
-            return View(inventario);
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
     }
 }

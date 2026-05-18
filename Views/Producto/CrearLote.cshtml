@@ -28,12 +28,11 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Número de Lote <span class="text-danger">*</span></label>
-                                <input type="text" id="numeroLote" name="numeroLote" class="form-control" placeholder="Ej: LOTE-001" required />
+                                <input type="text" id="numeroLote" name="numeroLote" class="form-control" placeholder="Ej: LOTE-001, LOTE-2024-001" required />
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Proveedor <span class="text-danger">*</span></label>
                                 <select id="proveedorId" name="proveedorId" class="form-select" required>
-                                    <option value="">Seleccione un proveedor...</option>
                                     @if (ViewBag.Proveedores != null)
                                     {
                                         foreach (var item in ViewBag.Proveedores as SelectList)
@@ -49,25 +48,37 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label class="form-label fw-bold">Cantidad <span class="text-danger">*</span></label>
                                 <input type="number" id="cantidad" name="cantidad" class="form-control" step="0.01" min="0.01" placeholder="0.00" required />
                             </div>
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-4 mb-3">
                                 <label class="form-label fw-bold">Precio Unitario (Q) <span class="text-danger">*</span></label>
                                 <input type="number" id="precioUnitario" name="precioUnitario" class="form-control" step="0.01" min="0" placeholder="0.00" required />
                             </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">Costo Total Compra (Q)</label>
+                                <input type="number" id="costoCompra" name="costoCompra" class="form-control" step="0.01" min="0" placeholder="0.00" readonly style="background: #f5f5f5;" />
+                                <small class="text-muted">Calculado automáticamente</small>
+                            </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Fecha de Vencimiento</label>
-                            <input type="date" id="fechaVencimiento" name="fechaVencimiento" class="form-control" />
-                            <small class="text-muted">Opcional - Solo si el producto tiene fecha de caducidad</small>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Fecha de Fabricación</label>
+                                <input type="date" id="fechaFabricacion" name="fechaFabricacion" class="form-control" />
+                                <small class="text-muted">Fecha en que fue producido el lote</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Fecha de Vencimiento</label>
+                                <input type="date" id="fechaVencimiento" name="fechaVencimiento" class="form-control" />
+                                <small class="text-muted">Opcional - Para productos perecederos</small>
+                            </div>
                         </div>
 
                         <div class="alert alert-info mt-3">
                             <i class="fas fa-info-circle me-2"></i>
-                            Al agregar este lote, el stock del producto se actualizará automáticamente.
+                            <strong>Información:</strong> El sistema usará el método FIFO (First In, First Out), priorizando los lotes con fecha de vencimiento más próxima.
                         </div>
 
                         <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
@@ -87,8 +98,107 @@
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        .card-custom {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 1400px;
+            margin: auto;
+        }
+
+        .card-header-custom {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #c95a00 0%, #a04700 100%) !important;
+        }
+
+            .card-header-custom .btn-light {
+                background: rgba(255,255,255,0.2);
+                border: none;
+                color: white;
+                transition: all 0.3s ease;
+                border-radius: 10px;
+                padding: 8px 18px;
+            }
+
+                .card-header-custom .btn-light:hover {
+                    background: rgba(255,255,255,0.3);
+                    transform: translateY(-2px);
+                }
+
+        .card-body-custom {
+            background: #fff;
+        }
+
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            padding: 12px;
+            transition: all 0.2s ease;
+        }
+
+            .form-control:focus, .form-select:focus {
+                border-color: #c95a00;
+                box-shadow: 0 0 0 3px rgba(201,90,0,0.15);
+                outline: none;
+            }
+
+        .form-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 6px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #c95a00, #a04700);
+            border: none;
+            padding: 10px 25px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+            .btn-primary:hover {
+                background: linear-gradient(135deg, #a04700, #8b3a00);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(201,90,0,0.3);
+            }
+
+        .btn-secondary {
+            background: #6c757d;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+            .btn-secondary:hover {
+                background: #5a6268;
+                transform: translateY(-2px);
+            }
+
+        .border-top {
+            border-top: 1px solid #e9ecef !important;
+        }
+    </style>
+
     <script>
         $(document).ready(function() {
+            // Calcular costo total automáticamente
+            function calcularCostoTotal() {
+                var cantidad = parseFloat($('#cantidad').val()) || 0;
+                var precioUnitario = parseFloat($('#precioUnitario').val()) || 0;
+                var costoTotal = cantidad * precioUnitario;
+                $('#costoCompra').val(costoTotal.toFixed(2));
+            }
+
+            $('#cantidad, #precioUnitario').on('change keyup', function() {
+                calcularCostoTotal();
+            });
+
             $('#frmCrearLote').submit(function(e) {
                 e.preventDefault();
 
@@ -97,8 +207,9 @@
                 var numeroLote = $('#numeroLote').val();
                 var cantidad = $('#cantidad').val();
                 var precioUnitario = $('#precioUnitario').val();
+                var costoCompra = $('#costoCompra').val();
+                var fechaFabricacion = $('#fechaFabricacion').val();
                 var fechaVencimiento = $('#fechaVencimiento').val();
-                var token = $('input[name="__RequestVerificationToken"]').val();
 
                 // Validaciones
                 if (!proveedorId || proveedorId === '') {
@@ -135,12 +246,13 @@
                     url: '@Url.Action("CrearLote", "Producto")',
                     type: 'POST',
                     data: {
-                        __RequestVerificationToken: token,
                         productoCompraId: productoCompraId,
                         proveedorId: proveedorId,
                         numeroLote: numeroLote,
                         cantidad: cantidad,
                         precioUnitario: precioUnitario,
+                        costoCompra: costoCompra,
+                        fechaFabricacion: fechaFabricacion || null,
                         fechaVencimiento: fechaVencimiento || null
                     },
                     success: function(response) {
@@ -161,89 +273,3 @@
         });
     </script>
 }
-
-<style>
-    .card-custom {
-        background: white;
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-        width: 100%;
-        max-width: 1400px;
-        margin: auto;
-    }
-
-    .card-header-custom {
-        padding: 1.5rem;
-        background: linear-gradient(135deg, #c95a00 0%, #a04700 100%) !important;
-    }
-
-        .card-header-custom .btn-light {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            transition: all 0.3s ease;
-            border-radius: 10px;
-            padding: 8px 18px;
-        }
-
-            .card-header-custom .btn-light:hover {
-                background: rgba(255,255,255,0.3);
-                transform: translateY(-2px);
-            }
-
-    .card-body-custom {
-        background: #fff;
-    }
-
-    .form-control, .form-select {
-        border-radius: 10px;
-        border: 1px solid #ddd;
-        padding: 12px;
-        transition: all 0.2s ease;
-    }
-
-        .form-control:focus, .form-select:focus {
-            border-color: #c95a00;
-            box-shadow: 0 0 0 3px rgba(201,90,0,0.15);
-            outline: none;
-        }
-
-    .form-label {
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: #495057;
-        margin-bottom: 6px;
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #c95a00, #a04700);
-        border: none;
-        padding: 10px 25px;
-        border-radius: 10px;
-        transition: all 0.2s ease;
-    }
-
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #a04700, #8b3a00);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(201,90,0,0.3);
-        }
-
-    .btn-secondary {
-        background: #6c757d;
-        border: none;
-        padding: 10px 25px;
-        border-radius: 10px;
-        transition: all 0.2s ease;
-    }
-
-        .btn-secondary:hover {
-            background: #5a6268;
-            transform: translateY(-2px);
-        }
-
-    .border-top {
-        border-top: 1px solid #e9ecef !important;
-    }
-</style>

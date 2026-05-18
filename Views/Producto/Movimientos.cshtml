@@ -1,0 +1,401 @@
+﻿@model IEnumerable<LaMediaCancha.Models.ProductoModels.MovimientoInventario>
+
+@{
+    ViewBag.Title = "Movimientos de Inventario";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var productoNombre = ViewBag.ProductoNombre ?? "Producto";
+    var productoCompraId = ViewBag.ProductoCompraId ?? 0;
+}
+
+<div class="container-fluid px-4 py-4">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <div class="card-custom card-custom-full">
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div>
+                            <h2 class="text-white mb-1">
+                                <i class="fas fa-exchange-alt me-2"></i> Movimientos de Inventario
+                            </h2>
+                            <p class="mb-0 text-white-50">Historial de entradas y salidas de: <strong>@productoNombre</strong></p>
+                        </div>
+                        <div class="mt-3 mt-md-0 d-flex flex-wrap gap-2">
+                            <a href="@Url.Action("Detalle", new { id = productoCompraId })" class="btn btn-outline-light">
+                                <i class="fas fa-eye me-1"></i> Ver Producto
+                            </a>
+                            <a href="@Url.Action("Inventario", "Producto")" class="btn btn-outline-light">
+                                <i class="fas fa-arrow-left me-1"></i> Regresar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-body-custom p-4">
+
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                            <i class="fas fa-check-circle me-2"></i> @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <!-- Resumen de movimientos -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Total Movimientos</h5>
+                                    <h2 class="mb-0">@Model.Count()</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Entradas</h5>
+                                    <h2 class="mb-0">@Model.Count(x => x.TipoMovimiento == "ENTRADA")</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-dark">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Salidas</h5>
+                                    <h2 class="mb-0">@Model.Count(x => x.TipoMovimiento == "SALIDA")</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h5 class="card-title">Ajustes</h5>
+                                    <h2 class="mb-0">@Model.Count(x => x.TipoMovimiento == "AJUSTE")</h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filtros -->
+                    <div class="filtros-container mb-4">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Tipo Movimiento</label>
+                                <select id="filtroTipo" class="form-select">
+                                    <option value="">Todos</option>
+                                    <option value="ENTRADA">Entradas</option>
+                                    <option value="SALIDA">Salidas</option>
+                                    <option value="AJUSTE">Ajustes</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Fecha Desde</label>
+                                <input type="date" id="filtroFechaDesde" class="form-control" />
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Fecha Hasta</label>
+                                <input type="date" id="filtroFechaHasta" class="form-control" />
+                            </div>
+                            <div class="col-md-3">
+                                <button type="button" id="btnFiltrar" class="btn btn-primary w-100">
+                                    <i class="fas fa-filter me-1"></i> Filtrar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" id="tblMovimientos">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Tipo</th>
+                                    <th>Lote</th>
+                                    <th>Proveedor</th>
+                                    <th class="text-end">Cantidad</th>
+                                    <th class="text-end">Precio Unitario</th>
+                                    <th class="text-end">Subtotal</th>
+                                    <th>Motivo</th>
+                                    <th>Referencia</th>
+                                    <th>Usuario</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    string tipoBadge = item.TipoMovimiento == "ENTRADA" ? "bg-success" : (item.TipoMovimiento == "SALIDA" ? "bg-warning text-dark" : "bg-info");
+                                    string tipoIcono = item.TipoMovimiento == "ENTRADA" ? "fa-arrow-down" : (item.TipoMovimiento == "SALIDA" ? "fa-arrow-up" : "fa-edit");
+                                    string cantidadClase = item.TipoMovimiento == "ENTRADA" ? "text-success" : "text-danger";
+                                    string signo = item.TipoMovimiento == "ENTRADA" ? "+" : "-";
+
+                                    <tr>
+                                        <td>
+                                            @item.FechaMovimiento.ToString("dd/MM/yyyy HH:mm")
+                                    </td>
+                                    <td>
+                                        <span class="badge @tipoBadge px-3 py-2">
+                                            <i class="fas @tipoIcono me-1"></i> @item.TipoMovimiento
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(item.NumeroLote))
+                                        {
+                                            <span class="badge bg-light text-dark">@item.NumeroLote</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>@item.ProveedorNombre
+                                </td>
+                                <td class="text-end @cantidadClase fw-bold">
+                                    @signo @item.Cantidad.ToString("N2")
+                                </td>
+                                <td class="text-end">Q @item.PrecioUnitario.ToString("N2")
+                </td>
+                <td class="text-end">Q @(item.Cantidad * item.PrecioUnitario).ToString("N2")
+</td>
+<td>
+    @if (!string.IsNullOrEmpty(item.Motivo))
+    {
+        <span class="text-muted small">@item.Motivo</span>
+    }
+    else
+    {
+        <span class="text-muted">-</span>
+    }
+</td>
+<td>
+    @if (item.ReferenciaId.HasValue)
+    {
+        <span class="badge bg-secondary">Ref: @item.ReferenciaId</span>
+    }
+    else
+    {
+        <span class="text-muted">-</span>
+    }
+</td>
+<td>
+    @item.UsuarioNombre
+</td>
+</tr>
+}
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <td colspan="4" class="text-end fw-bold">TOTALES:</td>
+                                    <td class="text-end fw-bold" id="totalEntradas">
+                                        0
+                                    </td>
+                                    <td></td>
+                                    <td class="text-end fw-bold" id="totalSubtotal">
+                                        Q 0.00
+                                    </td>
+                                    <td colspan="3"></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    @if (!Model.Any())
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-exchange-alt fa-4x text-muted mb-3"></i>
+                            <p class="text-muted">No hay movimientos registrados para este producto</p>
+                            <a href="@Url.Action("CrearLote", new { productoCompraId = productoCompraId })" class="btn btn-success">
+                                <i class="fas fa-plus-circle me-1"></i> Agregar Primer Lote
+                            </a>
+                        </div>
+                    }
+
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Método FIFO:</strong> Las salidas de inventario se realizan utilizando el método FIFO (primero en entrar, primero en salir), priorizando los lotes con fecha de vencimiento más próxima.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        .container-fluid {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding-left: 30px !important;
+            padding-right: 30px !important;
+        }
+
+        .card-custom {
+            width: 100%;
+            background: #fff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        .card-custom-full {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        .card-header-custom {
+            padding: 1.5rem 2rem;
+            background: linear-gradient(135deg, #c95a00 0%, #a04700 100%);
+        }
+
+        .card-body-custom {
+            padding: 20px;
+        }
+
+        .filtros-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .table th {
+            padding: 14px 12px;
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            white-space: nowrap;
+        }
+
+        .table td {
+            padding: 14px 12px;
+            vertical-align: middle;
+        }
+
+        .table-hover tbody tr:hover {
+            background: rgba(201, 90, 0, 0.05);
+        }
+
+        .btn {
+            border-radius: 10px;
+            transition: all .2s ease;
+        }
+
+            .btn:hover {
+                transform: translateY(-2px);
+            }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        /* Tarjetas de resumen */
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .container-fluid {
+                padding-left: 10px !important;
+                padding-right: 10px !important;
+            }
+
+            .card-header-custom {
+                padding: 1rem;
+            }
+
+                .card-header-custom h2 {
+                    font-size: 1.3rem;
+                }
+
+            .table th,
+            .table td {
+                white-space: nowrap;
+                font-size: .8rem;
+            }
+
+            .btn-sm {
+                font-size: .7rem;
+                padding: 5px 10px;
+            }
+
+            .filtros-container .row {
+                margin: 0;
+            }
+        }
+    </style>
+
+    <script>$(document).ready(function() {
+            calcularTotales();
+
+            // Filtrar movimientos
+            $('#btnFiltrar').click(function() {
+                var tipo = $('#filtroTipo').val();
+                var fechaDesde = $('#filtroFechaDesde').val();
+                var fechaHasta = $('#filtroFechaHasta').val();
+
+                $('#tblMovimientos tbody tr').each(function() {
+                    var mostrar = true;
+                    var fila = $(this);
+                    var tipoFila = fila.find('td:eq(1)').text().trim();
+                    var fechaFila = fila.find('td:eq(0)').text().trim();
+
+                    if (tipo && tipoFila !== tipo) {
+                        mostrar = false;
+                    }
+
+                    if (fechaDesde) {
+                        var fechaFilaDate = new Date(fechaFila.split(' ')[0].split('/').reverse().join('-'));
+                        var fechaDesdeDate = new Date(fechaDesde);
+                        if (fechaFilaDate < fechaDesdeDate) {
+                            mostrar = false;
+                        }
+                    }
+
+                    if (fechaHasta) {
+                        var fechaFilaDate = new Date(fechaFila.split(' ')[0].split('/').reverse().join('-'));
+                        var fechaHastaDate = new Date(fechaHasta);
+                        if (fechaFilaDate > fechaHastaDate) {
+                            mostrar = false;
+                        }
+                    }
+
+                    fila.toggle(mostrar);
+                });
+
+                calcularTotales();
+            });
+
+            function calcularTotales() {
+                var totalEntradas = 0;
+                var totalSubtotal = 0;
+
+                $('#tblMovimientos tbody tr:visible').each(function() {
+                    var tipo = $(this).find('td:eq(1)').text().trim();
+                    var cantidad = parseFloat($(this).find('td:eq(4)').text().replace(/[^0-9.-]/g, '')) || 0;
+                    var subtotal = parseFloat($(this).find('td:eq(6)').text().replace(/[^0-9.-]/g, '')) || 0;
+
+                    if (tipo === 'ENTRADA') {
+                        totalEntradas += cantidad;
+                    }
+                    totalSubtotal += subtotal;
+                });
+
+                $('#totalEntradas').text(totalEntradas.toFixed(2));
+                $('#totalSubtotal').text('Q ' + totalSubtotal.toFixed(2));
+            }
+
+            // Limpiar filtros
+            $('#btnFiltrar').after('<button type="button" id="btnLimpiar" class="btn btn-secondary ms-2"><i class="fas fa-eraser me-1"></i> Limpiar</button>');
+            $('#btnLimpiar').click(function() {
+                $('#filtroTipo').val('');
+                $('#filtroFechaDesde').val('');
+                $('#filtroFechaHasta').val('');
+                $('#tblMovimientos tbody tr').show();
+                calcularTotales();
+            });
+        });</script>
+}
