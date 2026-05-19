@@ -242,7 +242,6 @@
     <Compile Include="Services\ReporteService.cs" />
     <Compile Include="Services\SoundexService.cs" />
     <Compile Include="Services\VentaService.cs" />
-    <Compile Include="SqlServerTypes\Loader.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Content\bootstrap-grid.css" />
