@@ -1,0 +1,447 @@
+﻿@model LaMediaCancha.Models.ViewModels.RegistrarDevolucionViewModel
+
+@{
+    ViewBag.Title = "Registrar Devolución de Cliente";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="main-content">
+    <div class="card-custom" style="max-width: 1400px; width: 100%;">
+        <div class="card-header-custom" style="background: linear-gradient(135deg, #D35400 0%, #E67E22 100%);">
+            <h2><i class="fas fa-arrow-right"></i> Registrar Devolución de Cliente</h2>
+            <p>Seleccione la orden y los productos a devolver</p>
+        </div>
+        <div class="card-body-custom">
+            <!-- Botón Regresar -->
+            <div class="mb-3">
+                <a href="@Url.Action("Index", "Devolucion")" class="btn-custom" style="display: inline-block; width: auto; padding: 10px 25px; text-decoration: none;">
+                    <i class="fas fa-arrow-left"></i> Regresar
+                </a>
+            </div>
+
+            <!-- Búsqueda de Orden/Venta -->
+            <div class="card" style="margin-bottom: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                <div class="card-header" style="background: linear-gradient(135deg, #D35400 0%, #E67E22 100%); color: white; padding: 12px 20px; border-radius: 8px 8px 0 0;">
+                    <h5 class="mb-0"><i class="fas fa-search"></i> Buscar Orden de Venta</h5>
+                </div>
+                <div class="card-body" style="padding: 20px;">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group-custom">
+                                <label>Número de Orden o Factura</label>
+                                <input type="text" id="txtNumeroOrden" class="form-control-custom"
+                                       placeholder="Número de Orden o Factura"
+                                       value="@Model.NumeroFacturaBuscado" />
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <button type="button" id="btnBuscar" class="btn-custom" style="width: auto; padding: 12px 30px;">
+                                <i class="fas fa-search"></i> Buscar
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Información de la Orden -->
+                    <div id="infoOrden" class="mt-3" style="display: none;">
+                        <div class="alert alert-info" style="background: #d1ecf1; border-color: #bee5eb; color: #0c5460; padding: 15px; border-radius: 8px;">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <strong>Número Orden:</strong> <span id="lblNumeroOrden"></span>
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Cliente:</strong> <span id="lblCliente"></span>
+                                </div>
+                                <div class="col-md-4">
+                                    <strong>Fecha Venta:</strong> <span id="lblFecha"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formulario de Devolución -->
+            @using (Html.BeginForm("Registrar", "Devolucion", FormMethod.Post, new { id = "frmDevolucion" }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.HiddenFor(m => m.OrdenId, new { id = "OrdenId" })
+                @Html.HiddenFor(m => m.Tipo)
+                @Html.HiddenFor(m => m.FormaCompensacion)
+
+                <div id="formularioDevolucion" style="display: none;">
+                    <!-- Información de Devolución -->
+                    <div class="card" style="margin-bottom: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                        <div class="card-header" style="background: linear-gradient(135deg, #D35400 0%, #E67E22 100%); color: white; padding: 12px 20px; border-radius: 8px 8px 0 0;">
+                            <h5 class="mb-0"><i class="fas fa-info-circle"></i> Información de la Devolución</h5>
+                        </div>
+                        <div class="card-body" style="padding: 20px;">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group-custom">
+                                        <label>Tipo de Devolución <span class="text-danger">*</span></label>
+                                        @Html.DropDownListFor(m => m.TipoDevolucion,
+                                                      new SelectList(new List<SelectListItem>
+                                                      {
+                                                    new SelectListItem { Text = "Producto Defectuoso", Value = "Producto Defectuoso" },
+                                                    new SelectListItem { Text = "Producto No Conforme", Value = "Producto No Conforme" },
+                                                    new SelectListItem { Text = "Error en Facturación", Value = "Error en Facturación" },
+                                                    new SelectListItem { Text = "Producto Vencido", Value = "Producto Vencido" },
+                                                    new SelectListItem { Text = "Otros", Value = "Otros" }
+                              }, "Value", "Text"),
+                                                      new { @class = "form-control-custom", required = "required" })
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group-custom">
+                                        <label>Forma de Compensación</label>
+                                        <select id="FormaCompensacionSelect" class="form-control-custom">
+                                            <option value="CreditoCasa">Crédito en Casa</option>
+                                            <option value="NotaCredito">Nota de Crédito</option>
+                                            <option value="Reembolso">Reembolso</option>
+                                            <option value="CambioProducto">Cambio de Producto</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group-custom">
+                                        <label>Motivo</label>
+                                        @Html.TextBoxFor(m => m.Motivo, new { @class = "form-control-custom", placeholder = "Describa el motivo de la devolución" })
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="form-group-custom">
+                                        <label>Observaciones</label>
+                                        @Html.TextAreaFor(m => m.Observaciones, new { @class = "form-control-custom", rows = 2, placeholder = "Observaciones adicionales" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Productos de la Orden -->
+                    <div class="card" style="margin-bottom: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+                        <div class="card-header" style="background: linear-gradient(135deg, #D35400 0%, #E67E22 100%); color: white; padding: 12px 20px; border-radius: 8px 8px 0 0;">
+                            <h5 class="mb-0"><i class="fas fa-boxes"></i> Productos de la Orden</h5>
+                        </div>
+                        <div class="card-body" style="padding: 20px;">
+                            <div class="alert alert-warning" style="background: #fff3cd; border-color: #ffeeba; color: #856404; padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>Nota:</strong> Los productos en oferta requieren autorización de gerencia.
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table-custom" id="tblProductos">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 40px;">#</th>
+                                            <th>Código</th>
+                                            <th>Producto</th>
+                                            <th class="text-center">Cantidad Vendida</th>
+                                            <th class="text-center">Cantidad a Devolver</th>
+                                            <th class="text-center">¿En Oferta?</th>
+                                            <th class="text-right">Precio</th>
+                                            <th class="text-right">Subtotal</th>
+                                            <th style="width: 150px;">Destino Stock</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tblProductosBody">
+                                        <tr>
+                                            <td colspan="9" class="text-center">No hay productos disponibles</td>
+                                        </tr>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr style="background: rgba(139, 69, 19, 0.1);">
+                                            <td colspan="7" class="text-right"><strong>Total a Devolver:</strong></td>
+                                            <td class="text-right"><strong id="lblTotal">Q 0.00</strong></td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="form-group text-right" style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                        <a href="@Url.Action("Index", "Devolucion")" class="btn-custom" style="background: #6c757d; width: auto; padding: 12px 25px; text-decoration: none; display: inline-block;">
+                            <i class="fas fa-times"></i> Cancelar
+                        </a>
+                        <button type="submit" class="btn-custom" id="btnRegistrar" style="width: auto; padding: 12px 25px;">
+                            <i class="fas fa-save"></i> Registrar Devolución
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let productos = [];
+
+        $(document).ready(function() {
+            var ordenBuscada = '@Model.NumeroFacturaBuscado';
+            if (ordenBuscada) {
+                $('#txtNumeroOrden').val(ordenBuscada);
+                buscarOrden();
+            }
+
+            $('#btnBuscar').click(function() {
+                buscarOrden();
+            });
+
+            $('#txtNumeroOrden').keypress(function(e) {
+                if (e.which === 13) {
+                    buscarOrden();
+                }
+            });
+
+            $('#FormaCompensacionSelect').change(function() {
+                $('#FormaCompensacion').val($(this).val());
+            });
+
+            $('#frmDevolucion').submit(function(e) {
+                e.preventDefault();
+                registrarDevolucion();
+            });
+        });
+
+        function buscarOrden() {
+            var numeroOrden = $('#txtNumeroOrden').val().trim();
+
+            if (!numeroOrden) {
+                mostrarToast('Error', 'Ingrese un número de orden o factura', 'error');
+                return;
+            }
+
+            $('#btnBuscar').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Buscando...');
+
+            $.ajax({
+                url: '@Url.Action("BuscarPorFactura", "Devolucion")',
+                type: 'GET',
+                data: { numeroFactura: numeroOrden, tipo: 'Cliente' },
+                success: function(response) {
+                    if (response.success) {
+                        $('#OrdenId').val(response.ordenId);
+                        $('#lblNumeroOrden').text(response.numeroDocumento);
+                        $('#lblCliente').text(response.clienteProveedorNombre);
+                        $('#lblFecha').text(response.fecha);
+
+                        $('#infoOrden').show();
+
+                        cargarProductos(response.ordenId);
+                        $('#formularioDevolucion').show();
+                    } else {
+                        mostrarToast('Error', response.message, 'error');
+                        $('#infoOrden').hide();
+                        $('#formularioDevolucion').hide();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    mostrarToast('Error', 'Error al buscar la orden: ' + error, 'error');
+                },
+                complete: function() {
+                    $('#btnBuscar').prop('disabled', false).html('<i class="fas fa-search"></i> Buscar');
+                }
+            });
+        }
+
+        function cargarProductos(ordenId) {
+            $.ajax({
+                url: '@Url.Action("GetProductosPorOrden", "Devolucion")',
+                type: 'GET',
+                data: { ordenId: ordenId },
+                success: function(response) {
+                    if (response && !response.error) {
+                        productos = response;
+                        renderizarTablaProductos();
+                    } else {
+                        mostrarToast('Error', response.error || 'Error al cargar productos', 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    mostrarToast('Error', 'Error al cargar productos: ' + error, 'error');
+                }
+            });
+        }
+
+        function renderizarTablaProductos() {
+            var tbody = $('#tblProductosBody');
+            tbody.empty();
+
+            if (!productos || productos.length === 0) {
+                tbody.append('<tr><td colspan="9" class="text-center">No hay productos disponibles para devolución</td></tr>');
+                return;
+            }
+
+            var index = 0;
+            productos.forEach(function(prod) {
+                var enOferta = prod.EstabaEnOferta || false;
+                var maxCantidad = prod.CantidadDisponible || 0;
+
+                var row = $('<tr>');
+                if (enOferta) {
+                    row.css('background', 'rgba(243, 156, 18, 0.1)');
+                }
+
+                row.append($('<td>').addClass('text-center').text(index + 1));
+                row.append($('<td>').text(prod.Codigo || ''));
+                row.append($('<td>').text(prod.Nombre || ''));
+                row.append($('<td>').addClass('text-center').text(maxCantidad));
+
+                var inputCantidad = $('<input>')
+                    .attr('type', 'number')
+                    .addClass('form-control-custom cantidad-devolver')
+                    .css({'width': '80px', 'text-align': 'center'})
+                    .attr('min', 0)
+                    .attr('max', maxCantidad)
+                    .attr('step', 1)
+                    .val(0)
+                    .data('producto', prod);
+
+                var tdCantidad = $('<td>').addClass('text-center').append(inputCantidad);
+                row.append(tdCantidad);
+
+                var ofertaIcon = enOferta ? '<span class="badge-warning"><i class="fas fa-tag"></i> Oferta</span>' : '<span class="badge-secondary">Normal</span>';
+                row.append($('<td>').addClass('text-center').html(ofertaIcon));
+
+                var precio = enOferta && prod.PrecioOferta ? prod.PrecioOferta : prod.Precio;
+                row.append($('<td>').addClass('text-right').text('Q ' + (precio || 0).toFixed(2)));
+                row.append($('<td>').addClass('text-right subtotal').text('Q 0.00'));
+
+                var selectDestino = $('<select>').addClass('form-control-custom destino-stock').css({'width': '100%', 'padding': '6px'});
+                selectDestino.append($('<option>').val('Bodega').text('Bodega'));
+                selectDestino.append($('<option>').val('DevolucionProveedor').text('Devolución a Proveedor'));
+                selectDestino.append($('<option>').val('Desecho').text('Desecho'));
+
+                var tdDestino = $('<td>').append(selectDestino);
+                row.append(tdDestino);
+
+                tbody.append(row);
+
+                inputCantidad.on('change keyup', function() {
+                    calcularFila($(this));
+                    calcularTotal();
+                });
+
+                index++;
+            });
+        }
+
+        function calcularFila(input) {
+            var row = input.closest('tr');
+            var cantidad = parseFloat(input.val()) || 0;
+            var producto = input.data('producto');
+            var enOferta = producto.EstabaEnOferta || false;
+            var precio = enOferta && producto.PrecioOferta ? producto.PrecioOferta : producto.Precio;
+            var subtotal = cantidad * (precio || 0);
+
+            row.find('.subtotal').text('Q ' + subtotal.toFixed(2));
+        }
+
+        function calcularTotal() {
+            var total = 0;
+            $('.subtotal').each(function() {
+                var texto = $(this).text().replace('Q ', '');
+                total += parseFloat(texto) || 0;
+            });
+            $('#lblTotal').text('Q ' + total.toFixed(2));
+        }
+
+        function registrarDevolucion() {
+            var productosADevolver = [];
+            var productosEnOferta = false;
+
+            $('.cantidad-devolver').each(function() {
+                var cantidad = parseInt($(this).val()) || 0;
+                if (cantidad > 0) {
+                    var producto = $(this).data('producto');
+                    var row = $(this).closest('tr');
+                    var destinoStock = row.find('.destino-stock').val();
+
+                    if (producto.EstabaEnOferta) {
+                        productosEnOferta = true;
+                    }
+
+                    productosADevolver.push({
+                        DetalleOrdenId: producto.DetalleOrdenId,
+                        ProductoId: producto.ProductoId,
+                        CantidadADevolver: cantidad,
+                        DestinoStock: destinoStock,
+                        EstabaEnOferta: producto.EstabaEnOferta || false,
+                        Codigo: producto.Codigo,
+                        Nombre: producto.Nombre
+                    });
+                }
+            });
+
+            if (productosADevolver.length === 0) {
+                mostrarToast('Error', 'Debe seleccionar al menos un producto para devolver', 'error');
+                return;
+            }
+
+            var formData = {
+                OrdenId: $('#OrdenId').val(),
+                Tipo: 'Cliente',
+                TipoDevolucion: $('#TipoDevolucion').val(),
+                FormaCompensacion: $('#FormaCompensacionSelect').val(),
+                Motivo: $('#Motivo').val(),
+                Observaciones: $('#Observaciones').val(),
+                ProductosCliente: productosADevolver,
+                Productos: []
+            };
+
+            $('#btnRegistrar').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Registrando...');
+
+            $.ajax({
+                url: '@Url.Action("Registrar", "Devolucion")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(formData),
+                success: function(response) {
+                    if (response.success) {
+                        if (response.requiereAutorizacion) {
+                            mostrarToast('Atención', 'La devolución contiene productos en oferta y requiere autorización de gerencia.', 'warning');
+                            setTimeout(function() {
+                                window.location.href = '@Url.Action("Index", "Devolucion")';
+                            }, 2000);
+                        } else {
+                            mostrarToast('¡Éxito!', response.message, 'success');
+                            setTimeout(function() {
+                                window.location.href = '@Url.Action("Index", "Devolucion")';
+                            }, 1500);
+                        }
+                    } else {
+                        mostrarToast('Error', response.message, 'error');
+                        $('#btnRegistrar').prop('disabled', false).html('<i class="fas fa-save"></i> Registrar Devolución');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    mostrarToast('Error', 'Error al registrar: ' + error, 'error');
+                    $('#btnRegistrar').prop('disabled', false).html('<i class="fas fa-save"></i> Registrar Devolución');
+                }
+            });
+        }
+
+        function mostrarToast(titulo, mensaje, tipo) {
+            var icono = '';
+            if (tipo === 'success') icono = 'fa-check-circle';
+            else if (tipo === 'error') icono = 'fa-exclamation-circle';
+            else if (tipo === 'warning') icono = 'fa-exclamation-triangle';
+            else icono = 'fa-info-circle';
+
+            var toast = $(`
+                <div class="toast-notification toast-${tipo}">
+                    <div class="toast-icon"><i class="fas ${icono}"></i></div>
+                    <div class="toast-content">
+                        <div class="toast-title">${titulo}</div>
+                        <div class="toast-message">${mensaje}</div>
+                    </div>
+                </div>
+            `);
+
+            $('.toast-container').append(toast);
+            setTimeout(function() { toast.fadeOut(300, function() { $(this).remove(); }); }, 3000);
+        }
+    </script>
+}

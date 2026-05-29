@@ -3,6 +3,7 @@
 @{
     ViewBag.Title = "Devoluciones";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var tipoSeleccionado = ViewBag.TipoSeleccionado as string ?? "";
 }
 
 <div class="container-fluid px-4 py-4">
@@ -15,13 +16,16 @@
                             <h2 class="text-white mb-1">
                                 <i class="fas fa-undo-alt me-2"></i> Devoluciones
                             </h2>
-                            <p class="mb-0 text-white-50">Historial de devoluciones registradas</p>
+                            <p class="mb-0 text-white-50">Gestión de devoluciones a proveedores y de clientes</p>
                         </div>
                         <div class="mt-3 mt-md-0 d-flex flex-wrap gap-2">
-                            <a href="@Url.Action("Registrar", "Devolucion")" class="btn btn-light">
-                                <i class="fas fa-plus-circle me-1"></i> Nueva Devolución
+                            <a href="@Url.Action("RegistrarProveedor", "Devolucion")" class="btn btn-light">
+                                <i class="fas fa-truck me-1"></i> Devolución a Proveedor
                             </a>
-                            <a href="@Url.Action("Index", "Compra")" class="btn btn-outline-light">
+                            <a href="@Url.Action("RegistrarCliente", "Devolucion")" class="btn btn-light">
+                                <i class="fas fa-user me-1"></i> Devolución de Cliente
+                            </a>
+                            <a href="@Url.Action("Index", "Home")" class="btn btn-outline-light">
                                 <i class="fas fa-arrow-left me-1"></i> Regresar
                             </a>
                         </div>
@@ -29,6 +33,7 @@
                 </div>
 
                 <div class="card-body-custom p-4">
+
                     @if (TempData["Success"] != null)
                     {
                         <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
@@ -37,13 +42,28 @@
                         </div>
                     }
 
+                    <!-- Filtros -->
+                    <div class="filtros-container mb-4">
+                        <form method="get" action="@Url.Action("Index")" class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">Tipo Devolución</label>
+                                <select name="tipo" class="form-select" onchange="this.form.submit()">
+                                    <option value="">Todos</option>
+                                    <option value="Proveedor" @(tipoSeleccionado == "Proveedor" ? "selected" : "")>Devolución a Proveedor</option>
+                                    <option value="Cliente" @(tipoSeleccionado == "Cliente" ? "selected" : "")>Devolución de Cliente</option>
+                                </select>
+                            </div>
+                        </form>
+                    </div>
+
                     <div class="table-responsive">
                         <table class="table table-hover align-middle mb-0">
                             <thead class="table-dark">
                                 <tr>
-                                    <th>ID Devolución</th>
-                                    <th>Documento Compra</th>
-                                    <th>Fecha Devolución</th>
+                                    <th>N° Devolución</th>
+                                    <th>Documento</th>
+                                    <th>Cliente/Proveedor</th>
+                                    <th>Fecha</th>
                                     <th>Motivo</th>
                                     <th>Tipo</th>
                                     <th class="text-end">Monto</th>
@@ -54,23 +74,43 @@
                             <tbody>
                                 @foreach (var item in Model)
                                 {
+                                    string badgeClass = item.Estado == "Completada" ? "bg-success" :
+                                                      item.Estado == "Pendiente" ? "bg-warning text-dark" :
+                                                      item.Estado == "PendienteAutorizacion" ? "bg-info" : "bg-secondary";
+                                    string tipoIcono = item.Tipo == "Proveedor" ? "fa-truck" : "fa-user";
+                                    string tipoTexto = item.Tipo == "Proveedor" ? "Proveedor" : "Cliente";
+                                    string nombreClienteProveedor = item.Tipo == "Proveedor" ? item.ProveedorNombre : item.ClienteNombre;
+
                                     <tr>
-                                        <td>@item.DevolucionId</td>
-                                        <td>@item.NumeroDocCompra</td>
-                                        <td>@item.FechaDevolucion.ToString("dd/MM/yyyy HH:mm")</td>
-                                        <td>@item.Motivo</td>
-                                        <td>@item.TipoDevolucion</td>
-                                        <td class="text-end text-danger fw-bold">Q @item.MontoTotal.ToString("N2")</td>
-                                        <td class="text-center">
-                                            <span class="badge bg-success px-3 py-2">@item.Estado</span>
-                                        </td>
-                                        <td class="text-center">
-                                            <a href="@Url.Action("Detalle", new { id = item.DevolucionId })" class="btn btn-info btn-sm text-white">
-                                                <i class="fas fa-eye me-1"></i> Ver
-                                            </a>
-                                        </td>
-                                    </tr>
-                                }
+                                        <td><span class="badge bg-light text-dark">@item.NumeroDevolucion</span></td>
+                                        <td>
+                                            @item.NumeroDocCompra
+                                    </td>
+                                    <td>
+                                        @nombreClienteProveedor
+                                </td>
+                                <td>
+                                    @item.FechaDevolucion.ToString("dd/MM/yyyy HH:mm")
+                            </td>
+                            <td>@item.Motivo
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">
+                                <i class="fas @tipoIcono me-1"></i> @tipoTexto
+                            </span>
+                        </td>
+                        <td class="text-end text-danger fw-bold">Q @item.MontoTotal.ToString("N2")
+        </td>
+        <td class="text-center">
+            <span class="badge @badgeClass px-3 py-2">@item.Estado</span>
+        </td>
+        <td class="text-center">
+            <a href="@Url.Action("Detalle", new { id = item.DevolucionId })" class="btn btn-info btn-sm text-white">
+                <i class="fas fa-eye me-1"></i> Ver
+            </a>
+        </td>
+    </tr>
+}
                             </tbody>
                         </table>
                     </div>
@@ -80,40 +120,42 @@
     </div>
 </div>
 
-<style>
-    .container-fluid {
-        width: 100% !important;
-        max-width: 100% !important;
-        padding-left: 30px !important;
-        padding-right: 30px !important;
-    }
+@section Scripts {
+    <style>
+        .filtros-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
 
-    .card-custom {
-        width: 100%;
-        background: #fff;
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-    }
+        .container-fluid {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding-left: 30px !important;
+            padding-right: 30px !important;
+        }
 
-    .card-custom-full {
-        width: 100% !important;
-        max-width: 100% !important;
-    }
+        .card-custom {
+            width: 100%;
+            background: #fff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
 
-    .card-header-custom {
-        padding: 1.5rem 2rem;
-        background: linear-gradient(135deg,#c95a00 0%,#a04700 100%);
-    }
+        .card-custom-full {
+            width: 100% !important;
+            max-width: 100% !important;
+        }
 
-    .card-body-custom {
-        padding: 20px;
-    }
+        .card-header-custom {
+            padding: 1.5rem 2rem;
+            background: linear-gradient(135deg,#c95a00 0%,#a04700 100%);
+        }
 
-    .table {
-        width: 100%;
-        margin-bottom: 0;
-    }
+        .card-body-custom {
+            padding: 20px;
+        }
 
         .table th {
             padding: 14px 12px;
@@ -128,26 +170,18 @@
             vertical-align: middle;
         }
 
-    .table-hover tbody tr:hover {
-        background: rgba(201,90,0,0.05);
-    }
-
-    .btn {
-        border-radius: 10px;
-        transition: all .2s ease;
-    }
-
-        .btn:hover {
-            transform: translateY(-2px);
+        .btn {
+            border-radius: 10px;
+            transition: all .2s ease;
         }
 
-    .badge {
-        font-size: .75rem;
-        font-weight: 600;
-    }
+            .btn:hover {
+                transform: translateY(-2px);
+            }
 
-    .table-responsive {
-        width: 100%;
-        overflow-x: auto;
-    }
-</style>
+        .badge {
+            font-size: .75rem;
+            font-weight: 600;
+        }
+    </style>
+}

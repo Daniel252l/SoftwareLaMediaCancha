@@ -1,118 +1,487 @@
 ﻿@model List<LaMediaCancha.Models.OrdenModels.Mesa>
+@using LaMediaCancha.Models
+
 @{
-    ViewBag.Title = "Mesas";
+    ViewBag.Title = "Mesas - Sistema de Órdenes";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card-custom card-custom-full">
-                <div class="card-header-custom">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h2><i class="fas fa-chair"></i> Gestión de Mesas</h2>
-                            <p>Seleccione una mesa para comenzar</p>
-                        </div>
-                        <a href="@Url.Action("Dashboard", "Home")" class="btn-custom" style="background: #6c757d; width: auto; padding: 8px 15px;">
-                            <i class="fas fa-arrow-left"></i> Regresar
-                        </a>
-                    </div>
-                </div>
-                <div class="card-body-custom">
-                    <div class="mesas-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 20px;">
-                        @foreach (var mesa in Model)
-                        {
-                            string estadoClass = mesa.Estado == "Disponible" ? "mesa-disponible" : (mesa.Estado == "Ocupada" ? "mesa-ocupada" : "mesa-reservada");
-                            string estadoTexto = mesa.Estado;
-
-                            <div class="mesa-card @estadoClass" style="background: white; border-radius: 15px; padding: 20px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-                                <div style="font-size: 3rem; margin-bottom: 10px;">
-                                    <i class="fas fa-chair"></i>
-                                </div>
-                                <h3 style="margin: 0;">Mesa @mesa.NumeroMesa</h3>
-                                <p><i class="fas fa-users"></i> Capacidad: @mesa.Capacidad personas</p>
-                                <p><i class="fas fa-location-dot"></i> @mesa.Ubicacion</p>
-                                <p><span class="estado-badge estado-@mesa.Estado.ToLower()">@estadoTexto</span></p>
-                                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 15px;">
-                                    @if (mesa.Estado == "Disponible")
-                                    {
-                                        <a href="@Url.Action("Ordenar", new { mesaId = mesa.MesaId })" class="btn-ordenar">Ordenar</a>
-                                    }
-                                    else if (mesa.Estado == "Ocupada")
-                                    {
-                                        <a href="@Url.Action("Cuenta", new { mesaId = mesa.MesaId })" class="btn-cuenta">Generar Cuenta</a>
-                                    }
-                                </div>
-                            </div>
-                        }
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .mesas-container {
+        width: 100%;
+        min-height: 100vh;
+        padding: 20px 30px;
+        background: #f5f5f5;
+    }
+
+    .header-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .page-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+        .page-title i {
+            font-size: 32px;
+            color: #D35400;
+        }
+
+        .page-title h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2C3E50;
+            margin: 0;
+        }
+
+    .btn-home-action {
+        background: #34495E;
+        color: white;
+        padding: 10px 24px;
+        border-radius: 10px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+        .btn-home-action:hover {
+            background: #D35400;
+            transform: translateY(-2px);
+            color: white;
+        }
+
+    .mesas-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 25px;
+        width: 100%;
+    }
+
     .mesa-card {
-        transition: transform 0.3s ease;
-        border-left: 5px solid #ccc;
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        width: 100%;
     }
 
         .mesa-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(139, 69, 19, 0.15);
         }
 
-    .mesa-disponible {
-        border-left-color: #27AE60;
+    .mesa-header {
+        background: linear-gradient(135deg, #8B4513, #D35400);
+        padding: 20px;
+        color: white;
     }
 
-    .mesa-ocupada {
-        border-left-color: #E74C3C;
+    .mesa-number {
+        font-size: 22px;
+        font-weight: 800;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
     }
 
-    .mesa-reservada {
-        border-left-color: #F39C12;
-    }
-
-    .estado-badge {
+    .mesa-status {
+        font-size: 11px;
         padding: 4px 12px;
         border-radius: 20px;
-        font-size: 0.75rem;
-        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        font-weight: 600;
     }
 
-    .estado-disponible {
+    .mesa-location {
+        font-size: 13px;
+        margin-top: 8px;
+        opacity: 0.9;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .mesa-body {
+        padding: 20px;
+    }
+
+    .stats {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .stat-item {
+        flex: 1;
+        text-align: center;
+        padding: 12px;
+        background: #F8F9FA;
+        border-radius: 12px;
+    }
+
+    .stat-value {
+        font-size: 20px;
+        font-weight: 800;
+        color: #D35400;
+        display: block;
+    }
+
+    .stat-label {
+        font-size: 10px;
+        color: #7F8C8D;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-top: 5px;
+        display: block;
+    }
+
+    .sillas-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #7F8C8D;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .sillas-grid-mini {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .silla-mini {
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: #ECF0F1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        border: 2px solid transparent;
+    }
+
+        .silla-mini i {
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+
+        .silla-mini.ocupada {
+            background: #FDEDEC;
+            border-color: #E74C3C;
+            color: #C0392B;
+        }
+
+        .silla-mini.disponible {
+            background: #EAFAF1;
+            border-color: #27AE60;
+            color: #1E8449;
+        }
+
+        .silla-mini.temporal {
+            background: #FFF8E1;
+            border-color: #F39C12;
+            color: #E65100;
+        }
+
+    .mesa-footer {
+        padding: 15px 20px;
+        background: #F8F9FA;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #ECF0F1;
+    }
+
+    .total-label {
+        font-size: 12px;
+        color: #7F8C8D;
+        font-weight: 600;
+    }
+
+    .total-monto {
+        font-size: 20px;
+        font-weight: 800;
+        color: #27AE60;
+    }
+
+        .total-monto i {
+            font-size: 12px;
+            margin-right: 4px;
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px;
+        background: white;
+        border-radius: 20px;
+    }
+
+        .empty-state i {
+            font-size: 64px;
+            color: #BDC3C7;
+            margin-bottom: 20px;
+        }
+
+    /* Toast Notifications */
+    .toast-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 300px;
+        max-width: 400px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        animation: slideInRight 0.3s ease-out;
+    }
+
+    .toast-header {
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+    }
+
+        .toast-header i {
+            font-size: 18px;
+        }
+
+    .toast-body {
+        padding: 12px 16px;
+        font-size: 14px;
+        color: #555;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .toast-success .toast-header {
         background: #27AE60;
         color: white;
     }
 
-    .estado-ocupada {
+    .toast-error .toast-header {
         background: #E74C3C;
         color: white;
     }
 
-    .estado-reservada {
+    .toast-info .toast-header {
+        background: #3498DB;
+        color: white;
+    }
+
+    .toast-warning .toast-header {
         background: #F39C12;
         color: white;
     }
 
-    .btn-ordenar, .btn-cuenta {
-        background: #27AE60;
+    .toast-close {
+        margin-left: auto;
+        cursor: pointer;
+        background: none;
+        border: none;
         color: white;
-        padding: 8px 20px;
-        border-radius: 5px;
-        text-decoration: none;
-        display: inline-block;
+        font-size: 18px;
+        padding: 0 5px;
     }
 
-    .btn-cuenta {
-        background: #D35400;
-    }
-
-        .btn-ordenar:hover, .btn-cuenta:hover {
-            transform: scale(1.02);
-            color: white;
-            text-decoration: none;
+        .toast-close:hover {
+            opacity: 0.8;
         }
+
+    @@media (max-width: 768px) {
+        .mesas-container {
+            padding: 15px;
+        }
+
+        .mesas-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .stats {
+            flex-direction: column;
+        }
+
+        .header-actions {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .btn-home-action {
+            justify-content: center;
+        }
+
+        .mesa-number {
+            font-size: 18px;
+        }
+    }
+
+    @@media (min-width: 1400px) {
+        .mesas-grid {
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+
+    @@media (min-width: 1800px) {
+        .mesas-grid {
+            grid-template-columns: repeat(5, 1fr);
+        }
+    }
 </style>
+
+<style>
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+</style>
+
+<div class="mesas-container">
+    <div class="header-actions">
+        <div class="page-title">
+            <i class="fas fa-chalkboard-user"></i>
+            <h1>Mesas</h1>
+        </div>
+        <a href="@Url.Action("Index", "Home")" class="btn-home-action">
+            <i class="fas fa-home"></i> Inicio
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            <i class="fas fa-chair"></i>
+            <h3>No hay mesas configuradas</h3>
+            <p>Contacte al administrador para configurar las mesas del restaurante</p>
+        </div>
+    }
+    else
+    {
+        <div class="mesas-grid">
+            @foreach (var mesa in Model)
+            {
+                var sillasOcupadas = mesa.Sillas?.Count(s => s.Estado == "Ocupada") ?? 0;
+                var totalSillas = mesa.Sillas?.Count ?? mesa.Capacidad;
+                var porcentajeOcupacion = totalSillas > 0 ? (sillasOcupadas * 100 / totalSillas) : 0;
+
+                <div class="mesa-card" onclick="verSillas(@mesa.MesaId, @mesa.NumeroMesa)">
+                    <div class="mesa-header">
+                        <div class="mesa-number">
+                            <span>MESA @mesa.NumeroMesa</span>
+                            <span class="mesa-status">@mesa.Estado</span>
+                        </div>
+                        <div class="mesa-location">
+                            <i class="fas fa-location-dot"></i> @mesa.Ubicacion
+                        </div>
+                    </div>
+
+                    <div class="mesa-body">
+                        <div class="stats">
+                            <div class="stat-item">
+                                <span class="stat-value">@sillasOcupadas / @totalSillas</span>
+                                <span class="stat-label">Sillas ocupadas</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value">@porcentajeOcupacion%</span>
+                                <span class="stat-label">Ocupación</span>
+                            </div>
+                        </div>
+
+                        @if (mesa.Sillas != null && mesa.Sillas.Any())
+                        {
+                            <div class="sillas-title">
+                                <i class="fas fa-chair"></i> Sillas
+                            </div>
+                            <div class="sillas-grid-mini">
+                                @foreach (var silla in mesa.Sillas.OrderBy(s => s.NumeroSilla))
+                                {
+                                    var claseSilla = "disponible";
+                                    if (silla.Estado == "Ocupada") { claseSilla = "ocupada"; }
+                                    else if (silla.EsTemporal) { claseSilla = "temporal"; }
+
+                                    <div class="silla-mini @claseSilla" title="Silla @silla.NumeroSilla - @silla.Estado">
+                                        <i class="fas fa-chair"></i>
+                                        <span>@silla.NumeroSilla</span>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <div class="mesa-footer">
+                        <span class="total-label">Total Mesa</span>
+                        <span class="total-monto">
+                            <i class="fas"></i> @mesa.TotalMonto.ToString("N2")
+                        </span>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function showToast(message, type) {
+        type = type || 'success';
+        var toast = document.createElement('div');
+        toast.className = 'toast-notification toast-' + type;
+        var icon = '', title = '';
+        switch(type) {
+            case 'success': icon = 'fas fa-check-circle'; title = 'Éxito'; break;
+            case 'error': icon = 'fas fa-times-circle'; title = 'Error'; break;
+            case 'info': icon = 'fas fa-info-circle'; title = 'Información'; break;
+            case 'warning': icon = 'fas fa-exclamation-triangle'; title = 'Advertencia'; break;
+            default: icon = 'fas fa-bell'; title = 'Notificación';
+        }
+        toast.innerHTML = '<div class="toast-header"><i class="' + icon + '"></i><span>' + title + '</span><button class="toast-close" onclick="this.closest(\'.toast-notification\').remove()">×</button></div><div class="toast-body">' + message + '</div>';
+        document.body.appendChild(toast);
+        setTimeout(function() {
+            if (toast && toast.parentNode) {
+                toast.style.animation = 'slideInRight 0.3s ease-out reverse';
+                setTimeout(function() { if (toast && toast.parentNode) toast.remove(); }, 300);
+            }
+        }, 3000);
+    }
+
+    function verSillas(mesaId, numeroMesa) {
+        showToast('Cargando sillas de la mesa ' + numeroMesa + '...', 'info');
+        setTimeout(function() {
+            window.location.href = '@Url.Action("SillasPorMesa", "Orden")?mesaId=' + mesaId + '&numeroMesa=' + numeroMesa;
+        }, 500);
+    }
+</script>

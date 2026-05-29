@@ -201,6 +201,7 @@
     <Compile Include="Models\Proveedor.cs" />
     <Compile Include="Models\ReservaModels.cs" />
     <Compile Include="Models\Rol.cs" />
+    <Compile Include="Models\SillaModels.cs" />
     <Compile Include="Models\Usuario.cs" />
     <Compile Include="Models\VentaModels.cs" />
     <Compile Include="Models\ViewModels\BuscarVentaViewModel.cs" />
@@ -223,6 +224,7 @@
     <Compile Include="Models\ViewModels\RegistrarDevolucionViewModel.cs" />
     <Compile Include="Models\ViewModels\ReporteViewModels.cs" />
     <Compile Include="Models\ViewModels\ResetPasswordViewModel.cs" />
+    <Compile Include="Models\ViewModels\ResumenEstadisticasViewModel.cs" />
     <Compile Include="Models\ViewModels\VentaViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\BitacoraService.cs" />
@@ -415,6 +417,9 @@
     <Content Include="Views\Receta\Editar.cshtml" />
     <Content Include="Views\Receta\Detalle.cshtml" />
     <Content Include="Views\Receta\SeleccionarProducto.cshtml" />
+    <Content Include="Views\Devolucion\RegistrarProveedor.cshtml" />
+    <Content Include="Views\Devolucion\RegistrarCliente.cshtml" />
+    <Content Include="Views\Orden\SillasPorMesa.cshtml" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>

@@ -1,212 +1,66 @@
-@{
-    ViewBag.Title = "Dashboard";
-    ViewBag.FullWidth = true;
-    Layout = "~/Views/Shared/_Layout.cshtml";
+@model IEnumerable<LaMediaCancha.Models.DevolucionModels.EncabezadoDevolucion>
+
+<table class="table table-hover align-middle mb-0">
+    <thead class="table-dark">
+        <tr>
+            <th>N° Devolución</th>
+            <th>Documento</th>
+            <th>Cliente/Proveedor</th>
+            <th>Fecha</th>
+            <th>Motivo</th>
+            <th>Tipo</th>
+            <th class="text-end">Monto</th>
+            <th class="text-center">Estado</th>
+            <th class="text-center">Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            string badgeClass = item.Estado == "Completada" ? "bg-success" :
+                              item.Estado == "Pendiente" ? "bg-warning text-dark" :
+                              item.Estado == "PendienteAutorizacion" ? "bg-info" : "bg-secondary";
+            string tipoIcono = item.Tipo == "Proveedor" ? "fa-truck" : "fa-user";
+            string tipoTexto = item.Tipo == "Proveedor" ? "Proveedor" : "Cliente";
+            string nombreClienteProveedor = item.Tipo == "Proveedor" ? item.ProveedorNombre : item.ClienteNombre;
+
+            <tr>
+                <td><span class="badge bg-light text-dark">@item.NumeroDevolucion</span></td>
+                <td>
+                    @item.NumeroDocCompra
+            </td>
+            <td>
+                @nombreClienteProveedor
+        </td>
+        <td>@item.FechaDevolucion.ToString("dd/MM/yyyy HH:mm")
+    </td>
+    <td>
+        @item.Motivo
+</td>
+<td>
+    <span class="badge bg-secondary">
+        <i class="fas @tipoIcono me-1"></i> @tipoTexto
+    </span>
+</td>
+<td class="text-end text-danger fw-bold">Q @item.MontoTotal.ToString("N2")
+</td>
+<td class="text-center">
+    <span class="badge @badgeClass px-3 py-2">@item.Estado</span>
+</td>
+<td class="text-center">
+    <a href="@Url.Action("Detalle", new { id = item.DevolucionId })" class="btn btn-info btn-sm text-white">
+        <i class="fas fa-eye me-1"></i> Ver
+    </a>
+</td>
+</tr>
 }
+    </tbody>
+</table>
 
-<style>
-    .simple-header {
-        display: none !important;
-    }
-</style>
-
-<div style="min-height:100vh; display:flex; flex-direction:column; background:var(--background);">
-
-    <div style="width:100%; background:linear-gradient(135deg,var(--primary) 0%,var(--secondary) 100%);
-                padding:22px 50px; display:flex; justify-content:space-between;
-                align-items:center; box-shadow:0 4px 15px rgba(139,69,19,0.3);
-                box-sizing:border-box;">
-        <div>
-            <h1 style="font-family:var(--font-title); font-size:2.4rem; color:white;
-                       font-weight:900; margin:0; letter-spacing:3px; line-height:1.1;">
-                La Media Cancha
-            </h1>
-            <p style="color:rgba(255,255,255,0.85); margin:4px 0 0 0;
-                      font-size:0.85rem; letter-spacing:2px; text-transform:uppercase;">
-                Panel de Control
-            </p>
-        </div>
-        <a href="@Url.Action("Logout", "Account")"
-           style="background:rgba(255,255,255,0.15); color:white; padding:10px 28px;
-                  border-radius:25px; text-decoration:none; font-weight:600;
-                  font-size:0.9rem; border:2px solid rgba(255,255,255,0.5);
-                  letter-spacing:1px; display:inline-flex; align-items:center; gap:8px;">
-            <i class="fas fa-sign-out-alt"></i>
-            Cerrar Sesión
-        </a>
+@if (!Model.Any())
+{
+    <div class="text-center py-5">
+        <i class="fas fa-undo-alt fa-4x text-muted mb-3"></i>
+        <p class="text-muted">No hay devoluciones registradas</p>
     </div>
-
-    <!-- Bienvenida -->
-    <div style="text-align:center; padding:35px 20px 20px;">
-        <h2 style="font-family:var(--font-title); font-size:3.8rem; color:var(--primary);
-                   font-weight:900; margin:0 0 8px 0; letter-spacing:3px;">
-            @if (Session["UserRol"] != null && Session["UserRol"].ToString() == "Soporte")
-            {
-                <text>Bienvenido, Soporte</text>
-            }
-            else if (Session["UserRol"] != null && Session["UserRol"].ToString() == "Administrativo")
-            {
-                <text>Bienvenido, Administrador</text>
-            }
-            else
-            {
-                <text>Bienvenido</text>
-            }
-        </h2>
-        <p style="color:var(--text-light); font-size:1rem; margin:0;">
-            @Session["UserNombre"] &nbsp;·&nbsp; Selecciona un módulo para comenzar
-        </p>
-        <div style="width:80px; height:4px;
-                    background:linear-gradient(135deg,var(--primary),var(--secondary));
-                    margin:12px auto 0; border-radius:2px;"></div>
-    </div>
-
-    <div style="flex:1; display:flex; align-items:center; justify-content:center;
-                padding:20px 40px 40px;">
-        <div style="display:grid;
-                    grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
-                    gap:30px; width:100%; max-width:1100px;">
-
-            <!-- Menús -->
-            <a href="#" style="text-decoration:none;">
-                <div style="background:white; border-radius:20px; padding:45px 25px;
-                            text-align:center; cursor:pointer;
-                            box-shadow:0 4px 20px rgba(139,69,19,0.1);
-                            border:1px solid rgba(139,69,19,0.08);
-                            transition:all 0.3s ease;"
-                     onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 15px 40px rgba(139,69,19,0.2)';"
-                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(139,69,19,0.1)';">
-                    <div style="width:90px; height:90px;
-                                background:linear-gradient(135deg,var(--primary),var(--secondary));
-                                border-radius:50%; display:flex; align-items:center;
-                                justify-content:center; margin:0 auto 20px;">
-                        <i class="fas fa-utensils" style="font-size:2.2rem; color:white;"></i>
-                    </div>
-                    <strong style="font-size:1.4rem; color:var(--text-dark); display:block;
-                                   margin-bottom:8px; font-family:var(--font-title);">Menús</strong>
-                    <p style="color:var(--text-light); font-size:0.9rem; margin:0;">Gestión de platos y bebidas</p>
-                </div>
-            </a>
-
-            <!-- Pedidos -->
-            <a href="#" style="text-decoration:none;">
-                <div style="background:white; border-radius:20px; padding:45px 25px;
-                            text-align:center; cursor:pointer;
-                            box-shadow:0 4px 20px rgba(139,69,19,0.1);
-                            border:1px solid rgba(139,69,19,0.08);
-                            transition:all 0.3s ease;"
-                     onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 15px 40px rgba(139,69,19,0.2)';"
-                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(139,69,19,0.1)';">
-                    <div style="width:90px; height:90px;
-                                background:linear-gradient(135deg,#D35400,#E67E22);
-                                border-radius:50%; display:flex; align-items:center;
-                                justify-content:center; margin:0 auto 20px;">
-                        <i class="fas fa-clipboard-list" style="font-size:2.2rem; color:white;"></i>
-                    </div>
-                    <strong style="font-size:1.4rem; color:var(--text-dark); display:block;
-                                   margin-bottom:8px; font-family:var(--font-title);">Pedidos</strong>
-                    <p style="color:var(--text-light); font-size:0.9rem; margin:0;">Control de órdenes activas</p>
-                </div>
-            </a>
-
-            <!-- Reservas -->
-            <a href="#" style="text-decoration:none;">
-                <div style="background:white; border-radius:20px; padding:45px 25px;
-                            text-align:center; cursor:pointer;
-                            box-shadow:0 4px 20px rgba(139,69,19,0.1);
-                            border:1px solid rgba(139,69,19,0.08);
-                            transition:all 0.3s ease;"
-                     onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 15px 40px rgba(139,69,19,0.2)';"
-                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(139,69,19,0.1)';">
-                    <div style="width:90px; height:90px;
-                                background:linear-gradient(135deg,#27AE60,#2ECC71);
-                                border-radius:50%; display:flex; align-items:center;
-                                justify-content:center; margin:0 auto 20px;">
-                        <i class="fas fa-calendar-check" style="font-size:2.2rem; color:white;"></i>
-                    </div>
-                    <strong style="font-size:1.4rem; color:var(--text-dark); display:block;
-                                   margin-bottom:8px; font-family:var(--font-title);">Reservas</strong>
-                    <p style="color:var(--text-light); font-size:0.9rem; margin:0;">Gestión de reservaciones</p>
-                </div>
-            </a>
-
-            <!-- Usuarios — Soporte y Administrativo -->
-            @if (Session["UserRol"] != null &&
-                (Session["UserRol"].ToString() == "Soporte" ||
-                 Session["UserRol"].ToString() == "Administrativo"))
-            {
-                <a href="@Url.Action("CrearUsuario", "Admin")" style="text-decoration:none;">
-                    <div style="background:white; border-radius:20px; padding:45px 25px;
-                                text-align:center; cursor:pointer;
-                                box-shadow:0 4px 20px rgba(139,69,19,0.1);
-                                border:1px solid rgba(139,69,19,0.08);
-                                transition:all 0.3s ease;"
-                         onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 15px 40px rgba(139,69,19,0.2)';"
-                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(139,69,19,0.1)';">
-                        <div style="width:90px; height:90px;
-                                    background:linear-gradient(135deg,#3498DB,#5DADE2);
-                                    border-radius:50%; display:flex; align-items:center;
-                                    justify-content:center; margin:0 auto 20px;">
-                            <i class="fas fa-users" style="font-size:2.2rem; color:white;"></i>
-                        </div>
-                        <strong style="font-size:1.4rem; color:var(--text-dark); display:block;
-                                       margin-bottom:8px; font-family:var(--font-title);">Usuarios</strong>
-                        <p style="color:var(--text-light); font-size:0.9rem; margin:0;">Gestión de cuentas</p>
-                    </div>
-                </a>
-            }
-
-            <!-- Reportes — solo Administrativo -->
-            @if (Session["UserRol"] != null &&
-                 Session["UserRol"].ToString() == "Administrativo")
-            {
-                <a href="#" style="text-decoration:none;">
-                    <div style="background:white; border-radius:20px; padding:45px 25px;
-                                text-align:center; cursor:pointer;
-                                box-shadow:0 4px 20px rgba(139,69,19,0.1);
-                                border:1px solid rgba(139,69,19,0.08);
-                                transition:all 0.3s ease;"
-                         onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 15px 40px rgba(139,69,19,0.2)';"
-                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(139,69,19,0.1)';">
-                        <div style="width:90px; height:90px;
-                                    background:linear-gradient(135deg,#8E44AD,#A569BD);
-                                    border-radius:50%; display:flex; align-items:center;
-                                    justify-content:center; margin:0 auto 20px;">
-                            <i class="fas fa-chart-bar" style="font-size:2.2rem; color:white;"></i>
-                        </div>
-                        <strong style="font-size:1.4rem; color:var(--text-dark); display:block;
-                                       margin-bottom:8px; font-family:var(--font-title);">Reportes</strong>
-                        <p style="color:var(--text-light); font-size:0.9rem; margin:0;">Estadísticas del sistema</p>
-                    </div>
-                </a>
-            }
-
-            <!-- Bitácora — solo Soporte -->
-            @if (Session["UserRol"] != null &&
-                 Session["UserRol"].ToString() == "Soporte")
-            {
-                <a href="#" style="text-decoration:none;">
-                    <div style="background:white; border-radius:20px; padding:45px 25px;
-                                text-align:center; cursor:pointer;
-                                box-shadow:0 4px 20px rgba(139,69,19,0.1);
-                                border:1px solid rgba(139,69,19,0.08);
-                                transition:all 0.3s ease;"
-                         onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 15px 40px rgba(139,69,19,0.2)';"
-                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 20px rgba(139,69,19,0.1)';">
-                        <div style="width:90px; height:90px;
-                                    background:linear-gradient(135deg,#F39C12,#F1C40F);
-                                    border-radius:50%; display:flex; align-items:center;
-                                    justify-content:center; margin:0 auto 20px;">
-                            <i class="fas fa-list-alt" style="font-size:2.2rem; color:white;"></i>
-                        </div>
-                        <strong style="font-size:1.4rem; color:var(--text-dark); display:block;
-                                       margin-bottom:8px; font-family:var(--font-title);">Bitácora</strong>
-                        <p style="color:var(--text-light); font-size:0.9rem; margin:0;">Registro de actividad</p>
-                    </div>
-                </a>
-            }
-
-        </div>
-    </div>
-
-</div>
+}

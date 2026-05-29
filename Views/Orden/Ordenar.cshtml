@@ -1,7 +1,7 @@
 ﻿@model LaMediaCancha.Models.ViewModels.OrdenTomaPedidoAvanzadaViewModel
 
 @{
-    ViewBag.Title = "Tomar Pedido - Mesa " + Model.NumeroMesa;
+    ViewBag.Title = "Tomar Pedido - Mesa " + Model.NumeroMesa + " - Silla " + Model.NumeroSilla;
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -15,9 +15,11 @@
                             <h2 class="text-white mb-1">
                                 <i class="fas fa-clipboard-list"></i> Tomar Pedido
                             </h2>
-                            <p class="mb-0 text-white-50">Mesa @Model.NumeroMesa - @Model.Ubicacion</p>
+                            <p class="mb-0 text-white-50">
+                                Mesa @Model.NumeroMesa - Silla @Model.NumeroSilla | @Model.Ubicacion
+                            </p>
                         </div>
-                        <a href="@Url.Action("Index")" class="btn btn-light">
+                        <a href="@Url.Action("SillasPorMesa", "Orden", new { mesaId = Model.MesaId, numeroMesa = Model.NumeroMesa })" class="btn btn-light">
                             <i class="fas fa-arrow-left"></i> Regresar
                         </a>
                     </div>
@@ -27,63 +29,21 @@
                     @Html.HiddenFor(m => m.MesaId)
                     @Html.HiddenFor(m => m.NumeroMesa)
                     @Html.HiddenFor(m => m.Ubicacion)
+                    @Html.HiddenFor(m => m.SillaId)
+                    @Html.HiddenFor(m => m.NumeroSilla)
+                    @Html.HiddenFor(m => m.OrdenPersonaId)
 
                     <div class="row">
                         <!-- COLUMNA IZQUIERDA -->
                         <div class="col-lg-7">
-
-                            <!-- Modo de orden -->
+                            <!-- Datos del Cliente -->
                             <div class="card shadow-sm mb-3">
-                                <div class="card-header bg-white">
-                                    <h5 class="mb-0"><i class="fas fa-shopping-cart"></i> Modo de Orden</h5>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-check">
-                                                <input type="radio" name="modoOrden" id="modoNormal" value="normal" class="form-check-input" checked>
-                                                <label class="form-check-label fw-bold" for="modoNormal">
-                                                    <i class="fas fa-user"></i> Orden Normal (una sola cuenta)
-                                                </label>
-                                                <p class="small text-muted ms-4">Toda la mesa paga en una sola cuenta</p>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <div class="form-check">
-                                                <input type="radio" name="modoOrden" id="modoCuentasSeparadas" value="separadas" class="form-check-input">
-                                                <label class="form-check-label fw-bold" for="modoCuentasSeparadas">
-                                                    <i class="fas fa-users"></i> Cuentas Separadas
-                                                </label>
-                                                <p class="small text-muted ms-4">Cada persona paga por separado</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Datos del Cliente (solo modo normal) -->
-                            <div id="datosClienteContainer" class="card shadow-sm mb-3">
                                 <div class="card-header bg-white">
                                     <h5 class="mb-0"><i class="fas fa-user text-primary"></i> Datos del Cliente</h5>
                                 </div>
                                 <div class="card-body">
-                                    <label class="form-label">Nombre del Cliente</label>
-                                    @Html.TextBoxFor(m => m.ClienteNombre, new { @class = "form-control", placeholder = "Ingrese el nombre del cliente" })
-                                </div>
-                            </div>
-
-                            <!-- Cuentas Separadas -->
-                            <div id="cuentasSeparadasContainer" style="display: none;">
-                                <div class="card shadow-sm mb-3">
-                                    <div class="card-header bg-white">
-                                        <h5 class="mb-0"><i class="fas fa-users text-warning"></i> Personas</h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <button type="button" id="agregarPersonaBtn" class="btn btn-primary btn-sm mb-3">
-                                            <i class="fas fa-user-plus"></i> Agregar Persona
-                                        </button>
-                                        <div id="personasContainer" class="row"></div>
-                                    </div>
+                                    <label class="form-label">Nombre del Cliente (Opcional)</label>
+                                    <input type="text" id="ClienteNombre" class="form-control" placeholder="Ingrese el nombre del cliente" value="@Model.ClienteNombre" />
                                 </div>
                             </div>
 
@@ -134,27 +94,19 @@
                             </div>
                         </div>
 
-                        <!-- COLUMNA DERECHA -->
+                        <!-- COLUMNA DERECHA - CARRITO -->
                         <div class="col-lg-5">
                             <div class="cart-section shadow-lg">
                                 <h5 class="section-title border-bottom pb-2">
-                                    <i class="fas fa-shopping-cart"></i> Pedido Actual
+                                    <i class="fas fa-shopping-cart"></i> Pedido Actual - Silla @Model.NumeroSilla
                                 </h5>
 
-                                <!-- Carrito Modo Normal -->
-                                <div id="carritoNormal" class="mb-3">
-                                    <div id="carritoLista" class="carrito-container" style="max-height: 300px; overflow-y: auto;">
-                                        <div class="text-center text-muted py-4">No hay productos agregados</div>
-                                    </div>
-                                </div>
-
-                                <!-- Carrito Cuentas Separadas -->
-                                <div id="carritoCuentasSeparadas" style="display: none;">
-                                    <div id="resumenCuentas" class="mb-3"></div>
+                                <div id="carritoLista" class="carrito-container" style="max-height: 350px; overflow-y: auto;">
+                                    <div class="text-center text-muted py-4">No hay productos agregados</div>
                                 </div>
 
                                 <!-- Totales -->
-                                <div class="cart-totals bg-light p-3 rounded">
+                                <div class="cart-totals bg-light p-3 rounded mt-3">
                                     <div class="d-flex justify-content-between mb-2">
                                         <span>Subtotal:</span>
                                         <span id="subtotal" class="fw-bold">Q 0.00</span>
@@ -163,37 +115,16 @@
                                         <span>IVA (12%):</span>
                                         <span id="impuesto" class="fw-bold">Q 0.00</span>
                                     </div>
-                                    <div class="d-flex justify-content-between mb-2">
-                                        <small class="text-muted fst-italic">
-                                            <i class="fas fa-info-circle"></i> Las ofertas no incluyen IVA
-                                        </small>
-                                    </div>
                                     <div class="d-flex justify-content-between border-top pt-2 mt-2">
                                         <span class="h5 mb-0">Total:</span>
                                         <span id="totalGlobal" class="h5 mb-0 text-success fw-bold">Q 0.00</span>
                                     </div>
                                 </div>
 
-                                <!-- Forma de Pago -->
-                                <div class="mt-3">
-                                    <label class="form-label fw-bold">Forma de Pago</label>
-                                    <select id="formaPago" class="form-select">
-                                        <option value="Efectivo">Efectivo</option>
-                                        <option value="Tarjeta">Tarjeta de Crédito/Débito</option>
-                                        <option value="QR">Código QR</option>
-                                    </select>
-                                </div>
-
-                                <div class="mt-3" id="montoEfectivoContainer" style="display: none;">
-                                    <label class="form-label">Monto Recibido</label>
-                                    <input type="number" id="montoRecibido" class="form-control" placeholder="Monto entregado por el cliente">
-                                    <div id="cambioInfo" class="mt-2 fw-bold"></div>
-                                </div>
-
                                 <!-- Observaciones -->
                                 <div class="mt-3">
                                     <label class="form-label">Observaciones</label>
-                                    @Html.TextAreaFor(m => m.Observaciones, new { @class = "form-control", rows = 2, placeholder = "Notas adicionales para la cocina..." })
+                                    <textarea id="Observaciones" class="form-control" rows="2" placeholder="Notas adicionales para la cocina...">@Model.Observaciones</textarea>
                                 </div>
 
                                 <div class="d-grid gap-2 mt-4">
@@ -210,50 +141,13 @@
     </div>
 </div>
 
-<!-- Modal seleccionar persona -->
-<div id="modalPersona" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center;">
-    <div style="background: white; border-radius: 15px; width: 90%; max-width: 400px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: fadeInUp 0.3s ease;">
-        <div style="background: linear-gradient(135deg, #c95a00, #a04700); color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
-            <h5 class="mb-0"><i class="fas fa-user-friends"></i> Seleccionar persona</h5>
-            <button type="button" onclick="cerrarModalPersona()" style="background: none; border: none; color: white; font-size: 28px; cursor: pointer; line-height: 1;">&times;</button>
-        </div>
-        <div id="modalPersonaLista" style="padding: 15px; max-height: 400px; overflow-y: auto;"></div>
-    </div>
-</div>
-
-<!-- Modal Ticket -->
-<div id="modalTicket" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center;">
-    <div style="background: white; border-radius: 15px; width: 95%; max-width: 500px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.3); animation: fadeInUp 0.3s ease;">
-        <div style="background: #28a745; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center;">
-            <h5 class="mb-0"><i class="fas fa-receipt"></i> Ticket de Venta</h5>
-            <button type="button" onclick="cerrarModalTicket()" style="background: none; border: none; color: white; font-size: 28px; cursor: pointer; line-height: 1;">&times;</button>
-        </div>
-        <div id="modalTicketContenido" style="padding: 15px; max-height: 500px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 13px;"></div>
-        <div style="padding: 15px; border-top: 1px solid #eee; display: flex; gap: 10px;">
-            <button type="button" onclick="cerrarModalTicket()" class="btn btn-secondary flex-grow-1">Cerrar</button>
-            <button type="button" onclick="imprimirTicket()" class="btn btn-primary flex-grow-1">
-                <i class="fas fa-print"></i> Imprimir
-            </button>
-        </div>
-    </div>
-</div>
-
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         let productosData = [];
         let combosData = [];
         let ofertasData = [];
-        let ordenActualId = null;
-        let ordenesPersonaIds = [];
-        let personasNombres = [];
-
-        let carritoNormal = [];
-
-        let cuentasSeparadasActivo = false;
-        let personas = [];
-        let nextPersonaId = 1;
-        let productoPendiente = null;
+        let carrito = [];
 
         $(document).ready(function () {
             cargarProductos();
@@ -262,58 +156,11 @@
 
             $('#buscarProducto').on('keyup', filtrarProductos);
             $('#guardarPedidoBtn').on('click', guardarPedido);
-
-            $('#formaPago').on('change', function () {
-                $('#montoEfectivoContainer').toggle($(this).val() === 'Efectivo');
-                $('#montoRecibido').val('');
-                $('#cambioInfo').html('');
-            });
-
-            $('#montoRecibido').on('keyup', calcularCambioGlobal);
-
-            $('#modoNormal').on('change', function () {
-                if ($(this).is(':checked')) {
-                    cuentasSeparadasActivo = false;
-                    $('#datosClienteContainer').show();
-                    $('#cuentasSeparadasContainer').hide();
-                    $('#carritoNormal').show();
-                    $('#carritoCuentasSeparadas').hide();
-                    personas = [];
-                    nextPersonaId = 1;
-                    $('#personasContainer').empty();
-                    $('#resumenCuentas').empty();
-                    actualizarTotalesGlobales();
-                }
-            });
-
-            $('#modoCuentasSeparadas').on('change', function () {
-                if ($(this).is(':checked')) {
-                    cuentasSeparadasActivo = true;
-                    $('#datosClienteContainer').hide();
-                    $('#cuentasSeparadasContainer').show();
-                    $('#carritoNormal').hide();
-                    $('#carritoCuentasSeparadas').show();
-                    if (personas.length === 0) agregarPersona();
-                    actualizarResumenCuentas();
-                    actualizarTotalesGlobales();
-                }
-            });
-
-            $('#agregarPersonaBtn').on('click', function () { agregarPersona(); });
-
-            document.getElementById('modalPersona').addEventListener('click', function (e) {
-                if (e.target === this) cerrarModalPersona();
-            });
-            document.getElementById('modalTicket').addEventListener('click', function (e) {
-                if (e.target === this) cerrarModalTicket();
-            });
         });
 
         function formatoQ(valor) {
             return 'Q ' + parseFloat(valor).toFixed(2);
         }
-
-        // ── Carga de datos ─────────────────────────────────────────────────────
 
         function cargarProductos() {
             $.ajax({
@@ -357,8 +204,6 @@
             });
         }
 
-        // ── Renderizado ────────────────────────────────────────────────────────
-
         function renderizarOfertas(ofertas) {
             if (!ofertas.length) {
                 $('#ofertasList').html('<div class="text-center py-4">No hay ofertas activas en este momento</div>');
@@ -368,21 +213,15 @@
             ofertas.forEach(o => {
                 html += `
                     <div class="col-md-6 col-lg-4">
-                        <div class="oferta-card" onclick="aplicarOferta(${o.ProductoId}, '${o.Nombre.replace(/'/g, "\\'")}', ${o.DescuentoPorcentaje}, ${o.PrecioOriginal})">
-                            <div class="card border-danger h-100">
-                                <div class="card-body text-center p-2">
-                                    <div class="mb-1">
-                                        <span class="badge bg-danger">${o.DescuentoPorcentaje}% OFF</span>
-                                        <span class="badge bg-warning text-dark ms-1" style="font-size:0.6rem;">Sin IVA</span>
-                                    </div>
-                                    <div class="fw-bold small">${o.Nombre}</div>
-                                    <div class="text-muted small">${o.ProductoNombre}</div>
-                                    <div class="mt-1">
-                                        <span class="text-muted text-decoration-line-through small">${formatoQ(o.PrecioOriginal)}</span>
-                                        <span class="text-danger fw-bold ms-1">${formatoQ(o.PrecioOferta)}</span>
-                                    </div>
-                                    ${o.DiasRestantes <= 3 ? `<div class="text-warning small mt-1"><i class="fas fa-hourglass-half"></i> ${o.DiasRestantes} días</div>` : ''}
-                                </div>
+                        <div class="producto-card" onclick="agregarOferta(${o.ProductoId}, '${o.Nombre.replace(/'/g, "\\'")} - ${o.DescuentoPorcentaje}% OFF', ${o.PrecioOferta})">
+                            <div class="icon-circle mx-auto">
+                                <i class="fas fa-tag"></i>
+                            </div>
+                            <h6 class="mt-2 mb-1 small">${o.Nombre}</h6>
+                            <span class="badge bg-danger">${o.DescuentoPorcentaje}% OFF</span>
+                            <div class="mt-1">
+                                <span class="text-muted text-decoration-line-through small">${formatoQ(o.PrecioOriginal)}</span>
+                                <span class="text-danger fw-bold">${formatoQ(o.PrecioOferta)}</span>
                             </div>
                         </div>
                     </div>`;
@@ -402,7 +241,7 @@
                 let precio = p.PrecioVenta || 0;
                 html += `
                     <div class="col-md-6 col-lg-4">
-                        <div class="producto-card" onclick="seleccionarProducto(${p.ProductoId}, '${nombreEscaped}', ${precio})">
+                        <div class="producto-card" onclick="agregarProducto(${p.ProductoId}, '${nombreEscaped}', ${precio})">
                             <div class="icon-circle mx-auto">
                                 <i class="fas fa-hamburger"></i>
                             </div>
@@ -426,7 +265,7 @@
                 let precio = c.PrecioCombo || 0;
                 html += `
                     <div class="col-md-6 col-lg-4">
-                        <div class="combo-card" onclick="seleccionarCombo(${c.ComboId}, '${nombreEscaped}', ${precio})">
+                        <div class="producto-card" onclick="agregarCombo(${c.ComboId}, '${nombreEscaped}', ${precio})">
                             <div class="icon-circle mx-auto">
                                 <i class="fas fa-gift"></i>
                             </div>
@@ -446,76 +285,13 @@
             renderizarProductos(filtrados);
         }
 
-        // ── Selección ──────────────────────────────────────────────────────────
-
-        function aplicarOferta(productoId, nombreOferta, descuento, precioOriginal) {
-            let precioOferta = precioOriginal - (precioOriginal * descuento / 100);
-            let nombreConOferta = `${nombreOferta} - ${descuento}% OFF`;
-
-            if (cuentasSeparadasActivo) {
-                if (personas.length === 0) {
-                    Swal.fire('Aviso', 'Primero agregue al menos una persona', 'warning');
-                    return;
-                }
-                productoPendiente = { id: productoId, nombre: nombreConOferta, precio: precioOferta, esCombo: false, esOferta: true };
-                mostrarModalPersonas();
-            } else {
-                let item = carritoNormal.find(x => x.ProductoId === productoId && x.EsOferta);
-                if (item) {
-                    item.Cantidad++;
-                    item.Subtotal = item.Cantidad * item.PrecioUnitario;
-                } else {
-                    carritoNormal.push({
-                        ProductoId: productoId,
-                        NombreProducto: nombreConOferta,
-                        Cantidad: 1,
-                        PrecioUnitario: precioOferta,
-                        Subtotal: precioOferta,
-                        EsOferta: true,
-                        EsCombo: false,
-                        Nota: ''
-                    });
-                }
-                actualizarCarritoNormal();
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Oferta aplicada',
-                    text: `${nombreOferta} — Precio especial: ${formatoQ(precioOferta)} (Sin IVA)`,
-                    timer: 1800,
-                    showConfirmButton: false
-                });
-            }
-        }
-
-        function seleccionarProducto(id, nombre, precio) {
-            if (cuentasSeparadasActivo) {
-                if (personas.length === 0) { Swal.fire('Aviso', 'Primero agregue al menos una persona', 'warning'); return; }
-                productoPendiente = { id, nombre, precio, esCombo: false, esOferta: false };
-                mostrarModalPersonas();
-            } else {
-                agregarAlCarritoNormal(id, nombre, precio);
-            }
-        }
-
-        function seleccionarCombo(id, nombre, precio) {
-            if (cuentasSeparadasActivo) {
-                if (personas.length === 0) { Swal.fire('Aviso', 'Primero agregue al menos una persona', 'warning'); return; }
-                productoPendiente = { id, nombre, precio, esCombo: true, esOferta: false };
-                mostrarModalPersonas();
-            } else {
-                agregarComboNormal(id, nombre, precio);
-            }
-        }
-
-        // ── Carrito Normal ─────────────────────────────────────────────────────
-
-        function agregarAlCarritoNormal(id, nombre, precio) {
-            let item = carritoNormal.find(x => x.ProductoId === id && !x.EsCombo && !x.EsOferta);
+        function agregarProducto(id, nombre, precio) {
+            let item = carrito.find(x => x.ProductoId === id && !x.EsCombo && !x.EsOferta);
             if (item) {
                 item.Cantidad++;
                 item.Subtotal = item.Cantidad * item.PrecioUnitario;
             } else {
-                carritoNormal.push({
+                carrito.push({
                     ProductoId: id,
                     NombreProducto: nombre,
                     Cantidad: 1,
@@ -526,17 +302,17 @@
                     Nota: ''
                 });
             }
-            actualizarCarritoNormal();
-            mostrarNotificacion(`${nombre} agregado al pedido`, 'success');
+            actualizarCarrito();
+            mostrarNotificacion(`${nombre} agregado al pedido`);
         }
 
-        function agregarComboNormal(id, nombre, precio) {
-            let item = carritoNormal.find(x => x.ComboId === id && x.EsCombo);
+        function agregarCombo(id, nombre, precio) {
+            let item = carrito.find(x => x.ComboId === id && x.EsCombo);
             if (item) {
                 item.Cantidad++;
                 item.Subtotal = item.Cantidad * item.PrecioUnitario;
             } else {
-                carritoNormal.push({
+                carrito.push({
                     ComboId: id,
                     NombreProducto: nombre,
                     Cantidad: 1,
@@ -547,34 +323,55 @@
                     Nota: ''
                 });
             }
-            actualizarCarritoNormal();
-            mostrarNotificacion(`${nombre} agregado al pedido`, 'success');
+            actualizarCarrito();
+            mostrarNotificacion(`${nombre} agregado al pedido`);
         }
 
-        function actualizarCarritoNormal() {
-            if (carritoNormal.length === 0) {
+        function agregarOferta(id, nombre, precio) {
+            let item = carrito.find(x => x.ProductoId === id && x.EsOferta);
+            if (item) {
+                item.Cantidad++;
+                item.Subtotal = item.Cantidad * item.PrecioUnitario;
+            } else {
+                carrito.push({
+                    ProductoId: id,
+                    NombreProducto: nombre,
+                    Cantidad: 1,
+                    PrecioUnitario: parseFloat(precio),
+                    Subtotal: parseFloat(precio),
+                    EsCombo: false,
+                    EsOferta: true,
+                    Nota: ''
+                });
+            }
+            actualizarCarrito();
+            mostrarNotificacion(`${nombre} agregado al pedido (Oferta)`);
+        }
+
+        function actualizarCarrito() {
+            if (carrito.length === 0) {
                 $('#carritoLista').html('<div class="text-center text-muted py-4">No hay productos agregados</div>');
-                actualizarTotalesGlobales();
+                actualizarTotales();
                 return;
             }
 
             let html = '';
-            carritoNormal.forEach((item, idx) => {
-                let etiquetaOferta = item.EsOferta
-                    ? '<span class="badge bg-danger ms-1" style="font-size:0.6rem;">OFERTA · Sin IVA</span>'
-                    : '';
+            carrito.forEach((item, idx) => {
+                let badgeOferta = item.EsOferta ? '<span class="badge bg-danger ms-1">OFERTA</span>' : '';
+                let badgeCombo = item.EsCombo ? '<span class="badge bg-warning text-dark ms-1">COMBO</span>' : '';
                 html += `
                     <div class="carrito-item border-bottom py-2 mb-2">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="flex-grow-1">
-                                <strong>${item.NombreProducto}</strong>${etiquetaOferta}
+                                <strong>${item.NombreProducto}</strong> ${badgeOferta} ${badgeCombo}
                                 <div class="text-muted small">${formatoQ(item.PrecioUnitario)} c/u</div>
+                                ${item.Nota ? `<div class="text-muted small fst-italic">Nota: ${item.Nota}</div>` : ''}
                             </div>
                             <div class="d-flex align-items-center gap-2">
                                 <input type="number" class="form-control form-control-sm" style="width: 55px;"
                                        value="${item.Cantidad}" min="1"
-                                       onchange="actualizarCantidadNormal(${idx}, this.value)">
-                                <button class="btn btn-sm btn-outline-danger" onclick="eliminarProductoNormal(${idx})">
+                                       onchange="actualizarCantidad(${idx}, this.value)">
+                                <button class="btn btn-sm btn-outline-danger" onclick="eliminarProducto(${idx})">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </div>
@@ -584,324 +381,116 @@
             });
 
             $('#carritoLista').html(html);
-            actualizarTotalesGlobales();
+            actualizarTotales();
         }
 
-        function actualizarCantidadNormal(index, nuevaCantidad) {
+        function actualizarCantidad(index, nuevaCantidad) {
             nuevaCantidad = parseInt(nuevaCantidad) || 1;
             if (nuevaCantidad < 1) nuevaCantidad = 1;
-            carritoNormal[index].Cantidad = nuevaCantidad;
-            carritoNormal[index].Subtotal = nuevaCantidad * carritoNormal[index].PrecioUnitario;
-            actualizarCarritoNormal();
+            carrito[index].Cantidad = nuevaCantidad;
+            carrito[index].Subtotal = nuevaCantidad * carrito[index].PrecioUnitario;
+            actualizarCarrito();
         }
 
-        function eliminarProductoNormal(index) {
-            carritoNormal.splice(index, 1);
-            actualizarCarritoNormal();
+        function eliminarProducto(index) {
+            carrito.splice(index, 1);
+            actualizarCarrito();
         }
 
-        // ── Cuentas Separadas ──────────────────────────────────────────────────
+        function actualizarTotales() {
+            let subtotalNormal = 0;
+            let subtotalOfertas = 0;
 
-        function mostrarModalPersonas() {
-            if (personas.length === 0) return;
-            let html = '<div class="list-group">';
-            personas.forEach((p, idx) => {
-                let nombreMostrar = p.nombre && p.nombre.trim() !== '' ? p.nombre : `Persona ${idx + 1}`;
-                let totalItems = p.carrito.reduce((sum, item) => sum + item.Cantidad, 0);
-                html += `
-                    <button type="button"
-                            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center mb-2"
-                            style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px; background:white; cursor:pointer;"
-                            onclick="asignarAPersona(${idx})">
-                        <span><i class="fas fa-user me-2"></i>${nombreMostrar}</span>
-                        <span class="badge bg-primary rounded-pill">${totalItems} items</span>
-                    </button>`;
-            });
-            html += '</div>';
-            document.getElementById('modalPersonaLista').innerHTML = html;
-            document.getElementById('modalPersona').style.display = 'flex';
-        }
-
-        function cerrarModalPersona() {
-            document.getElementById('modalPersona').style.display = 'none';
-            productoPendiente = null;
-        }
-
-        function asignarAPersona(personaIndex) {
-            if (productoPendiente) {
-                if (productoPendiente.esCombo)
-                    agregarComboAPersona(personaIndex, productoPendiente.id, productoPendiente.nombre, productoPendiente.precio);
-                else if (productoPendiente.esOferta)
-                    agregarOfertaAPersona(personaIndex, productoPendiente.id, productoPendiente.nombre, productoPendiente.precio);
-                else
-                    agregarProductoAPersona(personaIndex, productoPendiente.id, productoPendiente.nombre, productoPendiente.precio);
-                productoPendiente = null;
-            }
-            cerrarModalPersona();
-        }
-
-        function agregarPersona() {
-            let personaId = nextPersonaId++;
-            personas.push({ id: personaId, nombre: '', carrito: [] });
-
-            let html = `
-                <div class="col-md-6 mb-3" id="persona-card-${personaId}">
-                    <div class="card h-100 shadow-sm">
-                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                            <strong><i class="fas fa-user"></i> Persona ${personaId}</strong>
-                            <button type="button" class="btn btn-sm btn-light" onclick="eliminarPersona(${personaId})">
-                                <i class="fas fa-trash text-danger"></i>
-                            </button>
-                        </div>
-                        <div class="card-body p-2">
-                            <input type="text" class="form-control form-control-sm mb-2"
-                                   id="persona-nombre-${personaId}"
-                                   placeholder="Nombre del cliente"
-                                   onchange="actualizarNombrePersona(${personaId}, this.value)">
-                            <hr class="my-2">
-                            <div class="persona-carrito" id="persona-carrito-${personaId}"
-                                 style="max-height: 200px; overflow-y: auto; font-size: 12px;">
-                                <div class="text-muted small text-center py-2">Sin productos</div>
-                            </div>
-                            <div class="mt-2 text-end border-top pt-2">
-                                <strong>Total: </strong>
-                                <span id="persona-total-${personaId}" class="text-primary">Q 0.00</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>`;
-            $('#personasContainer').append(html);
-            actualizarResumenCuentas();
-        }
-
-        function eliminarPersona(personaId) {
-            Swal.fire({
-                title: '¿Eliminar persona?',
-                text: 'Se eliminarán todos sus productos',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar'
-            }).then(result => {
-                if (result.isConfirmed) {
-                    personas = personas.filter(p => p.id !== personaId);
-                    $(`#persona-card-${personaId}`).remove();
-                    actualizarResumenCuentas();
-                    actualizarTotalesGlobales();
+            carrito.forEach(item => {
+                if (item.EsOferta) {
+                    subtotalOfertas += item.Subtotal;
+                } else {
+                    subtotalNormal += item.Subtotal;
                 }
             });
-        }
 
-        function actualizarNombrePersona(personaId, nombre) {
-            let persona = personas.find(p => p.id === personaId);
-            if (persona) { persona.nombre = nombre; actualizarResumenCuentas(); }
-        }
-
-        function agregarProductoAPersona(personaIndex, productoId, nombre, precio) {
-            let persona = personas[personaIndex];
-            let item = persona.carrito.find(x => x.ProductoId === productoId && !x.EsCombo && !x.EsOferta);
-            if (item) { item.Cantidad++; item.Subtotal = item.Cantidad * item.PrecioUnitario; }
-            else {
-                persona.carrito.push({
-                    ProductoId: productoId, NombreProducto: nombre,
-                    Cantidad: 1, PrecioUnitario: parseFloat(precio),
-                    Subtotal: parseFloat(precio), EsCombo: false, EsOferta: false, Nota: ''
-                });
-            }
-            actualizarCarritoPersona(persona);
-            actualizarResumenCuentas();
-            actualizarTotalesGlobales();
-            mostrarNotificacion(`${nombre} agregado a ${persona.nombre || 'Persona ' + (personaIndex + 1)}`, 'success');
-        }
-
-        function agregarComboAPersona(personaIndex, comboId, nombre, precio) {
-            let persona = personas[personaIndex];
-            let item = persona.carrito.find(x => x.ComboId === comboId && x.EsCombo);
-            if (item) { item.Cantidad++; item.Subtotal = item.Cantidad * item.PrecioUnitario; }
-            else {
-                persona.carrito.push({
-                    ComboId: comboId, NombreProducto: nombre,
-                    Cantidad: 1, PrecioUnitario: parseFloat(precio),
-                    Subtotal: parseFloat(precio), EsCombo: true, EsOferta: false, Nota: ''
-                });
-            }
-            actualizarCarritoPersona(persona);
-            actualizarResumenCuentas();
-            actualizarTotalesGlobales();
-            mostrarNotificacion(`${nombre} agregado a ${persona.nombre || 'Persona ' + (personaIndex + 1)}`, 'success');
-        }
-
-        function agregarOfertaAPersona(personaIndex, productoId, nombreOferta, precioOferta) {
-            let persona = personas[personaIndex];
-            let item = persona.carrito.find(x => x.ProductoId === productoId && x.EsOferta);
-            if (item) { item.Cantidad++; item.Subtotal = item.Cantidad * item.PrecioUnitario; }
-            else {
-                persona.carrito.push({
-                    ProductoId: productoId, NombreProducto: nombreOferta,
-                    Cantidad: 1, PrecioUnitario: parseFloat(precioOferta),
-                    Subtotal: parseFloat(precioOferta), EsOferta: true, EsCombo: false, Nota: ''
-                });
-            }
-            actualizarCarritoPersona(persona);
-            actualizarResumenCuentas();
-            actualizarTotalesGlobales();
-            mostrarNotificacion(`${nombreOferta} asignado a ${persona.nombre || 'Persona ' + (personaIndex + 1)}`, 'success');
-        }
-
-        function actualizarCarritoPersona(persona) {
-            if (persona.carrito.length === 0) {
-                $(`#persona-carrito-${persona.id}`).html('<div class="text-muted small text-center py-2">Sin productos</div>');
-                $(`#persona-total-${persona.id}`).text(formatoQ(0));
-                return;
-            }
-
-            let html = '';
-            let subtotalNormal = 0;
-            let subtotalOfertas = 0;
-
-            persona.carrito.forEach((item, idx) => {
-                if (item.EsOferta) subtotalOfertas += item.Subtotal;
-                else subtotalNormal += item.Subtotal;
-
-                let etiqueta = item.EsOferta
-                    ? '<span class="badge bg-danger ms-1" style="font-size:0.55rem;">Sin IVA</span>'
-                    : '';
-                html += `
-                    <div class="small mb-2 p-1 border-bottom">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="flex-grow-1">
-                                <strong>${item.NombreProducto}</strong>${etiqueta}
-                                <div class="text-muted" style="font-size:10px;">${formatoQ(item.PrecioUnitario)} c/u</div>
-                            </div>
-                            <div class="d-flex align-items-center gap-1">
-                                <input type="number" class="form-control form-control-sm" style="width:45px;"
-                                       value="${item.Cantidad}" min="1"
-                                       onchange="actualizarCantidadPersona(${persona.id}, ${idx}, this.value)">
-                                <button class="btn btn-sm btn-outline-danger"
-                                        onclick="eliminarProductoPersona(${persona.id}, ${idx})">
-                                    <i class="fas fa-times"></i>
-                                </button>
-                            </div>
-                        </div>
-                        <div class="text-end small">Subtotal: ${formatoQ(item.Subtotal)}</div>
-                    </div>`;
-            });
-
-            let ivaPersona = subtotalNormal * 0.12;
-            let totalPersona = subtotalNormal + subtotalOfertas + ivaPersona;
-
-            $(`#persona-carrito-${persona.id}`).html(html);
-            $(`#persona-total-${persona.id}`).text(formatoQ(totalPersona));
-        }
-
-        function actualizarCantidadPersona(personaId, itemIndex, nuevaCantidad) {
-            let persona = personas.find(p => p.id === personaId);
-            if (persona) {
-                nuevaCantidad = parseInt(nuevaCantidad) || 1;
-                if (nuevaCantidad < 1) nuevaCantidad = 1;
-                persona.carrito[itemIndex].Cantidad = nuevaCantidad;
-                persona.carrito[itemIndex].Subtotal = nuevaCantidad * persona.carrito[itemIndex].PrecioUnitario;
-                actualizarCarritoPersona(persona);
-                actualizarResumenCuentas();
-                actualizarTotalesGlobales();
-            }
-        }
-
-        function eliminarProductoPersona(personaId, itemIndex) {
-            let persona = personas.find(p => p.id === personaId);
-            if (persona) {
-                let producto = persona.carrito[itemIndex];
-                Swal.fire({
-                    title: '¿Eliminar producto?',
-                    text: `¿Eliminar ${producto.NombreProducto}?`,
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#6c757d',
-                    confirmButtonText: 'Sí, eliminar',
-                    cancelButtonText: 'Cancelar'
-                }).then(result => {
-                    if (result.isConfirmed) {
-                        persona.carrito.splice(itemIndex, 1);
-                        actualizarCarritoPersona(persona);
-                        actualizarResumenCuentas();
-                        actualizarTotalesGlobales();
-                    }
-                });
-            }
-        }
-
-        function actualizarResumenCuentas() {
-            if (personas.length === 0) {
-                $('#resumenCuentas').html('<div class="text-center text-muted py-4">No hay personas agregadas</div>');
-                return;
-            }
-            let html = '<div class="row g-2">';
-            personas.forEach((p, idx) => {
-                let subtotalNormal = p.carrito.filter(x => !x.EsOferta).reduce((s, x) => s + x.Subtotal, 0);
-                let subtotalOfertas = p.carrito.filter(x => x.EsOferta).reduce((s, x) => s + x.Subtotal, 0);
-                let total = subtotalNormal + subtotalOfertas + (subtotalNormal * 0.12);
-                let nombreMostrar = p.nombre && p.nombre.trim() !== '' ? p.nombre : `Persona ${idx + 1}`;
-                let totalItems = p.carrito.reduce((s, x) => s + x.Cantidad, 0);
-                html += `
-                    <div class="col-md-12 mb-2">
-                        <div class="card bg-light">
-                            <div class="card-body p-2">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <i class="fas fa-user"></i> <strong>${nombreMostrar}</strong>
-                                        <span class="badge bg-secondary ms-1">${totalItems} items</span>
-                                    </div>
-                                    <span class="text-primary fw-bold">${formatoQ(total)}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`;
-            });
-            html += '</div>';
-            $('#resumenCuentas').html(html);
-        }
-
-        function actualizarTotalesGlobales() {
-            let subtotalNormal = 0;
-            let subtotalOfertas = 0;
-
-            if (cuentasSeparadasActivo) {
-                personas.forEach(p => {
-                    p.carrito.forEach(item => {
-                        if (item.EsOferta) subtotalOfertas += item.Subtotal;
-                        else subtotalNormal += item.Subtotal;
-                    });
-                });
-            } else {
-                carritoNormal.forEach(item => {
-                    if (item.EsOferta) subtotalOfertas += item.Subtotal;
-                    else subtotalNormal += item.Subtotal;
-                });
-            }
-
-            let subtotalGlobal = subtotalNormal + subtotalOfertas;
+            let subtotal = subtotalNormal + subtotalOfertas;
             let iva = subtotalNormal * 0.12;
-            let total = subtotalGlobal + iva;
+            let total = subtotal + iva;
 
-            $('#subtotal').text(formatoQ(subtotalGlobal));
+            $('#subtotal').text(formatoQ(subtotal));
             $('#impuesto').text(formatoQ(iva));
             $('#totalGlobal').text(formatoQ(total));
-
-            calcularCambioGlobal();
         }
 
-        function calcularCambioGlobal() {
-            let total = parseFloat($('#totalGlobal').text().replace('Q', '').trim()) || 0;
-            let recibido = parseFloat($('#montoRecibido').val()) || 0;
-            let cambio = recibido - total;
-            if (recibido <= 0) { $('#cambioInfo').html(''); return; }
-            if (cambio >= 0)
-                $('#cambioInfo').html(`💰 Cambio: ${formatoQ(cambio)}`).css('color', 'green');
-            else
-                $('#cambioInfo').html(`⚠️ Faltan: ${formatoQ(Math.abs(cambio))}`).css('color', 'red');
+        function guardarPedido() {
+            if (carrito.length === 0) {
+                Swal.fire('Error', 'Debe agregar al menos un producto', 'error');
+                return;
+            }
+
+            let datos = {
+                MesaId: parseInt($('#MesaId').val()),
+                NumeroMesa: parseInt($('#NumeroMesa').val()),
+                SillaId: parseInt($('#SillaId').val()),
+                NumeroSilla: parseInt($('#NumeroSilla').val()),
+                OrdenPersonaId: $('#OrdenPersonaId').val() ? parseInt($('#OrdenPersonaId').val()) : null,
+                Ubicacion: $('#Ubicacion').val(),
+                ClienteNombre: $('#ClienteNombre').val() || 'Cliente',
+                Observaciones: $('#Observaciones').val(),
+                UsarCuentasSeparadas: false,
+                Productos: carrito.filter(x => !x.EsCombo).map(x => ({
+                    ProductoId: x.ProductoId,
+                    NombreProducto: x.NombreProducto,
+                    Cantidad: x.Cantidad,
+                    PrecioUnitario: x.PrecioUnitario,
+                    EsOferta: x.EsOferta || false,
+                    Nota: x.Nota || ''
+                })),
+                Combos: carrito.filter(x => x.EsCombo).map(x => ({
+                    ComboId: x.ComboId,
+                    NombreCombo: x.NombreProducto,
+                    Cantidad: x.Cantidad,
+                    PrecioCombo: x.PrecioUnitario,
+                    VenderPorSeparado: false,
+                    ProductosSeparados: []
+                })),
+                CuentasPorPersona: []
+            };
+
+            // Mostrar loading
+            Swal.fire({
+                title: 'Guardando...',
+                text: 'Por favor espere',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            $.ajax({
+                url: '@Url.Action("GuardarPedidoSilla", "Orden")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(datos),
+                success: function (response) {
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Pedido guardado!',
+                            text: response.message,
+                            confirmButtonColor: '#28a745',
+                            confirmButtonText: 'Continuar'
+                        }).then((result) => {
+                            if (result.isConfirmed) {
+                                var mesaId = $('#MesaId').val();
+                                var numeroMesa = $('#NumeroMesa').val();
+                                window.location.href = '@Url.Action("SillasPorMesa", "Orden")?mesaId=' + mesaId + '&numeroMesa=' + numeroMesa;
+                            }
+                        });
+                    } else {
+                        Swal.fire('Error', response.message, 'error');
+                    }
+                },
+                error: function (xhr) {
+                    Swal.fire('Error', 'Error al guardar el pedido', 'error');
+                }
+            });
         }
 
         function mostrarNotificacion(mensaje) {
@@ -924,224 +513,6 @@
                 </div>`);
             $('body').append(n);
             setTimeout(() => n.animate({ opacity: 0 }, 300, function () { $(this).remove(); }), 3000);
-        }
-
-        // ── Guardar Pedido ─────────────────────────────────────────────────────
-
-        function guardarPedido() {
-            if (!cuentasSeparadasActivo && carritoNormal.length === 0) {
-                Swal.fire('Error', 'Debe agregar al menos un producto', 'error'); return;
-            }
-            if (cuentasSeparadasActivo) {
-                if (personas.length === 0) { Swal.fire('Error', 'Debe agregar al menos una persona', 'error'); return; }
-                if (!personas.some(p => p.carrito.length > 0)) {
-                    Swal.fire('Error', 'Debe agregar productos a al menos una persona', 'error'); return;
-                }
-            }
-
-            let datos = {
-                MesaId: parseInt($('#MesaId').val()),
-                NumeroMesa: parseInt($('#NumeroMesa').val()),
-                Ubicacion: $('#Ubicacion').val(),
-                ClienteNombre: cuentasSeparadasActivo ? 'Cuentas Separadas' : ($('#ClienteNombre').val() || 'Cliente'),
-                ClienteTelefono: '',
-                Observaciones: $('#Observaciones').val(),
-                UsarCuentasSeparadas: cuentasSeparadasActivo,
-                FormaPago: $('#formaPago').val(),
-                Productos: [],
-                Combos: [],
-                CuentasPorPersona: []
-            };
-
-            if (cuentasSeparadasActivo) {
-                datos.CuentasPorPersona = personas.map(p => ({
-                    NombreCliente: p.nombre || 'Cliente',
-                    Productos: p.carrito.filter(x => !x.EsCombo).map(x => ({
-                        ProductoId: x.ProductoId,
-                        NombreProducto: x.NombreProducto,
-                        Cantidad: x.Cantidad,
-                        PrecioUnitario: x.PrecioUnitario,
-                        EsOferta: x.EsOferta || false,
-                        Nota: x.Nota || ''
-                    })),
-                    Combos: p.carrito.filter(x => x.EsCombo).map(x => ({
-                        ComboId: x.ComboId,
-                        NombreCombo: x.NombreProducto,
-                        Cantidad: x.Cantidad,
-                        PrecioCombo: x.PrecioUnitario,
-                        VenderPorSeparado: false,
-                        ProductosSeparados: []
-                    }))
-                }));
-            } else {
-                datos.Productos = carritoNormal.filter(x => !x.EsCombo).map(x => ({
-                    ProductoId: x.ProductoId,
-                    NombreProducto: x.NombreProducto,
-                    Cantidad: x.Cantidad,
-                    PrecioUnitario: x.PrecioUnitario,
-                    EsOferta: x.EsOferta || false,
-                    Nota: x.Nota || ''
-                }));
-                datos.Combos = carritoNormal.filter(x => x.EsCombo).map(x => ({
-                    ComboId: x.ComboId,
-                    NombreCombo: x.NombreProducto,
-                    Cantidad: x.Cantidad,
-                    PrecioCombo: x.PrecioUnitario,
-                    VenderPorSeparado: false,
-                    ProductosSeparados: []
-                }));
-            }
-
-            $.ajax({
-                url: '@Url.Action("GuardarOrdenAvanzada", "Orden")',
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify(datos),
-                success: function (response) {
-                    if (response.success) {
-                        ordenActualId = response.ordenId;
-
-                        // Guardar los IDs de las personas para cuentas separadas
-                        if (response.esCuentasSeparadas && response.ordenesPersonaIds) {
-                            ordenesPersonaIds = response.ordenesPersonaIds;
-                            personasNombres = personas.map(p => p.nombre || 'Cliente');
-                        } else {
-                            ordenesPersonaIds = [];
-                            personasNombres = [];
-                        }
-
-                        Swal.fire({
-                            icon: 'success',
-                            title: '¡Pedido guardado!',
-                            text: response.message,
-                            confirmButtonColor: '#28a745'
-                        }).then(result => {
-                            if (result.isConfirmed) {
-                                Swal.fire({
-                                    title: '¿Desea ver el ticket?',
-                                    text: 'Puede imprimir el ticket de venta',
-                                    icon: 'question',
-                                    showCancelButton: true,
-                                    confirmButtonText: 'Sí, ver ticket',
-                                    cancelButtonText: 'No, salir'
-                                }).then(ticketResult => {
-                                    if (ticketResult.isConfirmed) mostrarTicket();
-                                    else window.location.href = '@Url.Action("Index")';
-                                });
-                            }
-                        });
-                    } else {
-                        Swal.fire('Error', response.message, 'error');
-                    }
-                },
-                error: function (xhr) {
-                    Swal.fire('Error', 'Error de comunicación: ' + xhr.statusText, 'error');
-                }
-            });
-        }
-
-        // ── Ticket ─────────────────────────────────────────────────────────────
-
-        function mostrarTicket() {
-            if (!ordenActualId) {
-                Swal.fire('Aviso', 'Primero guarde el pedido', 'warning');
-                return;
-            }
-
-            // Verificar si fue cuentas separadas y tenemos los IDs de las personas
-            if (cuentasSeparadasActivo && ordenesPersonaIds.length > 0) {
-                // Mostrar selector de personas para elegir qué ticket ver
-                let opcionesHtml = '<div style="padding: 10px;">';
-                opcionesHtml += '<h5 class="text-center mb-3">Seleccione la persona para ver su ticket:</h5>';
-                opcionesHtml += '<div class="list-group">';
-
-                for (let i = 0; i < ordenesPersonaIds.length; i++) {
-                    let personaId = ordenesPersonaIds[i];
-                    let nombrePersona = personasNombres[i] ? personasNombres[i] : `Persona ${i + 1}`;
-                    opcionesHtml += `
-                        <button type="button"
-                                class="list-group-item list-group-item-action mb-2"
-                                style="padding: 12px; border-radius: 8px; text-align: center;"
-                                onclick="cargarTicketPersona(${ordenActualId}, ${personaId})">
-                            <i class="fas fa-user"></i> ${nombrePersona}
-                        </button>`;
-                }
-                opcionesHtml += '</div></div>';
-
-                Swal.fire({
-                    title: 'Tickets disponibles',
-                    html: opcionesHtml,
-                    showConfirmButton: false,
-                    showCancelButton: true,
-                    cancelButtonText: 'Cerrar',
-                    customClass: {
-                        popup: 'ticket-selector-modal'
-                    }
-                });
-            } else {
-                // Orden normal - solo un ticket
-                cargarTicketNormal(ordenActualId);
-            }
-        }
-
-        function cargarTicketPersona(ordenId, ordenPersonaId) {
-            Swal.close();
-            $.ajax({
-                url: '@Url.Action("GenerarTicket", "Orden")',
-                type: 'GET',
-                data: { ordenId: ordenId, ordenPersonaId: ordenPersonaId },
-                success: function (data) {
-                    document.getElementById('modalTicketContenido').innerHTML = data;
-                    document.getElementById('modalTicket').style.display = 'flex';
-                },
-                error: function () {
-                    Swal.fire('Error', 'Error al generar el ticket', 'error');
-                }
-            });
-        }
-
-        function cargarTicketNormal(ordenId) {
-            $.ajax({
-                url: '@Url.Action("GenerarTicket", "Orden")',
-                type: 'GET',
-                data: { ordenId: ordenId },
-                success: function (data) {
-                    document.getElementById('modalTicketContenido').innerHTML = data;
-                    document.getElementById('modalTicket').style.display = 'flex';
-                },
-                error: function () {
-                    Swal.fire('Error', 'Error al generar el ticket', 'error');
-                }
-            });
-        }
-
-        function cerrarModalTicket() {
-            document.getElementById('modalTicket').style.display = 'none';
-        }
-
-        function imprimirTicket() {
-            let contenido = document.getElementById('modalTicketContenido').innerHTML;
-            let ventana = window.open('', '_blank');
-            ventana.document.write(`
-                <html>
-                    <head>
-                        <title>Ticket - La Media Cancha</title>
-                        <style>
-                            body { font-family:'Courier New', monospace; padding:20px; width:300px; margin:0 auto; }
-                            @@media print { body { margin:0; padding:10px; } }
-                            .text-center { text-align:center; }
-                            .border-top { border-top:1px dashed #000; margin:10px 0; }
-                            table { width:100%; font-size:12px; border-collapse:collapse; }
-                            th, td { text-align:left; padding:4px; }
-                            .text-end { text-align:right; }
-                            .total { font-size:14px; font-weight:bold; }
-                        </style>
-                    </head>
-                    <body>${contenido}</body>
-                </html>`);
-            ventana.document.close();
-            ventana.print();
-            ventana.close();
         }
     </script>
 }
@@ -1186,7 +557,7 @@
         overflow-y: auto;
     }
 
-    .producto-card, .combo-card, .oferta-card {
+    .producto-card {
         background: #fff;
         border: 1px solid #e0e0e0;
         padding: 12px;
@@ -1197,7 +568,7 @@
         height: 100%;
     }
 
-        .producto-card:hover, .combo-card:hover, .oferta-card:hover {
+        .producto-card:hover {
             transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             border-color: #D35400;
@@ -1223,28 +594,12 @@
         top: 20px;
     }
 
-    .oferta-card .card {
-        border: 1px solid #dc3545;
-        border-radius: 10px;
-        overflow: hidden;
-    }
-
-    @@keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
     @@keyframes slideIn {
         from {
             opacity: 0;
             transform: translateX(100px);
         }
+
         to {
             opacity: 1;
             transform: translateX(0);
@@ -1276,8 +631,4 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #999;
         }
-
-    .ticket-selector-modal .swal2-popup {
-        width: 350px;
-    }
 </style>

@@ -1,8 +1,9 @@
 @model LaMediaCancha.Models.ViewModels.RegistrarDevolucionViewModel
 
 @{
-    ViewBag.Title = "Registrar Devolución";
+    ViewBag.Title = Model.Tipo == "Proveedor" ? "Registrar Devolución a Proveedor" : "Registrar Devolución de Cliente";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var esProveedor = Model.Tipo == "Proveedor";
 }
 
 <div class="container-fluid">
@@ -12,8 +13,8 @@
                 <div class="card-header-custom">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
-                            <h2><i class="fas fa-undo-alt"></i> Registrar Devolución</h2>
-                            <p>Ingrese el número de factura para buscar la compra</p>
+                            <h2><i class="fas fa-undo-alt"></i> @(esProveedor ? "Registrar Devolución a Proveedor" : "Registrar Devolución de Cliente")</h2>
+                            <p>Ingrese el número de factura para buscar la @(esProveedor ? "compra" : "venta")</p>
                         </div>
                         <a href="@Url.Action("Index", "Devolucion")" class="btn-custom" style="width: auto; padding: 10px 20px; background: #6c757d;">
                             <i class="fas fa-arrow-left"></i> Regresar
@@ -31,7 +32,7 @@
                                 <div class="form-group-custom">
                                     <label>Número de Factura <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <input type="text" id="txtNumeroFactura" class="form-control-custom" placeholder="Ingrese el número de factura" />
+                                        <input type="text" id="txtNumeroFactura" class="form-control-custom" placeholder="Ingrese el número de factura" value="@Model.NumeroFacturaBuscado" />
                                         <button type="button" id="btnBuscarFactura" class="btn-buscar">
                                             <i class="fas fa-search"></i> Buscar
                                         </button>
@@ -41,28 +42,39 @@
                         </div>
                     </div>
 
-                    <div id="infoCompra" style="display: none;">
-                        <div class="info-compra">
+                    <div id="infoDocumento" style="display: none;">
+                        <div class="info-documento">
                             <div class="row">
                                 <div class="col-md-4">
                                     <div class="form-group-custom">
-                                        <label>DOCUMENTO COMPRA</label>
-                                        <input type="text" id="txtDocumentoCompra" class="form-control-custom" readonly />
+                                        <label>@(esProveedor ? "DOCUMENTO COMPRA" : "NÚMERO ORDEN")</label>
+                                        <input type="text" id="txtNumeroDocumento" class="form-control-custom" readonly />
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group-custom">
-                                        <label>PROVEEDOR</label>
-                                        <input type="text" id="txtProveedor" class="form-control-custom" readonly />
+                                        <label>@(esProveedor ? "PROVEEDOR" : "CLIENTE")</label>
+                                        <input type="text" id="txtClienteProveedor" class="form-control-custom" readonly />
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group-custom">
-                                        <label>PLAZO DEVOLUCIÓN</label>
-                                        <div id="plazoInfo"></div>
+                                        <label>FECHA</label>
+                                        <input type="text" id="txtFecha" class="form-control-custom" readonly />
                                     </div>
                                 </div>
                             </div>
+                            @if (esProveedor)
+                            {
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="form-group-custom">
+                                            <label>PLAZO DEVOLUCIÓN</label>
+                                            <div id="plazoInfo"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
                         </div>
 
                         <div id="divProductos" style="display: none;">
@@ -79,6 +91,10 @@
                                             <th class="text-center">Devuelto</th>
                                             <th class="text-center">Disponible</th>
                                             <th class="text-center">A Devolver</th>
+                                            @if (!esProveedor)
+                                            {
+                                                <th class="text-center">Destino</th>
+                                            }
                                         </tr>
                                     </thead>
                                     <tbody id="tblProductosBody">
@@ -91,48 +107,67 @@
                                             <td class="text-center">
                                                 <strong id="totalDevolver">0</strong>
                                             </td>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
+                                            <td></td>
+                                        }
+</tr>
+</tfoot>
+</table>
+</div>
 
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group-custom">
-                                        <label>Tipo Devolución <span class="text-danger">*</span></label>
-                                        <select id="TipoDevolucion" class="form-control-custom">
-                                            <option value="">Seleccione...</option>
-                                            <option value="ProductoDefectuoso">Producto Defectuoso</option>
-                                            <option value="ProductoSobrante">Producto Sobrante</option>
-                                            <option value="ErrorFacturacion">Error de Facturación</option>
-                                            <option value="Otro">Otro</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group-custom">
-                                        <label>Motivo <span class="text-danger">*</span></label>
-                                        <textarea id="Motivo" class="form-control-custom" rows="2" placeholder="Describa el motivo de la devolución"></textarea>
-                                    </div>
-                                </div>
-                            </div>
+<div class="row">
+    <div class="col-md-6">
+        <div class="form-group-custom">
+            <label>Tipo Devolución <span class="text-danger">*</span></label>
+            <select id="TipoDevolucion" class="form-control-custom">
+                <option value="">Seleccione...</option>
+                @foreach (var item in Model.TiposDevolucion)
+                {
+                    <option value="@item.Value">@item.Text</option>
+                }
+            </select>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="form-group-custom">
+            <label>Motivo <span class="text-danger">*</span></label>
+            <textarea id="Motivo" class="form-control-custom" rows="2" placeholder="Describa el motivo de la devolución"></textarea>
+        </div>
+    </div>
+</div>
 
-                            <div class="form-group-custom">
-                                <label>Observaciones</label>
-                                <textarea id="Observaciones" class="form-control-custom" rows="2" placeholder="Información adicional (opcional)"></textarea>
-                            </div>
-
-                            <div class="text-right mt-3">
-                                <button type="button" id="btnRegistrarDevolucion" class="btn-custom" style="width: auto; padding: 12px 25px;">
-                                    <i class="fas fa-save"></i> Registrar Devolución
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+@if (!esProveedor)
+{
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group-custom">
+                <label>Forma de Compensación <span class="text-danger">*</span></label>
+                <select id="FormaCompensacion" class="form-control-custom">
+                    @foreach (var item in Model.FormasCompensacion)
+                    {
+                        <option value="@item.Value">@item.Text</option>
+                    }
+                </select>
             </div>
         </div>
     </div>
+}
+
+<div class="form-group-custom">
+    <label>Observaciones</label>
+    <textarea id="Observaciones" class="form-control-custom" rows="2" placeholder="Información adicional (opcional)"></textarea>
+</div>
+
+<div class="text-right mt-3">
+    <button type="button" id="btnRegistrarDevolucion" class="btn-custom" style="width: auto; padding: 12px 25px;">
+        <i class="fas fa-save"></i> Registrar Devolución
+    </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
 </div>
 
 @section Scripts {
@@ -164,7 +199,7 @@
                 transform: translateY(-2px);
             }
 
-        .info-compra {
+        .info-documento {
             background: #e8f4f8;
             padding: 20px;
             border-radius: 10px;
@@ -191,6 +226,15 @@
 
         .badge-danger {
             background: #E74C3C;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            display: inline-block;
+        }
+
+        .badge-warning {
+            background: #F39C12;
             color: white;
             padding: 4px 10px;
             border-radius: 15px;
@@ -240,10 +284,6 @@
             text-align: center;
         }
 
-        .text-danger {
-            color: #E74C3C;
-        }
-
         .form-group-custom {
             margin-bottom: 20px;
         }
@@ -274,6 +314,13 @@
             box-sizing: border-box;
         }
 
+        .destino-select {
+            width: 120px !important;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
         .producto-bloqueado {
             background-color: #fff3f3;
             color: #999;
@@ -288,7 +335,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-        var compraIdActual = 0;
+        var documentoIdActual = 0;
+        var esProveedor = @(esProveedor ? "true" : "false");
 
         function mostrarMensaje(mensaje, tipo) {
             if (tipo === 'error') {
@@ -309,65 +357,63 @@
             document.getElementById('totalDevolver').textContent = total;
         }
 
-        function cargarProductos(compraId) {
-            console.log('Cargando productos para compraId:', compraId);
+        function cargarProductos(id) {
+            var url = esProveedor ?
+                '@Url.Action("GetProductosPorCompra", "Devolucion")?compraId=' + id :
+                '@Url.Action("GetProductosPorOrden", "Devolucion")?ordenId=' + id;
 
             $.ajax({
-                url: '@Url.Action("GetProductosPorCompra", "Devolucion")',
+                url: url,
                 type: 'GET',
-                data: { compraId: compraId },
                 dataType: 'json',
                 success: function (data) {
-                    console.log('Respuesta completa:', data);
-
                     var tbody = $('#tblProductosBody');
                     tbody.empty();
 
                     if (data && data.error) {
-                        console.error('Error del servidor:', data.error);
-                        tbody.append('<td><td colspan="7" class="text-center text-danger">⚠️ ' + data.error + '</td></tr>');
+                        tbody.append('<tr><td colspan="7" class="text-center text-danger">⚠️ ' + data.error + '</td></tr>');
                         $('#divProductos').hide();
                         return;
                     }
 
                     if (!data || data.length === 0) {
-                        console.log('No hay productos disponibles');
-                        tbody.append('<tr><td colspan="7" class="text-center">⚠️ No hay productos disponibles para devolver. Solo se pueden devolver productos que NO estén en oferta.</td</tr');
+                        tbody.append('<tr><td colspan="7" class="text-center">⚠️ No hay productos disponibles para devolver</td></tr>');
                         $('#divProductos').hide();
                     } else {
-                        console.log('Productos encontrados:', data.length);
                         $('#divProductos').show();
 
                         for (var i = 0; i < data.length; i++) {
                             var p = data[i];
-                            var disponible = p.Disponible;
+                            var disponible = p.Disponible || (p.CantidadComprada - p.CantidadYaDevuelta);
                             var presentacion = (p.Presentacion && p.Presentacion !== '') ? p.Presentacion : 'Unidad';
-                            var estaEnOferta = p.EstaEnOferta || false;
+                            var requiereAuth = p.RequiereAutorizacion || false;
 
-                            console.log('Producto:', p.CodigoProducto, 'Disponible:', disponible, 'EnOferta:', estaEnOferta);
-
-                            var rowClass = estaEnOferta ? 'class="producto-bloqueado"' : '';
-                            var inputHtml = '';
-
-                            if (estaEnOferta) {
-                                inputHtml = '<span class="texto-bloqueado">No disponible Producto Ofertado</span>';
-                            } else {
-                                inputHtml = '<input type="number" class="cantidad-input" ' +
-                                    'min="0" max="' + disponible + '" step="1" ' +
-                                    'data-id="' + p.ProductoId + '" ' +
-                                    'data-precio="' + p.PrecioUnitario + '" ' +
-                                    'data-nombre="' + (p.NombreProducto || '').replace(/"/g, '&quot;') + '" />';
-                            }
-
-                            var row = '<tr ' + rowClass + '>' +
+                            var row = '<tr>' +
                                 '<td>' + (p.CodigoProducto || '') + '</td>' +
                                 '<td>' + (p.NombreProducto || '') + '</td>' +
                                 '<td>' + presentacion + '</td>' +
                                 '<td class="text-center">' + (p.CantidadComprada || 0) + '</td>' +
                                 '<td class="text-center">' + (p.CantidadYaDevuelta || 0) + '</td>' +
                                 '<td class="text-center"><span class="badge-info">' + disponible + '</span></td>' +
-                                '<td class="text-center">' + inputHtml + '</td>' +
-                                '</tr>';
+                                '<td class="text-center">' +
+                                    '<input type="number" class="cantidad-input" ' +
+                                    'min="0" max="' + disponible + '" step="1" ' +
+                                    'data-id="' + p.ProductoId + '" ' +
+                                    'data-precio="' + (p.PrecioOferta || p.PrecioUnitario) + '" ' +
+                                    'data-oferta="' + (p.EstabaEnOferta ? 'true' : 'false') + '" ' +
+                                    'data-detalle-id="' + (p.DetalleOrdenId || '') + '" />' +
+                                '</td>';
+
+                            if (!esProveedor) {
+                                row += '<td class="text-center">' +
+                                    '<select class="destino-select">' +
+                                    '<option value="Merma">Merma/Desperdicio</option>' +
+                                    '<option value="DevolucionStock">Devolver a Stock</option>' +
+                                    '</select>' +
+                                    '</td>';
+                            }
+
+                            row += '</tr>';
                             tbody.append(row);
                         }
 
@@ -381,15 +427,13 @@
                     }
                 },
                 error: function (xhr, status, error) {
-                    console.error('Error en AJAX:', status, error);
-                    $('#tblProductosBody').html('<td><td colspan="7" class="text-center text-danger">⚠️ Error al cargar productos: ' + error + '</td</tr');
+                    $('#tblProductosBody').html('<tr><td colspan="7" class="text-center text-danger">⚠️ Error al cargar productos: ' + error + '</td></tr>');
                     $('#divProductos').hide();
                 }
             });
         }
 
         $(document).ready(function () {
-
             $('#btnBuscarFactura').click(function () {
                 var numeroFactura = $('#txtNumeroFactura').val().trim();
 
@@ -404,42 +448,42 @@
                 $.ajax({
                     url: '@Url.Action("BuscarPorFactura", "Devolucion")',
                     type: 'GET',
-                    data: { numeroFactura: numeroFactura },
+                    data: { numeroFactura: numeroFactura, tipo: esProveedor ? 'Proveedor' : 'Cliente' },
                     dataType: 'json',
                     cache: false,
                     success: function (response) {
-                        console.log('Respuesta de búsqueda:', response);
-
                         if (response.success) {
-                            compraIdActual = response.compraId;
-                            $('#txtDocumentoCompra').val(response.numeroDocumento);
-                            $('#txtProveedor').val(response.proveedorNombre);
+                            documentoIdActual = esProveedor ? response.compraId : response.ordenId;
+                            $('#txtNumeroDocumento').val(response.numeroDocumento);
+                            $('#txtClienteProveedor').val(response.clienteProveedorNombre);
+                            $('#txtFecha').val(response.fecha);
+                            $('#infoDocumento').show();
 
-                            var plazoHtml = '<input type="text" class="form-control-custom" readonly value="' + response.diasTranscurridos + ' / ' + response.diasMaximos + ' días" />';
-                            if (response.dentroDePlazo) {
-                                plazoHtml += '<span class="badge-success" style="margin-left: 10px;">Válido</span>';
-                            } else {
-                                plazoHtml += '<span class="badge-danger" style="margin-left: 10px;">Vencido</span>';
-                            }
-                            $('#plazoInfo').html(plazoHtml);
-                            $('#infoCompra').show();
-
-                            if (response.dentroDePlazo) {
-                                cargarProductos(compraIdActual);
-                            } else {
+                            if (esProveedor && response.dentroDePlazo === false) {
                                 $('#divProductos').hide();
                                 mostrarMensaje(response.mensajePlazo, 'error');
+                            } else {
+                                cargarProductos(documentoIdActual);
+                            }
+
+                            if (esProveedor) {
+                                var plazoHtml = '<input type="text" class="form-control-custom" readonly value="' + response.diasTranscurridos + ' / ' + response.diasMaximos + ' días" />';
+                                if (response.dentroDePlazo) {
+                                    plazoHtml += '<span class="badge-success" style="margin-left: 10px;">Válido</span>';
+                                } else {
+                                    plazoHtml += '<span class="badge-danger" style="margin-left: 10px;">Vencido</span>';
+                                }
+                                $('#plazoInfo').html(plazoHtml);
                             }
                         } else {
                             mostrarMensaje(response.message, 'error');
-                            $('#infoCompra').hide();
+                            $('#infoDocumento').hide();
                             $('#divProductos').hide();
                         }
                     },
-                    error: function (xhr, status, error) {
-                        console.error('Error en búsqueda:', error);
-                        mostrarMensaje('Error al buscar la factura: ' + error, 'error');
-                        $('#infoCompra').hide();
+                    error: function () {
+                        mostrarMensaje('Error al buscar la factura', 'error');
+                        $('#infoDocumento').hide();
                         $('#divProductos').hide();
                     },
                     complete: function () {
@@ -450,15 +494,14 @@
             });
 
             $('#txtNumeroFactura').keypress(function (e) {
-                if (e.which === 13) {
-                    $('#btnBuscarFactura').click();
-                }
+                if (e.which === 13) $('#btnBuscarFactura').click();
             });
 
             $(document).on('click', '#btnRegistrarDevolucion', function () {
-                var tipoDevolucion = document.getElementById('TipoDevolucion').value;
-                var motivo = document.getElementById('Motivo').value.trim();
-                var observaciones = document.getElementById('Observaciones').value.trim();
+                var tipoDevolucion = $('#TipoDevolucion').val();
+                var motivo = $('#Motivo').val().trim();
+                var observaciones = $('#Observaciones').val().trim();
+                var formaCompensacion = $('#FormaCompensacion').val();
 
                 if (!tipoDevolucion) {
                     Swal.fire('Atención', 'Seleccione un tipo de devolución', 'warning');
@@ -472,57 +515,77 @@
 
                 var productos = [];
 
-                document.querySelectorAll('.cantidad-input:not([disabled])').forEach(function (input) {
-                    var cantidad = parseFloat(input.value) || 0;
-                    var productoId = input.getAttribute('data-id');
+                if (esProveedor) {
+                    document.querySelectorAll('.cantidad-input').forEach(function (input) {
+                        var cantidad = parseFloat(input.value) || 0;
+                        var productoId = input.getAttribute('data-id');
 
-                    if (cantidad > 0) {
-                        productos.push({
-                            ProductoId: parseInt(productoId),
-                            CantidadADevolver: cantidad
-                        });
-                    }
-                });
+                        if (cantidad > 0) {
+                            productos.push({
+                                ProductoId: parseInt(productoId),
+                                CantidadADevolver: cantidad
+                            });
+                        }
+                    });
+                } else {
+                    document.querySelectorAll('.cantidad-input').forEach(function (input, index) {
+                        var cantidad = parseFloat(input.value) || 0;
+                        var productoId = input.getAttribute('data-id');
+                        var detalleOrdenId = input.getAttribute('data-detalle-id');
+                        var destinoSelect = document.querySelectorAll('.destino-select')[index];
+                        var destino = destinoSelect ? destinoSelect.value : 'Merma';
 
-                console.log("Productos a devolver:", productos);
+                        if (cantidad > 0) {
+                            productos.push({
+                                DetalleOrdenId: parseInt(detalleOrdenId),
+                                ProductoId: parseInt(productoId),
+                                CantidadADevolver: cantidad,
+                                DestinoStock: destino
+                            });
+                        }
+                    });
+                }
 
                 if (productos.length === 0) {
-                    Swal.fire('Atención', 'Debe ingresar cantidad mayor a 0 en al menos un producto disponible', 'warning');
+                    Swal.fire('Atención', 'Debe ingresar cantidad mayor a 0 en al menos un producto', 'warning');
                     return;
                 }
 
+                var datos = {
+                    Tipo: esProveedor ? 'Proveedor' : 'Cliente',
+                    CompraId: esProveedor ? documentoIdActual : 0,
+                    OrdenId: !esProveedor ? documentoIdActual : 0,
+                    TipoDevolucion: tipoDevolucion,
+                    Motivo: motivo,
+                    Observaciones: observaciones,
+                    FormaCompensacion: formaCompensacion || null,
+                    Productos: productos
+                };
+
                 Swal.fire({
                     title: '¿Registrar devolución?',
-                    text: '¿Está seguro de registrar esta devolución? El stock se descontará automáticamente.',
+                    text: '¿Está seguro de registrar esta devolución?',
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonText: 'Sí, registrar',
                     cancelButtonText: 'Cancelar'
                 }).then(function (result) {
                     if (result.isConfirmed) {
-                        var btn = document.getElementById('btnRegistrarDevolucion');
-                        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registrando...';
-                        btn.disabled = true;
+                        var btn = $('#btnRegistrarDevolucion');
+                        btn.html('<i class="fas fa-spinner fa-spin"></i> Registrando...');
+                        btn.prop('disabled', true);
 
                         $.ajax({
                             url: '@Url.Action("Registrar", "Devolucion")',
                             type: 'POST',
                             contentType: 'application/json',
-                            data: JSON.stringify({
-                                CompraId: compraIdActual,
-                                TipoDevolucion: tipoDevolucion,
-                                Motivo: motivo,
-                                Observaciones: observaciones,
-                                Productos: productos
-                            }),
+                            data: JSON.stringify(datos),
                             success: function (response) {
-                                console.log('Respuesta registro:', response);
-
                                 if (response.success) {
                                     Swal.fire({
                                         icon: 'success',
                                         title: '¡Devolución registrada!',
-                                        text: 'El stock ha sido descontado exitosamente.',
+                                        text: response.message,
                                         confirmButtonText: 'Ver detalle'
                                     }).then(function (res) {
                                         if (res.isConfirmed) {
@@ -533,15 +596,14 @@
                                     });
                                 } else {
                                     Swal.fire('Error', response.message, 'error');
-                                    btn.innerHTML = '<i class="fas fa-save"></i> Registrar Devolución';
-                                    btn.disabled = false;
+                                    btn.html('<i class="fas fa-save"></i> Registrar Devolución');
+                                    btn.prop('disabled', false);
                                 }
                             },
                             error: function (xhr) {
-                                console.error("Error:", xhr.responseText);
                                 Swal.fire('Error', 'Error al registrar la devolución', 'error');
-                                btn.innerHTML = '<i class="fas fa-save"></i> Registrar Devolución';
-                                btn.disabled = false;
+                                btn.html('<i class="fas fa-save"></i> Registrar Devolución');
+                                btn.prop('disabled', false);
                             }
                         });
                     }

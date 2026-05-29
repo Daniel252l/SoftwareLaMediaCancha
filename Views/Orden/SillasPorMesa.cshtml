@@ -1,0 +1,890 @@
+﻿@model LaMediaCancha.Models.OrdenModels.Mesa
+
+@{
+    ViewBag.Title = "Mesa " + Model.NumeroMesa + " - Sillas";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    .sillas-container {
+        width: 100%;
+        min-height: 100vh;
+        padding: 20px 30px;
+        background: #f5f5f5;
+    }
+
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .header-title h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #2C3E50;
+        margin: 0;
+    }
+
+    .header-title p {
+        color: #7F8C8D;
+        margin-top: 5px;
+        font-size: 13px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+    }
+
+    .btn-agregar-silla {
+        background: #27AE60;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+        .btn-agregar-silla:hover {
+            background: #1E8449;
+            transform: translateY(-2px);
+        }
+
+    .btn-cerrar-mesa {
+        background: #E74C3C;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 10px;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+        .btn-cerrar-mesa:hover {
+            background: #C0392B;
+            transform: translateY(-2px);
+        }
+
+    .btn-volver {
+        background: #6c757d;
+        color: white;
+        padding: 10px 24px;
+        border-radius: 10px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+        .btn-volver:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+            color: white;
+        }
+
+    .mesa-info {
+        background: white;
+        border-radius: 16px;
+        padding: 20px 25px;
+        margin-bottom: 25px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        border: 1px solid #ECF0F1;
+    }
+
+        .mesa-info h2 {
+            font-size: 18px;
+            color: #2C3E50;
+            margin: 0;
+        }
+
+        .mesa-info p {
+            margin: 5px 0 0;
+            font-size: 13px;
+            color: #7F8C8D;
+        }
+
+    .mesa-total-grande {
+        font-size: 26px;
+        font-weight: 800;
+        color: #27AE60;
+    }
+
+    .sillas-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 20px;
+        width: 100%;
+    }
+
+    .silla-card {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+        border: 1px solid #ECF0F1;
+        width: 100%;
+    }
+
+        .silla-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+    .silla-header {
+        padding: 15px 20px;
+        background: #F8F9FA;
+        border-bottom: 1px solid #ECF0F1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .silla-titulo {
+        font-size: 18px;
+        font-weight: 700;
+        color: #2C3E50;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+        .silla-titulo i {
+            color: #D35400;
+        }
+
+    .badge-temporal {
+        background: #F39C12;
+        color: white;
+        font-size: 9px;
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .silla-estado {
+        font-size: 11px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+        .silla-estado.disponible {
+            background: #EAFAF1;
+            color: #27AE60;
+        }
+
+        .silla-estado.ocupada {
+            background: #FDEDEC;
+            color: #E74C3C;
+        }
+
+    .silla-body {
+        padding: 20px;
+        min-height: 110px;
+    }
+
+    .pedido-activo {
+        background: #FFF8E1;
+        border-left: 4px solid #FF9800;
+        padding: 12px;
+        border-radius: 10px;
+    }
+
+        .pedido-activo strong {
+            color: #E65100;
+            font-size: 13px;
+        }
+
+    .pedido-total {
+        font-weight: 700;
+        color: #D35400;
+        margin-top: 10px;
+        font-size: 15px;
+    }
+
+    .no-pedido {
+        text-align: center;
+        color: #BDC3C7;
+        padding: 15px;
+    }
+
+        .no-pedido i {
+            font-size: 32px;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+    .silla-footer {
+        padding: 15px 20px;
+        background: #F8F9FA;
+        border-top: 1px solid #ECF0F1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .btn-tomar-pedido {
+        width: 100%;
+        background: linear-gradient(135deg, #27AE60, #1E8449);
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+        .btn-tomar-pedido:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+        }
+
+    .btn-ver-pedido {
+        width: 100%;
+        background: #3498DB;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+        .btn-ver-pedido:hover {
+            background: #2980B9;
+        }
+
+    .btn-cerrar-cuenta {
+        width: 100%;
+        background: #E74C3C;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+        .btn-cerrar-cuenta:hover {
+            background: #C0392B;
+        }
+
+    .btn-eliminar-silla {
+        width: 100%;
+        background: #95A5A6;
+        color: white;
+        border: none;
+        padding: 8px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+    }
+
+        .btn-eliminar-silla:hover {
+            background: #7F8C8D;
+        }
+
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    }
+
+        .modal-content h3 {
+            margin-bottom: 20px;
+            color: #8B4513;
+        }
+
+        .modal-content label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+    .modal-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 10px;
+    }
+
+    .btn-modal-cancelar {
+        padding: 10px 20px;
+        background: #95A5A6;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    .btn-modal-confirmar {
+        padding: 10px 20px;
+        background: #27AE60;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+    }
+
+    /* Toast Notifications */
+    .toast-notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 300px;
+        max-width: 400px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        overflow: hidden;
+        animation: slideInRight 0.3s ease-out;
+    }
+
+    .toast-header {
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+    }
+
+        .toast-header i {
+            font-size: 18px;
+        }
+
+    .toast-body {
+        padding: 12px 16px;
+        font-size: 14px;
+        color: #555;
+        border-top: 1px solid #f0f0f0;
+    }
+
+    .toast-success .toast-header {
+        background: #27AE60;
+        color: white;
+    }
+
+    .toast-error .toast-header {
+        background: #E74C3C;
+        color: white;
+    }
+
+    .toast-info .toast-header {
+        background: #3498DB;
+        color: white;
+    }
+
+    .toast-warning .toast-header {
+        background: #F39C12;
+        color: white;
+    }
+
+    .toast-close {
+        margin-left: auto;
+        cursor: pointer;
+        background: none;
+        border: none;
+        color: white;
+        font-size: 18px;
+        padding: 0 5px;
+    }
+
+        .toast-close:hover {
+            opacity: 0.8;
+        }
+
+    @@media (max-width: 768px) {
+        .sillas-container {
+            padding: 15px;
+        }
+
+        .sillas-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .mesa-info {
+            flex-direction: column;
+            text-align: center;
+            gap: 10px;
+        }
+
+        .header-section {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .action-buttons {
+            justify-content: center;
+        }
+
+        .btn-volver {
+            text-align: center;
+            justify-content: center;
+        }
+    }
+</style>
+
+<style>
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+</style>
+
+<div class="sillas-container">
+    <div class="header-section">
+        <div class="header-title">
+            <h1><i class="fas fa-chair"></i> Mesa @Model.NumeroMesa - Sillas</h1>
+            <p><i class="fas fa-location-dot"></i> @Model.Ubicacion | Seleccione una silla para tomar pedido</p>
+        </div>
+        <a href="@Url.Action("Index", "Orden")" class="btn-volver">
+            <i class="fas fa-arrow-left"></i> Volver a Mesas
+        </a>
+    </div>
+
+    <div class="action-buttons">
+        <button class="btn-agregar-silla" onclick="mostrarModalAgregarSilla()">
+            <i class="fas fa-plus-circle"></i> Añadir Silla Temporal
+        </button>
+        <button class="btn-cerrar-mesa" onclick="preguntarCerrarMesa(@Model.MesaId, @Model.NumeroMesa)">
+            <i class="fas fa-receipt"></i> Cerrar Cuenta Completa de Mesa
+        </button>
+    </div>
+
+    <div class="mesa-info">
+        <div>
+            <h2>Resumen de Mesa</h2>
+            <p><i class="fas fa-chair"></i> Sillas ocupadas: @Model.Sillas.Count(s => s.Estado == "Ocupada") de @Model.Sillas.Count</p>
+        </div>
+        <div>
+            <span style="font-size: 12px; color: #7F8C8D;">Total Mesa</span>
+            <div class="mesa-total-grande">Q @Model.TotalMonto.ToString("N2")</div>
+        </div>
+    </div>
+
+    <div class="sillas-grid">
+        @foreach (var silla in Model.Sillas.OrderBy(s => s.NumeroSilla))
+        {
+            var tienePedidoActivo = silla.Estado == "Ocupada";
+            var esTemporal = silla.EsTemporal;
+
+            <div class="silla-card">
+                <div class="silla-header">
+                    <div class="silla-titulo">
+                        <i class="fas fa-chair"></i> Silla @silla.NumeroSilla
+                        @if (esTemporal)
+                        {
+                            <span class="badge-temporal"><i class="fas fa-clock"></i> Temporal</span>
+                        }
+                    </div>
+                    <span class="silla-estado @(tienePedidoActivo ? "ocupada" : "disponible")">
+                        @(tienePedidoActivo ? "Ocupada" : "Disponible")
+                    </span>
+                </div>
+
+                <div class="silla-body">
+                    @if (tienePedidoActivo)
+                    {
+                        <div class="pedido-activo">
+                            <strong><i class="fas fa-receipt"></i> Pedido actual</strong>
+                            @if (!string.IsNullOrEmpty(silla.NombreCliente) && silla.NombreCliente != "Silla " + silla.SillaId)
+                            {
+                                <div style="font-size: 12px; margin-top: 5px;">
+                                    <i class="fas fa-user"></i> @silla.NombreCliente
+                                </div>
+                            }
+                            <div class="pedido-total">
+                                Total: Q @silla.Total.ToString("N2")
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="no-pedido">
+                            <i class="fas fa-utensils"></i>
+                            <span>Sin pedido activo</span>
+                        </div>
+                    }
+                </div>
+
+                <div class="silla-footer">
+                    @if (tienePedidoActivo)
+                    {
+                        <button class="btn-ver-pedido" onclick="tomarPedido(@Model.MesaId, @silla.SillaId, @silla.NumeroSilla)">
+                            <i class="fas fa-edit"></i> Ver / Editar Pedido
+                        </button>
+                        <button class="btn-cerrar-cuenta" onclick="preguntarCerrarSilla(@silla.OrdenPersonaId, @Model.NumeroMesa, @silla.NumeroSilla)">
+                            <i class="fas fa-dollar-sign"></i> Cerrar Cuenta
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn-tomar-pedido" onclick="tomarPedido(@Model.MesaId, @silla.SillaId, @silla.NumeroSilla)">
+                            <i class="fas fa-plus-circle"></i> Tomar Pedido
+                        </button>
+                        if (esTemporal)
+                        {
+                            <button class="btn-eliminar-silla" onclick="preguntarEliminarSilla(@silla.SillaId, @silla.NumeroSilla)">
+                                <i class="fas fa-trash-alt"></i> Eliminar Silla Temporal
+                            </button>
+                        }
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<div id="modalAgregarSilla" class="modal-overlay">
+    <div class="modal-content">
+        <h3><i class="fas fa-plus-circle"></i> Agregar Silla Temporal</h3>
+        <div>
+            <label>Número de Silla:</label>
+            <input type="number" id="nuevaSillaNumero" placeholder="Ej: 6" min="1">
+        </div>
+        <div>
+            <label>Nombre del Cliente (opcional):</label>
+            <input type="text" id="nuevaSillaCliente" placeholder="Nombre del cliente">
+        </div>
+        <div class="modal-buttons">
+            <button class="btn-modal-cancelar" onclick="cerrarModalAgregarSilla()">Cancelar</button>
+            <button class="btn-modal-confirmar" onclick="confirmarAgregarSilla(@Model.MesaId)">Agregar</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    function showToast(message, type) {
+        type = type || 'success';
+        var toast = document.createElement('div');
+        toast.className = 'toast-notification toast-' + type;
+        var icon = '', title = '';
+        switch(type) {
+            case 'success': icon = 'fas fa-check-circle'; title = 'Éxito'; break;
+            case 'error': icon = 'fas fa-times-circle'; title = 'Error'; break;
+            case 'info': icon = 'fas fa-info-circle'; title = 'Información'; break;
+            case 'warning': icon = 'fas fa-exclamation-triangle'; title = 'Advertencia'; break;
+            default: icon = 'fas fa-bell'; title = 'Notificación';
+        }
+        toast.innerHTML = '<div class="toast-header"><i class="' + icon + '"></i><span>' + title + '</span><button class="toast-close" onclick="this.closest(\'.toast-notification\').remove()">×</button></div><div class="toast-body">' + message + '</div>';
+        document.body.appendChild(toast);
+        setTimeout(function() {
+            if (toast && toast.parentNode) {
+                toast.style.animation = 'slideInRight 0.3s ease-out reverse';
+                setTimeout(function() { if (toast && toast.parentNode) toast.remove(); }, 300);
+            }
+        }, 3000);
+    }
+
+    function showConfirm(message, onConfirm, onCancel) {
+        var modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10000;display:flex;justify-content:center;align-items:center;';
+        modal.innerHTML = '<div style="background:white;border-radius:16px;padding:25px;width:90%;max-width:400px;"><h3 style="margin-bottom:20px;color:#8B4513;"><i class="fas fa-question-circle"></i> Confirmar</h3><p style="margin-bottom:25px;">' + message + '</p><div style="display:flex;gap:10px;justify-content:flex-end;"><button id="confirmCancel" style="padding:10px 20px;background:#95A5A6;color:white;border:none;border-radius:8px;cursor:pointer;">Cancelar</button><button id="confirmOk" style="padding:10px 20px;background:#27AE60;color:white;border:none;border-radius:8px;cursor:pointer;">Aceptar</button></div></div>';
+        document.body.appendChild(modal);
+        document.getElementById('confirmOk').onclick = function() { modal.remove(); if (onConfirm) onConfirm(); };
+        document.getElementById('confirmCancel').onclick = function() { modal.remove(); if (onCancel) onCancel(); };
+    }
+
+    function mostrarTicket(ticket) {
+        var productosHtml = '';
+        for (var i = 0; i < ticket.Detalles.length; i++) {
+            var item = ticket.Detalles[i];
+            productosHtml += '<tr style="border-bottom:1px solid #eee;">' +
+                '<td style="padding:8px; text-align:center;">' + item.Cantidad + '</td>' +
+                '<td style="padding:8px;">' + item.ProductoNombre + '</td>' +
+                '<td style="padding:8px; text-align:right;">Q ' + parseFloat(item.Subtotal).toFixed(2) + '</td>' +
+                '</tr>';
+        }
+
+        var fecha = new Date(ticket.Fecha);
+        var dia = fecha.getDate().toString().padStart(2, '0');
+        var mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+        var anio = fecha.getFullYear();
+        var horas = fecha.getHours().toString().padStart(2, '0');
+        var minutos = fecha.getMinutes().toString().padStart(2, '0');
+        var fechaStr = dia + '/' + mes + '/' + anio + ' ' + horas + ':' + minutos;
+
+        var titulo = (ticket.NumeroSilla && ticket.NumeroSilla > 0) ? 'Silla ' + ticket.NumeroSilla : 'Mesa ' + ticket.NumeroMesa;
+        var cliente = ticket.NombrePersona || ticket.ClienteNombre || 'Consumo en mesa';
+
+        var modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10001;display:flex;justify-content:center;align-items:center;';
+
+        modal.innerHTML = '<div style="background:white;border-radius:16px;padding:25px;width:90%;max-width:500px;max-height:80%;overflow-y:auto;box-shadow:0 20px 40px rgba(0,0,0,0.3);">' +
+            '<div style="text-align:center;margin-bottom:20px;padding-bottom:15px;border-bottom:2px dashed #ddd;">' +
+            '<h2 style="color:#8B4513;margin-bottom:5px;">La Media Cancha</h2>' +
+            '<p style="margin:5px 0;">Orden: ' + ticket.NumeroOrden + '</p>' +
+            '<p style="margin:5px 0;">Mesa ' + ticket.NumeroMesa + (ticket.NumeroSilla && ticket.NumeroSilla > 0 ? ' | Silla ' + ticket.NumeroSilla : '') + '</p>' +
+            '<p style="margin:5px 0;">Fecha: ' + fechaStr + '</p>' +
+            '<p style="margin:5px 0;">Cliente: ' + cliente + '</p>' +
+            '<hr style="margin:10px 0;">' +
+            '</div>' +
+            '<table style="width:100%;margin-bottom:20px; border-collapse:collapse;">' +
+            '<thead>' +
+            '<tr style="border-bottom:2px solid #333;">' +
+            '<th style="padding:8px; text-align:center; width:60px;">Cant</th>' +
+            '<th style="padding:8px; text-align:left;">Producto</th>' +
+            '<th style="padding:8px; text-align:right; width:100px;">Subtotal</th>' +
+            '</td>' +
+            '</thead>' +
+            '<tbody>' + productosHtml + '</tbody>' +
+            '</table>' +
+            '<div style="border-top:2px solid #333;padding-top:10px;margin-top:10px;">' +
+            '<div style="display:flex;justify-content:space-between;padding:5px 0;"><strong>Subtotal:</strong><span>Q ' + parseFloat(ticket.Subtotal).toFixed(2) + '</span></div>' +
+            '<div style="display:flex;justify-content:space-between;padding:5px 0;"><strong>Impuesto (12%):</strong><span>Q ' + parseFloat(ticket.Impuesto).toFixed(2) + '</span></div>' +
+            '<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:18px;font-weight:800;margin-top:10px;padding-top:10px;border-top:2px solid #333;"><span>TOTAL:</span><span>Q ' + parseFloat(ticket.Total).toFixed(2) + '</span></div>' +
+            '</div>' +
+            '<div style="text-align:center;margin-top:20px;padding-top:15px;border-top:2px dashed #ddd;">' +
+            '<p style="margin:5px 0;">¡Gracias por su visita!</p>' +
+            '</div>' +
+            '<div style="text-align:center;margin-top:20px;">' +
+            '<button class="btn-imprimir" onclick="imprimirTicket(this)" style="background:#3498DB;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;margin-right:10px;"><i class="fas fa-print"></i> Imprimir</button>' +
+            '<button class="btn-cerrar-ticket" onclick="this.closest(\'div\').parentElement.remove()" style="background:#95A5A6;color:white;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;">Cerrar</button>' +
+            '</div>' +
+            '</div>';
+
+        document.body.appendChild(modal);
+    }
+
+    function imprimirTicket(btn) {
+        var ticketContent = btn.closest('div').parentElement.querySelector('div').cloneNode(true);
+        var ventana = window.open('', '_blank');
+        ventana.document.write('<html><head><title>Ticket - La Media Cancha</title>');
+        ventana.document.write('<style>');
+        ventana.document.write('body{font-family:Arial,sans-serif;margin:0;padding:20px;} ');
+        ventana.document.write('.ticket{max-width:300px;margin:0 auto;} ');
+        ventana.document.write('table{width:100%; border-collapse:collapse;} ');
+        ventana.document.write('td,th{padding:8px;} ');
+        ventana.document.write('.text-center{text-align:center;} ');
+        ventana.document.write('.total{font-size:16px;font-weight:bold;}');
+        ventana.document.write('@@media print{.btn-imprimir,.btn-cerrar-ticket{display:none;}}');
+        ventana.document.write('</style>');
+        ventana.document.write('</head><body>');
+        ventana.document.write('<div class="ticket">');
+        ventana.document.write(ticketContent.innerHTML);
+        ventana.document.write('</div>');
+        ventana.document.write('</body></html>');
+        ventana.document.close();
+        ventana.print();
+        ventana.close();
+    }
+
+    function tomarPedido(mesaId, sillaId, numeroSilla) {
+        window.location.href = '@Url.Action("TomarPedido", "Orden")?mesaId=' + mesaId + '&sillaId=' + sillaId + '&numeroSilla=' + numeroSilla;
+    }
+
+    function preguntarCerrarSilla(ordenPersonaId, numeroMesa, numeroSilla) {
+        showConfirm('¿Desea cerrar la cuenta de la Silla ' + numeroSilla + ' de la Mesa ' + numeroMesa + '?',
+            function() { cerrarCuentaSilla(ordenPersonaId, numeroMesa, numeroSilla); });
+    }
+
+    function cerrarCuentaSilla(ordenPersonaId, numeroMesa, numeroSilla) {
+        showToast('Cerrando cuenta de la silla...', 'info');
+        $.ajax({
+            url: '@Url.Action("CerrarCuentaSilla", "Orden")',
+            type: 'POST',
+            data: { ordenPersonaId: ordenPersonaId },
+            success: function(response) {
+                if (response.success) {
+                    showToast('Cuenta de la silla ' + numeroSilla + ' cerrada exitosamente', 'success');
+                    if (response.mostrarTicket && response.ticket) {
+                        setTimeout(function() {
+                            mostrarTicket(response.ticket);
+                        }, 500);
+                    }
+                    setTimeout(function() {
+                        location.reload();
+                    }, 3000);
+                } else {
+                    showToast('Error: ' + response.message, 'error');
+                }
+            },
+            error: function() {
+                showToast('Error al cerrar la cuenta de la silla', 'error');
+            }
+        });
+    }
+
+    function preguntarCerrarMesa(mesaId, numeroMesa) {
+        showConfirm('¿Está seguro que desea cerrar la cuenta COMPLETA de la Mesa ' + numeroMesa + '? Esto cerrará TODAS las cuentas de todas las sillas de esta mesa.',
+            function() { cerrarCuentaMesaCompleta(mesaId, numeroMesa); });
+    }
+
+    function cerrarCuentaMesaCompleta(mesaId, numeroMesa) {
+        showToast('Cerrando cuenta completa de la mesa...', 'info');
+        $.ajax({
+            url: '@Url.Action("CerrarCuentaMesaCompleta", "Orden")',
+            type: 'POST',
+            data: { mesaId: mesaId },
+            success: function(response) {
+                if (response.success) {
+                    showToast('Cuenta de la Mesa ' + numeroMesa + ' cerrada exitosamente', 'success');
+                    if (response.mostrarTicket && response.ticket) {
+                        setTimeout(function() {
+                            mostrarTicket(response.ticket);
+                        }, 500);
+                    }
+                    setTimeout(function() {
+                        window.location.href = '@Url.Action("Index", "Orden")';
+                    }, 3000);
+                } else {
+                    showToast('Error: ' + response.message, 'error');
+                }
+            },
+            error: function() {
+                showToast('Error al cerrar la cuenta de la mesa', 'error');
+            }
+        });
+    }
+
+    function mostrarModalAgregarSilla() {
+        document.getElementById('modalAgregarSilla').style.display = 'flex';
+    }
+
+    function cerrarModalAgregarSilla() {
+        document.getElementById('modalAgregarSilla').style.display = 'none';
+        document.getElementById('nuevaSillaNumero').value = '';
+        document.getElementById('nuevaSillaCliente').value = '';
+    }
+
+    function confirmarAgregarSilla(mesaId) {
+        var numeroSilla = document.getElementById('nuevaSillaNumero').value;
+        var nombreCliente = document.getElementById('nuevaSillaCliente').value;
+
+        if (!numeroSilla) {
+            showToast('Por favor ingrese el número de silla', 'warning');
+            return;
+        }
+
+        showToast('Agregando silla temporal...', 'info');
+
+        $.ajax({
+            url: '@Url.Action("AgregarSillaTemporal", "Orden")',
+            type: 'POST',
+            data: {
+                mesaId: mesaId,
+                numeroSilla: parseInt(numeroSilla),
+                nombreCliente: nombreCliente || null
+            },
+            success: function(response) {
+                if (response.success) {
+                    showToast('Silla temporal agregada exitosamente', 'success');
+                    cerrarModalAgregarSilla();
+                    setTimeout(function() { location.reload(); }, 1500);
+                } else {
+                    showToast('Error: ' + response.message, 'error');
+                }
+            },
+            error: function() { showToast('Error al agregar la silla temporal', 'error'); }
+        });
+    }
+
+    function preguntarEliminarSilla(sillaId, numeroSilla) {
+        showConfirm('¿Desea eliminar la silla temporal ' + numeroSilla + '?',
+            function() { eliminarSillaTemporal(sillaId, numeroSilla); });
+    }
+
+    function eliminarSillaTemporal(sillaId, numeroSilla) {
+        showToast('Eliminando silla temporal...', 'info');
+        $.ajax({
+            url: '@Url.Action("EliminarSillaTemporal", "Orden")',
+            type: 'POST',
+            data: { sillaId: sillaId },
+            success: function(response) {
+                if (response.success) {
+                    showToast('Silla temporal eliminada exitosamente', 'success');
+                    setTimeout(function() { location.reload(); }, 1500);
+                } else {
+                    showToast('Error: ' + response.message, 'error');
+                }
+            },
+            error: function() { showToast('Error al eliminar la silla temporal', 'error'); }
+        });
+    }
+</script>

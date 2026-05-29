@@ -1,11 +1,777 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
+﻿@model List<LaMediaCancha.Models.ViewModels.HistorialOrdenViewModel>
+@using LaMediaCancha.Models.ViewModels
 
-namespace LaMediaCancha.Views.Orden
-{
-	public class Historial
-	{
-	}
+@{
+    ViewBag.Title = "Historial de Órdenes";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var resumen = ViewBag.Resumen as ResumenEstadisticasViewModel;
 }
+
+<style>
+    .historial-container {
+        width: 100%;
+        min-height: 100vh;
+        padding: 20px 30px;
+        background: #f5f5f5;
+    }
+
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .header-title h1 {
+        font-size: 24px;
+        font-weight: 700;
+        color: #2C3E50;
+        margin: 0;
+    }
+
+    .header-title p {
+        color: #7F8C8D;
+        margin-top: 5px;
+        font-size: 13px;
+    }
+
+    .btn-volver {
+        background: #6c757d;
+        color: white;
+        padding: 8px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 600;
+        font-size: 13px;
+        transition: all 0.3s ease;
+    }
+
+        .btn-volver:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+            color: white;
+        }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 15px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        border: 1px solid #ECF0F1;
+        transition: transform 0.3s ease;
+    }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-card i {
+            font-size: 28px;
+            color: #D35400;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 24px;
+            font-weight: 800;
+            color: #2C3E50;
+        }
+
+        .stat-card .label {
+            font-size: 10px;
+            color: #7F8C8D;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 5px;
+        }
+
+    .filtros-section {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+        border: 1px solid #ECF0F1;
+    }
+
+    .filtros-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: flex-end;
+    }
+
+    .filtro-group {
+        flex: 1;
+        min-width: 130px;
+    }
+
+        .filtro-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #7F8C8D;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .filtro-group input, .filtro-group select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+            .filtro-group input:focus, .filtro-group select:focus {
+                border-color: #D35400;
+                outline: none;
+                box-shadow: 0 0 0 2px rgba(211, 84, 0, 0.1);
+            }
+
+    .btn-filtrar {
+        background: #D35400;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 13px;
+        transition: all 0.3s ease;
+    }
+
+        .btn-filtrar:hover {
+            background: #8B4513;
+            transform: translateY(-2px);
+        }
+
+    .btn-limpiar {
+        background: #95A5A6;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 13px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+    }
+
+        .btn-limpiar:hover {
+            background: #7F8C8D;
+            transform: translateY(-2px);
+            color: white;
+        }
+
+    .tabla-ordenes {
+        background: white;
+        border-radius: 12px;
+        overflow-x: auto;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        border: 1px solid #ECF0F1;
+    }
+
+        .tabla-ordenes table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 750px;
+        }
+
+        .tabla-ordenes th {
+            background: #F8F9FA;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #2C3E50;
+            border-bottom: 2px solid #ECF0F1;
+            font-size: 12px;
+        }
+
+        .tabla-ordenes td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #ECF0F1;
+            vertical-align: middle;
+            font-size: 12px;
+        }
+
+        .tabla-ordenes tr:hover {
+            background: #F8F9FA;
+        }
+
+    .badge-estado {
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .badge-cerrada {
+        background: #EAFAF1;
+        color: #27AE60;
+    }
+
+    .badge-pagada {
+        background: #E8F8F5;
+        color: #1ABC9C;
+    }
+
+    .btn-ver-detalle {
+        background: #3498DB;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+        .btn-ver-detalle:hover {
+            background: #2980B9;
+            transform: translateY(-1px);
+        }
+
+    .btn-reimprimir {
+        background: #F39C12;
+        color: white;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 600;
+        margin-left: 5px;
+        transition: all 0.3s ease;
+    }
+
+        .btn-reimprimir:hover {
+            background: #E67E22;
+            transform: translateY(-1px);
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 50px;
+        color: #BDC3C7;
+    }
+
+        .empty-state i {
+            font-size: 54px;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .empty-state h3 {
+            color: #95A5A6;
+            margin-bottom: 8px;
+            font-size: 18px;
+        }
+
+        .empty-state p {
+            font-size: 13px;
+        }
+
+    @@media (max-width: 768px) {
+        .historial-container {
+            padding: 15px;
+        }
+
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .filtros-form {
+            flex-direction: column;
+        }
+
+        .filtro-group {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="historial-container">
+    <div class="header-section">
+        <div class="header-title">
+            <h1><i class="fas fa-history"></i> Historial de Órdenes</h1>
+            <p>Consulta y reimprime tickets de órdenes cerradas</p>
+        </div>
+        <a href="@Url.Action("Index", "Orden")" class="btn-volver">
+            <i class="fas fa-arrow-left"></i> Volver a Mesas
+        </a>
+    </div>
+
+    @if (resumen != null)
+    {
+        <div class="stats-grid">
+            <div class="stat-card">
+                <i class="fas fa-receipt"></i>
+                <div class="value">@resumen.TotalOrdenes</div>
+                <div class="label">Órdenes</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-dollar-sign"></i>
+                <div class="value">Q @resumen.TotalVentas.ToString("N2")</div>
+                <div class="label">Total Ventas</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-chart-line"></i>
+                <div class="value">Q @resumen.PromedioVenta.ToString("N2")</div>
+                <div class="label">Promedio por Orden</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-chair"></i>
+                <div class="value">@resumen.MesasAtendidas</div>
+                <div class="label">Mesas Atendidas</div>
+            </div>
+            <div class="stat-card">
+                <i class="fas fa-utensils"></i>
+                <div class="value">@resumen.TotalProductosVendidos</div>
+                <div class="label">Productos Vendidos</div>
+            </div>
+        </div>
+    }
+
+    <div class="filtros-section">
+        <form method="get" action="@Url.Action("Historial", "Orden")" class="filtros-form" id="filtrosForm">
+            <div class="filtro-group">
+                <label><i class="fas fa-calendar"></i> FECHA INICIO</label>
+                <input type="date" name="fechaInicio" id="fechaInicio" value="@ViewBag.FechaInicio">
+            </div>
+            <div class="filtro-group">
+                <label><i class="fas fa-calendar"></i> FECHA FIN</label>
+                <input type="date" name="fechaFin" id="fechaFin" value="@ViewBag.FechaFin">
+            </div>
+            <div class="filtro-group">
+                <label><i class="fas fa-chair"></i> NÚMERO DE MESA</label>
+                <input type="number" name="numeroMesa" id="numeroMesa" value="@ViewBag.NumeroMesa" placeholder="Todas">
+            </div>
+            <div class="filtro-group">
+                <label><i class="fas fa-tag"></i> ESTADO</label>
+                <select name="estado" id="estado">
+                    <option value="">Todos</option>
+                    <option value="Cerrada" @(ViewBag.Estado == "Cerrada" ? "selected" : "")>Cerrada</option>
+                    <option value="Pagada" @(ViewBag.Estado == "Pagada" ? "selected" : "")>Pagada</option>
+                </select>
+            </div>
+            <div class="filtro-group">
+                <label><i class="fas fa-search"></i> BUSCAR</label>
+                <input type="text" name="buscar" id="buscar" value="@ViewBag.Buscar" placeholder="Orden, cliente...">
+            </div>
+            <div class="filtro-group" style="display: flex; gap: 10px; min-width: auto;">
+                <button type="submit" class="btn-filtrar"><i class="fas fa-search"></i> Filtrar</button>
+                <button type="button" class="btn-limpiar" onclick="limpiarFiltros()"><i class="fas fa-eraser"></i> Limpiar</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="tabla-ordenes">
+        @if (!Model.Any())
+        {
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <h3>No hay órdenes registradas</h3>
+                <p>No se encontraron órdenes con los filtros seleccionados</p>
+            </div>
+        }
+        else
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th>Orden</th>
+                        <th>Mesa</th>
+                        <th>Cliente</th>
+                        <th>Fecha</th>
+                        <th>Productos</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var orden in Model)
+                    {
+                        <tr>
+                            <td><strong>@orden.NumeroOrden</strong></td>
+                            <td>Mesa @orden.NumeroMesa<br><small style="color:#7F8C8D;">@orden.UbicacionMesa</small></td>
+                            <td>@orden.ClienteNombre</td>
+                            <td>@orden.FechaApertura.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@orden.CantidadProductos</td>
+                            <td><strong style="color:#27AE60;">Q @orden.Total.ToString("N2")</strong></td>
+                            <td>
+                                <span class="badge-estado @(orden.Estado == "Cerrada" ? "badge-cerrada" : "badge-pagada")">
+                                    @orden.Estado
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn-ver-detalle" onclick="verDetalle(@orden.OrdenId)">
+                                    <i class="fas fa-eye"></i> Ver
+                                </button>
+                                <button class="btn-reimprimir" onclick="reimprimirTicket(@orden.OrdenId, null)">
+                                    <i class="fas fa-print"></i> Ticket
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    function limpiarFiltros() {
+        document.getElementById('fechaInicio').value = '';
+        document.getElementById('fechaFin').value = '';
+        document.getElementById('numeroMesa').value = '';
+        document.getElementById('estado').value = '';
+        document.getElementById('buscar').value = '';
+        document.getElementById('filtrosForm').submit();
+    }
+
+    function verDetalle(ordenId) {
+        Swal.fire({
+            title: 'Cargando...',
+            text: 'Por favor espere',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        $.ajax({
+            url: '@Url.Action("DetalleHistorial", "Orden")',
+            type: 'GET',
+            data: { ordenId: ordenId },
+            success: function(response) {
+                Swal.close();
+                if (response.success) {
+                    var fechaStr = response.FechaApertura || 'Fecha no disponible';
+
+                    // Construir tabla de productos con diseño corregido
+                    var productosHtml = '';
+                    if (response.Detalles && response.Detalles.length > 0) {
+                        for (var i = 0; i < response.Detalles.length; i++) {
+                            var item = response.Detalles[i];
+                            productosHtml += '<tr style="border-bottom: 1px solid #eee;">' +
+                                '<td style="padding: 8px;">' + item.ProductoNombre + (item.EsDeCombo ? ' <span style="background:#F39C12; color:white; padding:2px 6px; border-radius:10px; font-size:9px;">COMBO</span>' : '') + '</td>' +
+                                '<td style="padding: 8px; text-align: center;">' + item.Cantidad + '</td>' +
+                                '<td style="padding: 8px; text-align: right;">Q ' + parseFloat(item.PrecioUnitario).toFixed(2) + '</td>' +
+                                '<td style="padding: 8px; text-align: right;">Q ' + parseFloat(item.Subtotal).toFixed(2) + '</td>' +
+                                '</tr>';
+                        }
+                    } else {
+                        productosHtml = '<tr><td colspan="4" style="text-align:center; padding:20px;">No hay productos</td></tr>';
+                    }
+
+                    var html = `
+                        <div style="font-family: Arial, sans-serif;">
+                            <div style="text-align:center; border-bottom: 2px dashed #8B4513; padding-bottom: 15px; margin-bottom: 15px;">
+                                <h3 style="color:#8B4513; margin:0 0 5px 0;">La Media Cancha</h3>
+                                <p style="margin:3px 0;"><strong>Orden:</strong> ${response.NumeroOrden}</p>
+                                <p style="margin:3px 0;"><strong>Mesa:</strong> ${response.NumeroMesa}</p>
+                                <p style="margin:3px 0;"><strong>Fecha:</strong> ${fechaStr}</p>
+                                <p style="margin:3px 0;"><strong>Cliente:</strong> ${response.ClienteNombre || 'Consumo en mesa'}</p>
+                            </div>
+
+                            <table style="width:100%; border-collapse: collapse; margin-bottom: 15px;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid #333;">
+                                        <th style="padding: 8px; text-align: left;">Producto</th>
+                                        <th style="padding: 8px; text-align: center;">Cant</th>
+                                        <th style="padding: 8px; text-align: right;">Precio</th>
+                                        <th style="padding: 8px; text-align: right;">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${productosHtml}
+                                </tbody>
+                                <tfoot>
+                                    <tr style="border-top: 1px solid #ddd;">
+                                        <td colspan="3" style="padding: 8px; text-align: right;"><strong>Subtotal:</strong></td>
+                                        <td style="padding: 8px; text-align: right;">Q ${parseFloat(response.Subtotal).toFixed(2)}</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="3" style="padding: 5px; text-align: right;"><strong>IVA (12%):</strong></td>
+                                        <td style="padding: 5px; text-align: right;">Q ${parseFloat(response.Impuesto).toFixed(2)}</td>
+                                    </tr>
+                                    <tr style="border-top: 1px solid #333;">
+                                        <td colspan="3" style="padding: 8px; text-align: right;"><strong>TOTAL:</strong></td>
+                                        <td style="padding: 8px; text-align: right;"><strong>Q ${parseFloat(response.Total).toFixed(2)}</strong></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                    `;
+
+                    if (response.Sillas && response.Sillas.length > 0) {
+                        html += '<div style="margin-top: 15px;"><h4 style="color:#8B4513;">Sillas</h4><ul style="list-style: none; padding-left: 0;">';
+                        for (var i = 0; i < response.Sillas.length; i++) {
+                            var silla = response.Sillas[i];
+                            html += '<li style="padding: 5px 0;"><i class="fas fa-chair"></i> Silla ' + silla.NumeroSilla + ' - ' + (silla.NombreCliente || 'Sin nombre') + ' - <strong>Q ' + parseFloat(silla.Total).toFixed(2) + '</strong></li>';
+                        }
+                        html += '</ul></div>';
+                    }
+
+                    html += '<div style="text-align:center; margin-top: 15px; padding-top: 10px; border-top: 1px dashed #ddd;">' +
+                        '<p>¡Gracias por su visita!</p>' +
+                        '</div></div>';
+
+                    Swal.fire({
+                        title: 'Detalle de Orden',
+                        html: html,
+                        width: '600px',
+                        confirmButtonText: 'Cerrar',
+                        confirmButtonColor: '#27AE60'
+                    });
+                } else {
+                    Swal.fire('Error', response.message, 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                Swal.fire('Error', 'Error al cargar el detalle: ' + error, 'error');
+            }
+        });
+    }
+
+    function reimprimirTicket(ordenId, ordenPersonaId) {
+        Swal.fire({
+            title: 'Generando ticket...',
+            text: 'Por favor espere',
+            allowOutsideClick: false,
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        $.ajax({
+            url: '@Url.Action("ReimprimirTicket", "Orden")',
+            type: 'POST',
+            data: { ordenId: ordenId, ordenPersonaId: ordenPersonaId },
+            success: function(response) {
+                Swal.close();
+                if (response.success && response.ticket) {
+                    mostrarTicket(response.ticket);
+                } else {
+                    Swal.fire('Error', response.message || 'No se pudo reimprimir el ticket', 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                Swal.close();
+                Swal.fire('Error', 'Error al reimprimir el ticket: ' + error, 'error');
+            }
+        });
+    }
+
+    function mostrarTicket(ticket) {
+        var fechaStr = ticket.FechaStr || 'Fecha no disponible';
+
+        var productosHtml = '';
+        if (ticket.Detalles && ticket.Detalles.length > 0) {
+            for (var i = 0; i < ticket.Detalles.length; i++) {
+                var item = ticket.Detalles[i];
+                productosHtml += '<tr>' +
+                    '<td style="padding: 8px; text-align: center;">' + item.Cantidad + '</td>' +
+                    '<td style="padding: 8px;">' + item.ProductoNombre + (item.EsDeCombo ? ' <span style="background:#F39C12; color:white; padding:2px 6px; border-radius:10px; font-size:9px;">COMBO</span>' : '') + '</td>' +
+                    '<td style="padding: 8px; text-align: right;">Q ' + parseFloat(item.PrecioUnitario).toFixed(2) + '</td>' +
+                    '<td style="padding: 8px; text-align: right;">Q ' + parseFloat(item.Subtotal).toFixed(2) + '</td>' +
+                    '</tr>';
+            }
+        } else {
+            productosHtml = '<tr><td colspan="4" style="text-align:center; padding:20px;">No hay productos</td></tr>';
+        }
+
+        var titulo = (ticket.NumeroSilla && ticket.NumeroSilla > 0) ?
+            'Silla ' + ticket.NumeroSilla + ' - Mesa ' + ticket.NumeroMesa :
+            'Mesa ' + ticket.NumeroMesa;
+
+        var cliente = ticket.NombrePersona || ticket.ClienteNombre || 'Consumo en mesa';
+
+        var ticketHtml = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Ticket - La Media Cancha</title>
+                <style>
+                    * { margin: 0; padding: 0; box-sizing: border-box; }
+                    body {
+                        font-family: 'Courier New', 'Monaco', monospace;
+                        background: #e0e0e0;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        min-height: 100vh;
+                        padding: 20px;
+                    }
+                    .ticket {
+                        max-width: 380px;
+                        background: white;
+                        margin: 0 auto;
+                        padding: 20px;
+                        border-radius: 12px;
+                        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+                    }
+                    .ticket-header {
+                        text-align: center;
+                        border-bottom: 2px dashed #8B4513;
+                        padding-bottom: 12px;
+                        margin-bottom: 12px;
+                    }
+                    .ticket-header h1 {
+                        color: #8B4513;
+                        font-size: 22px;
+                        letter-spacing: 2px;
+                        margin-bottom: 8px;
+                    }
+                    .ticket-header .subtitle {
+                        font-size: 11px;
+                        color: #7F8C8D;
+                        letter-spacing: 1px;
+                    }
+                    .ticket-info {
+                        margin-bottom: 15px;
+                        padding-bottom: 10px;
+                        border-bottom: 1px dashed #ddd;
+                    }
+                    .ticket-info p {
+                        font-size: 11px;
+                        margin: 4px 0;
+                        display: flex;
+                        justify-content: space-between;
+                    }
+                    .ticket-info .label { color: #7F8C8D; }
+                    .ticket-info .value { font-weight: 600; color: #2C3E50; }
+                    .productos-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-bottom: 15px;
+                        font-size: 11px;
+                    }
+                    .productos-table th {
+                        text-align: center;
+                        padding: 6px 4px;
+                        border-bottom: 1px solid #333;
+                        font-size: 10px;
+                        text-transform: uppercase;
+                    }
+                    .productos-table td {
+                        padding: 6px 4px;
+                        border-bottom: 1px solid #eee;
+                    }
+                    .productos-table td:first-child { text-align: center; width: 45px; }
+                    .productos-table td:nth-child(2) { text-align: left; }
+                    .productos-table td:nth-child(3) { text-align: right; width: 65px; }
+                    .productos-table td:last-child { text-align: right; width: 70px; }
+                    .totales {
+                        border-top: 1px dashed #ddd;
+                        padding-top: 10px;
+                        margin-top: 5px;
+                    }
+                    .totales div {
+                        display: flex;
+                        justify-content: space-between;
+                        font-size: 11px;
+                        margin: 4px 0;
+                    }
+                    .totales .total {
+                        border-top: 1px solid #333;
+                        margin-top: 8px;
+                        padding-top: 8px;
+                        font-size: 14px;
+                        font-weight: bold;
+                    }
+                    .ticket-footer {
+                        text-align: center;
+                        margin-top: 15px;
+                        padding-top: 10px;
+                        border-top: 2px dashed #8B4513;
+                        font-size: 10px;
+                        color: #7F8C8D;
+                    }
+                    .btn-cerrar {
+                        display: block;
+                        width: 100%;
+                        margin-top: 15px;
+                        padding: 10px;
+                        background: #27AE60;
+                        color: white;
+                        border: none;
+                        border-radius: 8px;
+                        cursor: pointer;
+                        font-size: 14px;
+                        font-weight: bold;
+                    }
+                    .btn-cerrar:hover { background: #1E8449; }
+                    @@media print {
+                        body { background: white; padding: 0; }
+                        .ticket { box-shadow: none; padding: 10px; }
+                        .btn-cerrar { display: none; }
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="ticket">
+                    <div class="ticket-header">
+                        <h1>La Media Cancha</h1>
+                        <div class="subtitle">Restaurante - Cancha Deportiva</div>
+                    </div>
+                    <div class="ticket-info">
+                        <p><span class="label">ORDEN:</span><span class="value">${ticket.NumeroOrden}</span></p>
+                        <p><span class="label">${ticket.NumeroSilla && ticket.NumeroSilla > 0 ? 'SILLA' : 'MESA'}:</span><span class="value">${titulo}</span></p>
+                        <p><span class="label">FECHA:</span><span class="value">${fechaStr}</span></p>
+                        <p><span class="label">CLIENTE:</span><span class="value">${cliente}</span></p>
+                    </div>
+                    <table class="productos-table">
+                        <thead>
+                            <tr>
+                                <th>CANT</th>
+                                <th>PRODUCTO</th>
+                                <th>PRECIO</th>
+                                <th>SUBTOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody>${productosHtml}</tbody>
+                    </table>
+                    <div class="totales">
+                        <div><span>SUBTOTAL:</span><span>Q ${parseFloat(ticket.Subtotal).toFixed(2)}</span></div>
+                        <div><span>IVA (12%):</span><span>Q ${parseFloat(ticket.Impuesto).toFixed(2)}</span></div>
+                        <div class="total"><span>TOTAL:</span><span>Q ${parseFloat(ticket.Total).toFixed(2)}</span></div>
+                    </div>
+                    <div class="ticket-footer">
+                        <p>¡Gracias por su visita!</p>
+                        <p style="font-size: 9px; margin-top: 5px;">¡Vuelva pronto!</p>
+                    </div>
+                    <button class="btn-cerrar" onclick="window.print()">🖨️ Imprimir</button>
+                </div>
+            </body>
+            </html>
+        `;
+
+        var ventana = window.open('', '_blank', 'width=420,height=650,scrollbars=yes');
+        ventana.document.write(ticketHtml);
+        ventana.document.close();
+    }
+</script>

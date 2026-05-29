@@ -1,8 +1,9 @@
 @model LaMediaCancha.Models.DevolucionModels.EncabezadoDevolucion
 
 @{
-    ViewBag.Title = "Detalle Devolución";
+    ViewBag.Title = "Detalle de Devolución";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var esProveedor = Model.Tipo == "Proveedor";
 }
 
 <div class="container-fluid px-4 py-4">
@@ -13,7 +14,7 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h2 class="text-white mb-1">
-                                <i class="fas fa-undo-alt me-2"></i> Detalle Devolución
+                                <i class="fas fa-undo-alt me-2"></i> Detalle de Devolución
                             </h2>
                             <p class="mb-0 text-white-50">Información completa de la devolución</p>
                         </div>
@@ -24,17 +25,54 @@
                 </div>
 
                 <div class="card-body-custom p-4">
+                    @if (TempData["Success"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+                            <i class="fas fa-check-circle me-2"></i> @TempData["Success"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <!-- Información General -->
                     <div class="row">
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <div class="info-box">
                                 <label class="text-muted small">NÚMERO DEVOLUCIÓN</label>
-                                <p class="fw-bold fs-4">DEV-@Model.DevolucionId.ToString("D6")</p>
+                                <p class="fw-bold fs-5">@Model.NumeroDevolucion</p>
                             </div>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <div class="info-box">
                                 <label class="text-muted small">FECHA DEVOLUCIÓN</label>
                                 <p class="fw-bold">@Model.FechaDevolucion.ToString("dd/MM/yyyy HH:mm")</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <label class="text-muted small">TIPO</label>
+                                <p class="fw-bold">
+                                    @if (esProveedor)
+                                    {
+                                        <span class="badge bg-primary">Devolución a Proveedor</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info">Devolución de Cliente</span>
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <label class="text-muted small">ESTADO</label>
+                                <p>
+                                    @{
+                                        var estadoBadge = Model.Estado == "Completada" ? "bg-success" :
+                                                         Model.Estado == "Pendiente" ? "bg-warning" :
+                                                         Model.Estado == "PendienteAutorizacion" ? "bg-info" : "bg-secondary";
+                                    }
+                                    <span class="badge @estadoBadge px-3 py-2">@Model.Estado</span>
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -42,20 +80,20 @@
                     <div class="row">
                         <div class="col-md-4">
                             <div class="info-box">
-                                <label class="text-muted small">DOCUMENTO COMPRA</label>
+                                <label class="text-muted small">@(esProveedor ? "DOCUMENTO COMPRA" : "NÚMERO ORDEN")</label>
                                 <p class="fw-bold">@Model.NumeroDocCompra</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="info-box">
-                                <label class="text-muted small">PROVEEDOR</label>
-                                <p class="fw-bold">@Model.ProveedorNombre</p>
+                                <label class="text-muted small">@(esProveedor ? "PROVEEDOR" : "CLIENTE")</label>
+                                <p class="fw-bold">@(esProveedor ? Model.ProveedorNombre : Model.ClienteNombre)</p>
                             </div>
                         </div>
                         <div class="col-md-4">
                             <div class="info-box">
-                                <label class="text-muted small">EMPLEADO</label>
-                                <p class="fw-bold">@Model.EmpleadoNombre</p>
+                                <label class="text-muted small">FECHA @(esProveedor ? "COMPRA" : "VENTA")</label>
+                                <p class="fw-bold">@Model.FechaCompraRef.ToString("dd/MM/yyyy")</p>
                             </div>
                         </div>
                     </div>
@@ -75,6 +113,51 @@
                         </div>
                     </div>
 
+                    @if (!esProveedor && !string.IsNullOrEmpty(Model.FormaCompensacion))
+                    {
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <label class="text-muted small">FORMA DE COMPENSACIÓN</label>
+                                    <p>@Model.FormaCompensacion</p>
+                                </div>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.NumeroNotaCredito))
+                            {
+                                <div class="col-md-6">
+                                    <div class="info-box">
+                                        <label class="text-muted small">NOTA DE CRÉDITO</label>
+                                        <p>@Model.NumeroNotaCredito</p>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    @if (esProveedor && !string.IsNullOrEmpty(Model.NumeroNotaCredito))
+                    {
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <label class="text-muted small">NOTA DE CRÉDITO</label>
+                                    <p>@Model.NumeroNotaCredito</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (Model.AutorizadoPor.HasValue)
+                    {
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <label class="text-muted small">AUTORIZADO POR</label>
+                                    <p>@Model.AutorizadoPorNombre</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
                     @if (!string.IsNullOrEmpty(Model.Observaciones))
                     {
                         <div class="row">
@@ -89,6 +172,7 @@
 
                     <hr />
 
+                    <!-- Tabla de productos devueltos -->
                     <h4 class="mb-3">Productos devueltos</h4>
                     <div class="table-responsive">
                         <table class="table table-hover">
@@ -99,93 +183,316 @@
                                     <th class="text-center">Cantidad</th>
                                     <th class="text-end">Precio Unitario</th>
                                     <th class="text-end">Subtotal</th>
+                                    @if (!esProveedor)
+                                    {
+                                        <th class="text-center">Destino</th>
+                                        <th class="text-center">Autorizado</th>
+                                    }
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach (var item in Model.Detalles)
                                 {
                                     <tr>
-                                        <td>@item.ProductoCodigo</td>
-                                        <td>@item.ProductoNombre</td>
-                                        <td class="text-center">@item.Cantidad</td>
-                                        <td class="text-end">Q @item.PrecioReferencia.ToString("N2")</td>
-                                        <td class="text-end text-danger fw-bold">Q @item.Subtotal.ToString("N2")</td>
-                                    </tr>
-                                }
+                                        <td>
+                                            <span class="badge bg-light text-dark">@item.ProductoCodigo</span>
+                                        </td>
+                                        <td>
+                                            @item.ProductoNombre
+                                    </td>
+                                    <td class="text-center">
+                                        @item.Cantidad
+                                </td>
+                                <td class="text-end">Q @item.PrecioReferencia.ToString("N2")
+                </td>
+                <td class="text-end text-danger fw-bold">Q @item.Subtotal.ToString("N2")
+</td>
+<td class="text-center">
+    @if (item.DestinoStock == "Merma")
+    {
+        <span class="badge bg-warning text-dark">Merma/Desperdicio</span>
+    }
+    else
+    {
+        <span class="badge bg-success">Devuelto a Stock</span>
+    }
+</td>
+<td class="text-center">
+    @if (item.Autorizado)
+    {
+        <span class="badge bg-success"><i class="fas fa-check-circle"></i> Autorizado</span>
+    }
+    else if (item.EstabaEnOferta)
+    {
+        <span class="badge bg-warning text-dark"><i class="fas fa-clock"></i> Pendiente</span>
+    }
+    else
+    {
+        <span class="badge bg-secondary">No requerida</span>
+    }
+</td>
+</tr>
+}
                             </tbody>
-                            <tfoot>
-                                <tr class="table-light">
-                                    <td colspan="4" class="text-end fw-bold">TOTAL DEVUELTO:</td>
-                                    <td class="text-end text-danger fw-bold fs-5">Q @Model.MontoTotal.ToString("N2")</td>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <td colspan="4" class="text-end fw-bold">
+                                        TOTAL DEVUELTO:
+                                    </td>
+                                    <td class="text-end text-danger fw-bold fs-5">
+                                        Q @Model.MontoTotal.ToString("N2")
+                                    </td>
+                                    <td colspan="2"></td>
                                 </tr>
                             </tfoot>
                         </table>
                     </div>
 
-                    <div class="alert alert-info mt-3">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Nota:</strong> El stock de los productos devueltos ha sido descontado automáticamente del inventario.
-                    </div>
+                    @if (esProveedor && Model.Estado == "Pendiente")
+                    {
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Nota:</strong> Esta devolución está pendiente de nota de crédito. Una vez que el proveedor emita la nota de crédito, puede registrarla.
+                        </div>
+
+                        <div class="text-end mt-3">
+                            <button type="button" class="btn btn-primary" onclick="actualizarNotaCredito(@Model.DevolucionId)">
+                                <i class="fas fa-file-invoice me-1"></i> Registrar Nota de Crédito
+                            </button>
+                        </div>
+                    }
+
+                    @if (!esProveedor && Model.Estado == "PendienteAutorizacion")
+                    {
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Autorización requerida:</strong> Esta devolución contiene productos en oferta que requieren autorización de supervisor.
+                        </div>
+
+                        <div class="text-end mt-3">
+                            <button type="button" class="btn btn-warning" onclick="autorizarDevolucion(@Model.DevolucionId)">
+                                <i class="fas fa-check-circle me-1"></i> Autorizar Devolución
+                            </button>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-    .container-fluid {
-        width: 100% !important;
-        max-width: 100% !important;
-        padding-left: 30px !important;
-        padding-right: 30px !important;
-    }
+<!-- Modal Nota de Crédito -->
+<div class="modal fade" id="modalNotaCredito" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-file-invoice me-2"></i> Registrar Nota de Crédito
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="notaCreditoDevolucionId" />
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Número de Nota de Crédito <span class="text-danger">*</span></label>
+                    <input type="text" id="txtNumeroNotaCredito" class="form-control" placeholder="Ej: NC-001, NOTA-2024-001" />
+                </div>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    La nota de crédito debe ser emitida por el proveedor.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="guardarNotaCredito()">Guardar Nota de Crédito</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-    .card-custom {
-        width: 100%;
-        background: #fff;
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-    }
+<!-- Modal Autorización -->
+<div class="modal fade" id="modalAutorizacion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-shield me-2"></i> Autorizar Devolución
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="autorizacionDevolucionId" />
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Motivo de la autorización <span class="text-danger">*</span></label>
+                    <textarea id="txtMotivoAutorizacion" class="form-control" rows="3" placeholder="Ej: Producto defectuoso, El cliente no quedó satisfecho, etc."></textarea>
+                </div>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Al autorizar esta devolución, usted confirma que el producto en oferta será devuelto.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-warning" onclick="confirmarAutorizacion()">Autorizar Devolución</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-    .card-header-custom {
-        padding: 1.5rem 2rem;
-        background: linear-gradient(135deg,#c95a00 0%,#a04700 100%);
-    }
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    .info-box {
-        background: #f8f9fa;
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 15px;
-    }
-
-        .info-box label {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+    <style>
+        .info-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 3px solid #c95a00;
         }
 
-        .info-box p {
-            margin: 0;
-            font-weight: 500;
+            .info-box label {
+                font-size: 0.7rem;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .info-box p {
+                margin: 0;
+                font-weight: 600;
+            }
+
+        .container-fluid {
+            width: 100% !important;
+            max-width: 100% !important;
+            padding-left: 30px !important;
+            padding-right: 30px !important;
         }
 
-    .table {
-        width: 100%;
-        margin-bottom: 0;
-    }
+        .card-custom {
+            width: 100%;
+            background: #fff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        .card-header-custom {
+            padding: 1.5rem 2rem;
+            background: linear-gradient(135deg,#c95a00 0%,#a04700 100%);
+        }
+
+        .card-body-custom {
+            padding: 20px;
+        }
 
         .table th {
             padding: 12px;
             font-size: 0.82rem;
             text-transform: uppercase;
-            letter-spacing: .5px;
-            white-space: nowrap;
         }
 
-        .table td {
-            padding: 12px;
-            vertical-align: middle;
+        .btn-sm {
+            border-radius: 8px;
         }
-</style>
+    </style>
+
+    <script>
+        var modalNotaCredito, modalAutorizacion;
+
+        function actualizarNotaCredito(devolucionId) {
+            $('#notaCreditoDevolucionId').val(devolucionId);
+            $('#txtNumeroNotaCredito').val('');
+            modalNotaCredito.show();
+        }
+
+        function guardarNotaCredito() {
+            var devolucionId = $('#notaCreditoDevolucionId').val();
+            var numeroNotaCredito = $('#txtNumeroNotaCredito').val().trim();
+
+            if (!numeroNotaCredito) {
+                Swal.fire('Error', 'Ingrese el número de nota de crédito', 'error');
+                return;
+            }
+
+            Swal.fire({
+                title: '¿Guardar nota de crédito?',
+                text: `Número: ${numeroNotaCredito}`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, guardar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("ActualizarNotaCredito", "Devolucion")',
+                        type: 'POST',
+                        data: { devolucionId: devolucionId, numeroNotaCredito: numeroNotaCredito },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire('Éxito', response.message, 'success').then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Error', 'Error al guardar la nota de crédito', 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        function autorizarDevolucion(devolucionId) {
+            $('#autorizacionDevolucionId').val(devolucionId);
+            $('#txtMotivoAutorizacion').val('');
+            modalAutorizacion.show();
+        }
+
+        function confirmarAutorizacion() {
+            var devolucionId = $('#autorizacionDevolucionId').val();
+            var motivo = $('#txtMotivoAutorizacion').val().trim();
+
+            if (!motivo) {
+                Swal.fire('Error', 'Ingrese el motivo de la autorización', 'error');
+                return;
+            }
+
+            Swal.fire({
+                title: '¿Autorizar devolución?',
+                text: '¿Está seguro de autorizar esta devolución?',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, autorizar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("AutorizarDevolucion", "Devolucion")',
+                        type: 'POST',
+                        data: { devolucionId: devolucionId, motivo: motivo },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire('Éxito', response.message, 'success').then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire('Error', response.message, 'error');
+                            }
+                        },
+                        error: function() {
+                            Swal.fire('Error', 'Error al autorizar la devolución', 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            modalNotaCredito = new bootstrap.Modal(document.getElementById('modalNotaCredito'));
+            modalAutorizacion = new bootstrap.Modal(document.getElementById('modalAutorizacion'));
+        });
+    </script>
+}
