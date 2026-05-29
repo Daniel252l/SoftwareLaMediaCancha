@@ -460,5 +460,244 @@ namespace LaMediaCancha.Services
 
             return detalles;
         }
+
+       
+        // ==================== MÉTODOS PARA GESTIÓN DE PRODUCTOS ====================
+
+public bool ExisteCodigoProducto(string codigo, int? productoIdExcluir = null)
+{
+    string query = "SELECT COUNT(*) FROM Producto WHERE Codigo = @Codigo AND Activo = 1";
+    
+    if (productoIdExcluir.HasValue)
+    {
+        query += " AND ProductoId != @ProductoIdExcluir";
+    }
+    
+    using (var conn = new SqlConnection(_connectionString))
+    {
+        conn.Open();
+        using (var cmd = new SqlCommand(query, conn))
+        {
+            cmd.Parameters.AddWithValue("@Codigo", codigo);
+            if (productoIdExcluir.HasValue)
+            {
+                cmd.Parameters.AddWithValue("@ProductoIdExcluir", productoIdExcluir.Value);
+            }
+            int count = (int)cmd.ExecuteScalar();
+            return count > 0;
+        }
+    }
+}
+
+        public int AgregarProducto(string nombre, string codigo, decimal precio, int subDepartamentoId = 1, int presentacionId = 1, int tipoProductoId = 1)
+        {
+            // Verificar si el código ya existe
+            string checkQuery = "SELECT COUNT(*) FROM Producto WHERE Codigo = @Codigo";
+
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+
+                using (var checkCmd = new SqlCommand(checkQuery, conn))
+                {
+                    checkCmd.Parameters.AddWithValue("@Codigo", codigo);
+                    int existe = (int)checkCmd.ExecuteScalar();
+                    if (existe > 0)
+                    {
+                        throw new Exception("Ya existe un producto con este código");
+                    }
+                }
+
+                // Insertar con todas las columnas requeridas
+                string query = @"
+            INSERT INTO Producto (
+                SubDepartamentoId,
+                PresentacionId,
+                MarcaId,
+                EstanteId,
+                ColorId,
+                TallaId,
+                Codigo,
+                CodigoBarras,
+                Nombre,
+                Descripcion,
+                PrecioCompra,
+                PrecioVenta,
+                EstaEnOferta,
+                PrecioOferta,
+                FechaInicioOferta,
+                FechaFinOferta,
+                Activo,
+                FechaCreacion,
+                FechaModificacion,
+                TipoProductoId
+            )
+            VALUES (
+                @SubDepartamentoId,
+                @PresentacionId,
+                @MarcaId,
+                @EstanteId,
+                @ColorId,
+                @TallaId,
+                @Codigo,
+                @CodigoBarras,
+                @Nombre,
+                @Descripcion,
+                @PrecioCompra,
+                @PrecioVenta,
+                0,
+                0,
+                NULL,
+                NULL,
+                1,
+                GETDATE(),
+                NULL,
+                @TipoProductoId
+            );
+            SELECT SCOPE_IDENTITY();";
+
+                using (var cmd = new SqlCommand(query, conn))
+                {
+                    // Campos obligatorios
+                    cmd.Parameters.AddWithValue("@SubDepartamentoId", subDepartamentoId);
+                    cmd.Parameters.AddWithValue("@PresentacionId", presentacionId);
+                    cmd.Parameters.AddWithValue("@TipoProductoId", tipoProductoId);
+
+                    // Campos que pueden ser NULL pero tienen valor por defecto
+                    cmd.Parameters.AddWithValue("@MarcaId", DBNull.Value);
+                    cmd.Parameters.AddWithValue("@EstanteId", DBNull.Value);
+                    cmd.Parameters.AddWithValue("@ColorId", DBNull.Value);
+                    cmd.Parameters.AddWithValue("@TallaId", DBNull.Value);
+
+                    // Campos del producto
+                    cmd.Parameters.AddWithValue("@Codigo", codigo);
+                    cmd.Parameters.AddWithValue("@CodigoBarras", codigo); // Usar el mismo código como código de barras
+                    cmd.Parameters.AddWithValue("@Nombre", nombre);
+                    cmd.Parameters.AddWithValue("@Descripcion", nombre); // Usar el nombre como descripción
+                    cmd.Parameters.AddWithValue("@PrecioCompra", precio * 0.6m); // Precio de compra como 60% del precio venta
+                    cmd.Parameters.AddWithValue("@PrecioVenta", precio);
+
+                    return Convert.ToInt32(cmd.ExecuteScalar());
+                }
+            }
+        }
+
+        public bool EditarProducto(int productoId, string nombre, string codigo, decimal precio, int subDepartamentoId = 1, int presentacionId = 1, int tipoProductoId = 1)
+        {
+            string query = @"
+        UPDATE Producto 
+        SET 
+            SubDepartamentoId = @SubDepartamentoId,
+            PresentacionId = @PresentacionId,
+            Codigo = @Codigo,
+            CodigoBarras = @CodigoBarras,
+            Nombre = @Nombre,
+            Descripcion = @Descripcion,
+            PrecioCompra = @PrecioCompra,
+            PrecioVenta = @PrecioVenta,
+            TipoProductoId = @TipoProductoId,
+            FechaModificacion = GETDATE()
+        WHERE ProductoId = @ProductoId AND Activo = 1";
+
+            using (var conn = new SqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new SqlCommand(query, conn))
+                {
+                    cmd.Parameters.AddWithValue("@ProductoId", productoId);
+                    cmd.Parameters.AddWithValue("@SubDepartamentoId", subDepartamentoId);
+                    cmd.Parameters.AddWithValue("@PresentacionId", presentacionId);
+                    cmd.Parameters.AddWithValue("@Codigo", codigo);
+                    cmd.Parameters.AddWithValue("@CodigoBarras", codigo);
+                    cmd.Parameters.AddWithValue("@Nombre", nombre);
+                    cmd.Parameters.AddWithValue("@Descripcion", nombre);
+                    cmd.Parameters.AddWithValue("@PrecioCompra", precio * 0.6m);
+                    cmd.Parameters.AddWithValue("@PrecioVenta", precio);
+                    cmd.Parameters.AddWithValue("@TipoProductoId", tipoProductoId);
+                    return cmd.ExecuteNonQuery() > 0;
+                }
+            }
+        }
+
+        public bool EliminarProducto(int productoId)
+{
+    // Eliminación lógica - solo desactivar
+    string query = "UPDATE Producto SET Activo = 0, FechaModificacion = GETDATE() WHERE ProductoId = @ProductoId";
+    
+    using (var conn = new SqlConnection(_connectionString))
+    {
+        conn.Open();
+        using (var cmd = new SqlCommand(query, conn))
+        {
+            cmd.Parameters.AddWithValue("@ProductoId", productoId);
+            return cmd.ExecuteNonQuery() > 0;
+        }
+    }
+}
+
+public bool EliminarProductoFisico(int productoId)
+{
+    // Eliminación física - borrar permanentemente
+    using (var conn = new SqlConnection(_connectionString))
+    {
+        conn.Open();
+        using (var transaction = conn.BeginTransaction())
+        {
+            try
+            {
+                // Primero eliminar lotes relacionados
+                string deleteLotesQuery = "DELETE FROM Lote WHERE ProductoId = @ProductoId";
+                using (var cmd = new SqlCommand(deleteLotesQuery, conn, transaction))
+                {
+                    cmd.Parameters.AddWithValue("@ProductoId", productoId);
+                    cmd.ExecuteNonQuery();
+                }
+                
+                // Luego eliminar el producto
+                string deleteProductoQuery = "DELETE FROM Producto WHERE ProductoId = @ProductoId";
+                using (var cmd = new SqlCommand(deleteProductoQuery, conn, transaction))
+                {
+                    cmd.Parameters.AddWithValue("@ProductoId", productoId);
+                    int result = cmd.ExecuteNonQuery();
+                    transaction.Commit();
+                    return result > 0;
+                }
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+    }
+}
+
+// Método para obtener todos los productos (incluyendo inactivos para administración)
+public List<ProductoModels.Producto> ObtenerTodosLosProductos()
+{
+    var productos = new List<ProductoModels.Producto>();
+    string query = "SELECT ProductoId, Nombre, Codigo, PrecioVenta, Activo FROM Producto ORDER BY Nombre";
+    
+    using (var conn = new SqlConnection(_connectionString))
+    {
+        conn.Open();
+        using (var cmd = new SqlCommand(query, conn))
+        using (var reader = cmd.ExecuteReader())
+        {
+            while (reader.Read())
+            {
+                productos.Add(new ProductoModels.Producto
+                {
+                    ProductoId = (int)reader["ProductoId"],
+                    Nombre = reader["Nombre"].ToString(),
+                    Codigo = reader["Codigo"].ToString(),
+                    PrecioVenta = (decimal)reader["PrecioVenta"],
+                    Activo = (bool)reader["Activo"]
+                });
+            }
+        }
+    }
+    return productos;
+}
     }
 }

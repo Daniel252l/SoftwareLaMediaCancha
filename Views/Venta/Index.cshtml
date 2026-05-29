@@ -5,311 +5,6 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="card-custom card-custom-full">
-
-                <!-- Header -->
-                <div class="card-header-custom">
-                    <div class="d-flex justify-content-between align-items-center flex-wrap">
-                        <div>
-                            <h2 class="text-white mb-1">
-                                <i class="fas fa-shopping-cart"></i> Nueva Venta
-                            </h2>
-                            <p class="mb-0 text-white-50">
-                                Seleccione productos
-                            </p>
-                        </div>
-                        <div class="mt-2 mt-sm-0">
-                            <a href="@Url.Action("Carrito", "Venta")" class="btn btn-light me-2">
-                                <i class="fas fa-shopping-cart"></i>
-                                Carrito (<span id="cartCount">0</span>)
-                            </a>
-                            <a href="@Url.Action("Dashboard", "Home")" class="btn btn-outline-light">
-                                <i class="fas fa-arrow-left"></i> Regresar
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Body -->
-                <div class="card-body-custom p-4">
-
-                    <!-- Buscador -->
-                    <div class="buscador-container mb-4">
-                        <div class="input-group input-group-lg shadow-sm">
-                            <span class="input-group-text bg-white border-end-0">
-                                <i class="fas fa-search text-muted"></i>
-                            </span>
-                            <input type="text" id="buscadorProductos" class="form-control border-start-0"
-                                   placeholder="Buscar producto... (Nombre o código)"
-                                   style="border-left: none;">
-                        </div>
-                    </div>
-
-                    <!-- Productos -->
-                    <div id="productosContainer">
-                        <div class="row g-3" id="productosGrid">
-                            @if (Model != null && Model.Any())
-                            {
-                                foreach (var producto in Model)
-                                {
-                                    int stockEntero = (int)Math.Floor(producto.StockDisponible);
-                                    string cardClass = producto.StockDisponible <= 0 ? "producto-card agotado" : "producto-card";
-
-                                    <div class="col-md-4 col-lg-3 col-xl-2 producto-item"
-                                         data-nombre="@producto.Nombre.ToLower()"
-                                         data-codigo="@producto.Codigo.ToLower()">
-                                        <div class="@cardClass"
-                                             data-id="@producto.ProductoId"
-                                             data-nombre="@producto.Nombre"
-                                             data-precio="@producto.PrecioVenta"
-                                             data-stock="@stockEntero">
-
-                                            @if (producto.StockDisponible > 0)
-                                            {
-                                                <div class="stock-badge">
-                                                    <span class="badge bg-success">@stockEntero disponibles</span>
-                                                </div>
-                                            }
-                                            else
-                                            {
-                                                <div class="stock-badge">
-                                                    <span class="badge bg-danger">Agotado</span>
-                                                </div>
-                                            }
-
-                                            <div class="producto-icono">
-                                                <i class="fas fa-hamburger"></i>
-                                            </div>
-
-                                            <h5 class="producto-nombre">@producto.Nombre</h5>
-                                            <div class="producto-codigo">@producto.Codigo</div>
-                                            <div class="producto-precio">Q @producto.PrecioVenta.ToString("N2")</div>
-
-                                            @if (producto.StockDisponible > 0)
-                                            {
-                                                <div class="cantidad-control mt-2">
-                                                    <div class="input-group input-group-sm justify-content-center">
-                                                        <button class="btn btn-outline-secondary btn-cantidad" type="button" onclick="cambiarCantidad(this, -1)">-</button>
-                                                        <input type="number" class="form-control text-center cantidad-input"
-                                                               style="width: 60px;" value="1" min="1" max="@stockEntero" step="1">
-                                                        <button class="btn btn-outline-secondary btn-cantidad" type="button" onclick="cambiarCantidad(this, 1)">+</button>
-                                                    </div>
-                                                </div>
-                                                <button class="btn-agregar mt-3" onclick="agregarProducto(this)">
-                                                    <i class="fas fa-cart-plus"></i> Agregar
-                                                </button>
-                                            }
-                                            else
-                                            {
-                                                <button class="btn-agregar disabled mt-3" disabled>
-                                                    <i class="fas fa-times-circle"></i> Sin stock
-                                                </button>
-                                            }
-                                        </div>
-                                    </div>
-                                }
-                            }
-                            else
-                            {
-                                <div class="col-12">
-                                    <div class="alert alert-warning text-center py-5">
-                                        <i class="fas fa-exclamation-triangle fa-2x mb-2 d-block"></i>
-                                        No hay productos disponibles
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    </div>
-
-                    <div id="sinResultados" class="text-center py-5" style="display: none;">
-                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">No se encontraron productos</h5>
-                        <p class="text-muted">Intente con otro término de búsqueda</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-@section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <script>
-        function cambiarCantidad(btn, delta) {
-            var input = $(btn).closest('.cantidad-control').find('.cantidad-input');
-            var nuevaCantidad = parseInt(input.val()) + delta;
-            var maxStock = parseInt(input.attr('max'));
-            if (nuevaCantidad < 1) nuevaCantidad = 1;
-            if (nuevaCantidad > maxStock) nuevaCantidad = maxStock;
-            input.val(nuevaCantidad);
-        }
-
-        function agregarProducto(btn) {
-            var card = $(btn).closest('.producto-card');
-            var productoId = card.data('id');
-            var nombre = card.data('nombre');
-            var precio = parseFloat(card.data('precio'));
-            var maxStock = parseInt(card.data('stock'));
-            var cantidad = parseInt(card.find('.cantidad-input').val());
-
-            if (isNaN(cantidad) || cantidad < 1) cantidad = 1;
-            if (cantidad > maxStock) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Stock insuficiente',
-                    text: 'Solo hay ' + maxStock + ' unidades disponibles de ' + nombre,
-                    confirmButtonColor: '#c95a00',
-                    confirmButtonText: 'Aceptar'
-                });
-                return;
-            }
-
-            var $btn = $(btn);
-            var originalText = $btn.html();
-            $btn.html('<i class="fas fa-spinner fa-spin"></i> Agregando...').prop('disabled', true);
-
-            $.ajax({
-                url: '@Url.Action("AplicarFIFO", "Venta")',
-                type: 'POST',
-                data: { productoId: productoId, cantidad: cantidad },
-                success: function (response) {
-                    // ✅ Reactivar botón SIEMPRE primero
-                    $btn.html(originalText).prop('disabled', false);
-
-                    if (response.success) {
-                        var subtotal = cantidad * precio;
-
-                        var producto = {
-                            ProductoId: productoId,
-                            Codigo: card.closest('.producto-item').find('.producto-codigo').text(),
-                            Nombre: nombre,
-                            Cantidad: cantidad,
-                            PrecioUnitario: precio,
-                            Descuento: 0,
-                            Subtotal: subtotal,
-                            LotesSeleccionados: response.lotes
-                        };
-
-                        card.find('.cantidad-input').val(1);
-
-                        // Animación tarjeta
-                        card.addClass('producto-agregado');
-                        setTimeout(function () {
-                            card.removeClass('producto-agregado');
-                        }, 500);
-
-                        // Guardar en localStorage
-                        var carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
-                        var existe = carrito.find(function(p) { return p.ProductoId === producto.ProductoId; });
-                        if (existe) {
-                            existe.Cantidad += producto.Cantidad;
-                            if (producto.LotesSeleccionados) existe.LotesSeleccionados = producto.LotesSeleccionados;
-                        } else {
-                            carrito.push(producto);
-                        }
-                        localStorage.setItem('carrito', JSON.stringify(carrito));
-                        actualizarContadorCarrito();
-
-                        // ✅ Modal igual al de la imagen
-                        Swal.fire({
-    icon: 'success',
-    title: '¡Producto agregado!',
-    html:
-        '<div style="padding: 0 20px;">' +
-            '<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">' +
-                '<span style="color:#555;">Producto</span>' +
-                '<span style="font-weight:600;">' + nombre + '</span>' +
-            '</div>' +
-            '<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">' +
-                '<span style="color:#555;">Cantidad</span>' +
-                '<span style="font-weight:600;">' + cantidad + '</span>' +
-            '</div>' +
-            '<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">' +
-                '<span style="color:#555;">Precio unitario</span>' +
-                '<span style="font-weight:600;">Q ' + precio.toFixed(2) + '</span>' +
-            '</div>' +
-            '<div style="display:flex; justify-content:space-between; padding:12px 0;">' +
-                '<span style="color:#27AE60; font-weight:700; font-size:1.05rem;">Subtotal</span>' +
-                '<span style="color:#27AE60; font-weight:700; font-size:1.05rem;">Q ' + subtotal.toFixed(2) + '</span>' +
-            '</div>' +
-        '</div>',
-    confirmButtonColor: '#27AE60',
-    confirmButtonText: 'Continuar',
-    showCancelButton: true,
-    cancelButtonColor: '#6c757d',
-    cancelButtonText: 'Ver carrito',
-    allowOutsideClick: false,
-    customClass: {
-        htmlContainer: 'swal-html-container'
-    }
-}).then(function (result) {
-    if (result.dismiss === Swal.DismissReason.cancel) {
-        window.location.href = '@Url.Action("Carrito", "Venta")';
-    }
-});
-
-                    } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: response.message,
-                            confirmButtonColor: '#d33',
-                            confirmButtonText: 'Aceptar'
-                        });
-                    }
-                },
-                error: function (xhr, status, error) {
-                    $btn.html(originalText).prop('disabled', false);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Error al verificar el inventario. Intente nuevamente.',
-                        confirmButtonColor: '#d33',
-                        confirmButtonText: 'Aceptar'
-                    });
-                }
-            });
-        }
-
-        function actualizarContadorCarrito() {
-            var carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
-            var totalItems = carrito.reduce(function(sum, item) { return sum + item.Cantidad; }, 0);
-            $('#cartCount').text(totalItems);
-            $('#cartCount').addClass('cart-pulse');
-            setTimeout(function () {
-                $('#cartCount').removeClass('cart-pulse');
-            }, 300);
-        }
-
-        $(document).ready(function () {
-            actualizarContadorCarrito();
-
-            $('#buscadorProductos').on('keyup', function () {
-                var busqueda = $(this).val().toLowerCase();
-                var visibles = 0;
-
-                $('.producto-item').each(function () {
-                    var nombre = $(this).data('nombre');
-                    var codigo = $(this).data('codigo');
-                    var coincide = nombre.includes(busqueda) || codigo.includes(busqueda);
-                    if (busqueda === '' || coincide) {
-                        $(this).show();
-                        visibles++;
-                    } else {
-                        $(this).hide();
-                    }
-                });
-
-                $('#sinResultados').toggle(visibles === 0 && busqueda !== '');
-            });
-        });
-    </script>
-}
-
 <style>
     .card-custom {
         background: white;
@@ -327,9 +22,21 @@
         background: #f8f9fa;
         min-height: calc(100vh - 200px);
     }
-    .swal-html-container {
-        padding: 0 !important;
-        margin: 0 !important;
+
+    /* Botones de acción en el header */
+    .btn-agregar-producto {
+        background: #27AE60;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .btn-agregar-producto:hover {
+        background: #1E8449;
+        transform: translateY(-2px);
     }
 
     .buscador-container .input-group {
@@ -352,43 +59,35 @@
         position: relative;
         box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         border: 1px solid #e9ecef;
+        cursor: pointer;
     }
 
-        .producto-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-            border-color: #c95a00;
-        }
+    .producto-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        border-color: #c95a00;
+    }
 
-        .producto-card.agotado {
-            opacity: 0.6;
-            background: #f5f5f5;
-        }
+    .producto-card.agotado {
+        opacity: 0.6;
+        background: #f5f5f5;
+    }
 
-            .producto-card.agotado:hover {
-                transform: none;
-                cursor: not-allowed;
-            }
+    .producto-card.agotado:hover {
+        transform: none;
+        cursor: not-allowed;
+    }
 
-        .producto-card.producto-agregado {
-            animation: pulse 0.5s ease;
-            background: #e8f5e9;
-            border-color: #27AE60;
-        }
+    .producto-card.producto-agregado {
+        animation: pulse 0.5s ease;
+        background: #e8f5e9;
+        border-color: #27AE60;
+    }
 
     @@keyframes pulse {
-        0% {
-            transform: scale(1);
-        }
-
-        50% {
-            transform: scale(1.05);
-            background: #c8e6c9;
-        }
-
-        100% {
-            transform: scale(1);
-        }
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); background: #c8e6c9; }
+        100% { transform: scale(1); }
     }
 
     .stock-badge {
@@ -435,11 +134,11 @@
         font-weight: bold;
     }
 
-        .cantidad-control .btn-cantidad:hover {
-            background: #c95a00;
-            color: white;
-            border-color: #c95a00;
-        }
+    .cantidad-control .btn-cantidad:hover {
+        background: #c95a00;
+        color: white;
+        border-color: #c95a00;
+    }
 
     .cantidad-control .cantidad-input {
         text-align: center;
@@ -460,57 +159,683 @@
         cursor: pointer;
     }
 
-        .btn-agregar:hover {
-            transform: scale(1.02);
-            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
-        }
+    .btn-agregar:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+    }
 
-        .btn-agregar.disabled {
-            background: #95a5a6;
-            cursor: not-allowed;
-        }
+    .btn-agregar.disabled {
+        background: #95a5a6;
+        cursor: not-allowed;
+    }
 
-            .btn-agregar.disabled:hover {
-                transform: none;
-                box-shadow: none;
-            }
+    .btn-agregar.disabled:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    /* Botones de acción en tarjeta */
+    .acciones-producto {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        display: flex;
+        gap: 5px;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .producto-card:hover .acciones-producto {
+        opacity: 1;
+    }
+
+    .btn-eliminar-producto, .btn-editar-producto {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 12px;
+        border: none;
+    }
+
+    .btn-eliminar-producto {
+        background: #E74C3C;
+        color: white;
+    }
+
+    .btn-eliminar-producto:hover {
+        background: #C0392B;
+        transform: scale(1.1);
+    }
+
+    .btn-editar-producto {
+        background: #3498DB;
+        color: white;
+    }
+
+    .btn-editar-producto:hover {
+        background: #2980B9;
+        transform: scale(1.1);
+    }
 
     .cart-pulse {
         animation: cartPulse 0.3s ease;
     }
 
     @@keyframes cartPulse {
-        0% {
-            transform: scale(1);
-        }
+        0% { transform: scale(1); }
+        50% { transform: scale(1.3); background: #c95a00; color: white; }
+        100% { transform: scale(1); }
+    }
 
-        50% {
-            transform: scale(1.3);
-            background: #c95a00;
-            color: white;
-        }
+    /* Modal para agregar/editar producto */
+    .modal-custom {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
 
-        100% {
-            transform: scale(1);
+    .modal-custom-content {
+        background: white;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 500px;
+        padding: 25px;
+        animation: modalFadeIn 0.3s ease;
+    }
+
+    @@keyframes modalFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-50px);
         }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .modal-custom-header {
+        border-bottom: 2px solid #ECF0F1;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-custom-header h3 {
+        color: #8B4513;
+        margin: 0;
+    }
+
+    .modal-custom-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #95A5A6;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #2C3E50;
+    }
+
+    .form-group input, .form-group select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+    .form-group input:focus, .form-group select:focus {
+        border-color: #D35400;
+        outline: none;
+    }
+
+    .btn-guardar {
+        background: #27AE60;
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 8px;
+        width: 100%;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-guardar:hover {
+        background: #1E8449;
+        transform: translateY(-2px);
     }
 
     @@media (max-width: 768px) {
         .producto-card {
             padding: 15px 10px;
         }
-
         .producto-nombre {
             font-size: 0.85rem;
         }
-
         .producto-precio {
             font-size: 1rem;
         }
-
         .btn-agregar {
             padding: 6px 12px;
             font-size: 0.7rem;
         }
+        .acciones-producto {
+            opacity: 1;
+        }
+        .btn-eliminar-producto, .btn-editar-producto {
+            width: 24px;
+            height: 24px;
+            font-size: 10px;
+        }
     }
 </style>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card-custom card-custom-full">
+
+                <!-- Header -->
+                <div class="card-header-custom">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div>
+                            <h2 class="text-white mb-1">
+                                <i class="fas fa-shopping-cart"></i> Nueva Venta
+                            </h2>
+                            <p class="mb-0 text-white-50">
+                                Seleccione productos para agregar al carrito
+                            </p>
+                        </div>
+                        <div class="mt-2 mt-sm-0 d-flex gap-2">
+                            <button class="btn-agregar-producto" onclick="mostrarModalAgregar()">
+                                <i class="fas fa-plus-circle"></i> Nuevo Producto
+                            </button>
+                            <a href="@Url.Action("Carrito", "Venta")" class="btn btn-light">
+                                <i class="fas fa-shopping-cart"></i>
+                                Carrito (<span id="cartCount">0</span>)
+                            </a>
+                            <a href="@Url.Action("Dashboard", "Home")" class="btn btn-outline-light">
+                                <i class="fas fa-arrow-left"></i> Regresar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Body -->
+                <div class="card-body-custom p-4">
+
+                    <!-- Buscador -->
+                    <div class="buscador-container mb-4">
+                        <div class="input-group input-group-lg shadow-sm">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" id="buscadorProductos" class="form-control border-start-0"
+                                   placeholder="Buscar producto... (Nombre o código)"
+                                   style="border-left: none;">
+                        </div>
+                    </div>
+
+                    <!-- Productos -->
+                    <div id="productosContainer">
+                        <div class="row g-3" id="productosGrid">
+                            @if (Model != null && Model.Any())
+                            {
+                                var productosUnicos = Model.GroupBy(p => p.ProductoId).Select(g => g.First()).ToList();
+
+                                foreach (var producto in productosUnicos)
+                                {
+                                    int stockEntero = (int)Math.Floor(producto.StockDisponible);
+                                    string cardClass = producto.StockDisponible <= 0 ? "producto-card agotado" : "producto-card";
+
+                                    <div class="col-md-4 col-lg-3 col-xl-2 producto-item"
+                                         data-id="@producto.ProductoId"
+                                         data-nombre="@producto.Nombre.ToLower()"
+                                         data-codigo="@producto.Codigo.ToLower()">
+                                        <div class="@cardClass"
+                                             data-id="@producto.ProductoId"
+                                             data-nombre="@producto.Nombre"
+                                             data-precio="@producto.PrecioVenta"
+                                             data-stock="@stockEntero">
+
+                                            <div class="acciones-producto">
+                                                <button class="btn-editar-producto" onclick="event.stopPropagation(); editarProducto(@producto.ProductoId, '@producto.Nombre', '@producto.Codigo', @producto.PrecioVenta)" title="Editar">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button class="btn-eliminar-producto" onclick="event.stopPropagation(); eliminarProductoDefinitivo(@producto.ProductoId, '@producto.Nombre')" title="Eliminar">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </div>
+
+                                            @if (producto.StockDisponible > 0)
+                                            {
+                                                <div class="stock-badge">
+                                                    <span class="badge bg-success">@stockEntero disponibles</span>
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <div class="stock-badge">
+                                                    <span class="badge bg-danger">Agotado</span>
+                                                </div>
+                                            }
+
+                                            <div class="producto-icono">
+                                                <i class="fas fa-hamburger"></i>
+                                            </div>
+
+                                            <h5 class="producto-nombre">@producto.Nombre</h5>
+                                            <div class="producto-codigo">@producto.Codigo</div>
+                                            <div class="producto-precio">Q @producto.PrecioVenta.ToString("N2")</div>
+
+                                            @if (producto.StockDisponible > 0)
+                                            {
+                                                <div class="cantidad-control mt-2">
+                                                    <div class="input-group input-group-sm justify-content-center">
+                                                        <button class="btn btn-outline-secondary btn-cantidad" type="button" onclick="event.stopPropagation(); cambiarCantidad(this, -1)">-</button>
+                                                        <input type="number" class="form-control text-center cantidad-input"
+                                                               style="width: 60px;" value="1" min="1" max="@stockEntero" step="1" onclick="event.stopPropagation()">
+                                                        <button class="btn btn-outline-secondary btn-cantidad" type="button" onclick="event.stopPropagation(); cambiarCantidad(this, 1)">+</button>
+                                                    </div>
+                                                </div>
+                                                <button class="btn-agregar mt-3" onclick="event.stopPropagation(); agregarProducto(this)">
+                                                    <i class="fas fa-cart-plus"></i> Agregar
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button class="btn-agregar disabled mt-3" disabled>
+                                                    <i class="fas fa-times-circle"></i> Sin stock
+                                                </button>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="col-12">
+                                    <div class="alert alert-warning text-center py-5">
+                                        <i class="fas fa-exclamation-triangle fa-2x mb-2 d-block"></i>
+                                        No hay productos disponibles
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div id="sinResultados" class="text-center py-5" style="display: none;">
+                        <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No se encontraron productos</h5>
+                        <p class="text-muted">Intente con otro término de búsqueda</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Agregar/Editar Producto -->
+<div id="modalProducto" class="modal-custom">
+    <div class="modal-custom-content">
+        <div class="modal-custom-header">
+            <h3 id="modalTitulo">Agregar Producto</h3>
+            <button class="modal-custom-close" onclick="cerrarModal()">&times;</button>
+        </div>
+        <form id="formProducto">
+            <input type="hidden" id="productoId" value="0">
+            <div class="form-group">
+                <label>Nombre del Producto</label>
+                <input type="text" id="productoNombre" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Código</label>
+                <input type="text" id="productoCodigo" class="form-control" required>
+            </div>
+            <div class="form-group">
+                <label>Precio de Venta (Q)</label>
+                <input type="number" id="productoPrecio" class="form-control" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label>Categoría</label>
+                <select id="productoCategoria" class="form-control">
+                    <option value="Comida">Comida</option>
+                    <option value="Bebida">Bebida</option>
+                    <option value="Postre">Postre</option>
+                    <option value="Otro">Otro</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-guardar">Guardar Producto</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        function cambiarCantidad(btn, delta) {
+            var input = $(btn).closest('.cantidad-control').find('.cantidad-input');
+            var nuevaCantidad = parseInt(input.val()) + delta;
+            var maxStock = parseInt(input.attr('max'));
+            if (nuevaCantidad < 1) nuevaCantidad = 1;
+            if (nuevaCantidad > maxStock) nuevaCantidad = maxStock;
+            input.val(nuevaCantidad);
+        }
+
+        function agregarProducto(btn) {
+            var card = $(btn).closest('.producto-card');
+            var productoId = card.data('id');
+            var nombre = card.data('nombre');
+            var precio = parseFloat(card.data('precio'));
+            var maxStock = parseInt(card.data('stock'));
+            var cantidad = parseInt(card.find('.cantidad-input').val());
+
+            if (isNaN(cantidad) || cantidad < 1) cantidad = 1;
+            if (cantidad > maxStock) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Stock insuficiente',
+                    text: 'Solo hay ' + maxStock + ' unidades disponibles de ' + nombre,
+                    confirmButtonColor: '#c95a00',
+                    confirmButtonText: 'Aceptar'
+                });
+                return;
+            }
+
+            var $btn = $(btn);
+            var originalText = $btn.html();
+            $btn.html('<i class="fas fa-spinner fa-spin"></i> Agregando...').prop('disabled', true);
+
+            $.ajax({
+                url: '@Url.Action("AplicarFIFO", "Venta")',
+                type: 'POST',
+                data: { productoId: productoId, cantidad: cantidad },
+                success: function (response) {
+                    $btn.html(originalText).prop('disabled', false);
+
+                    if (response.success) {
+                        var subtotal = cantidad * precio;
+
+                        var producto = {
+                            ProductoId: productoId,
+                            Codigo: card.closest('.producto-item').find('.producto-codigo').text(),
+                            Nombre: nombre,
+                            Cantidad: cantidad,
+                            PrecioUnitario: precio,
+                            Descuento: 0,
+                            Subtotal: subtotal,
+                            LotesSeleccionados: response.lotes
+                        };
+
+                        card.find('.cantidad-input').val(1);
+
+                        card.addClass('producto-agregado');
+                        setTimeout(function () {
+                            card.removeClass('producto-agregado');
+                        }, 500);
+
+                        var carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
+                        var existe = carrito.find(function(p) { return p.ProductoId === producto.ProductoId; });
+                        if (existe) {
+                            existe.Cantidad += producto.Cantidad;
+                            if (producto.LotesSeleccionados) existe.LotesSeleccionados = producto.LotesSeleccionados;
+                        } else {
+                            carrito.push(producto);
+                        }
+                        localStorage.setItem('carrito', JSON.stringify(carrito));
+                        actualizarContadorCarrito();
+
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Producto agregado!',
+                            html: '<div style="padding: 0 20px;">' +
+                                '<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">' +
+                                '<span style="color:#555;">Producto</span>' +
+                                '<span style="font-weight:600;">' + nombre + '</span>' +
+                                '</div>' +
+                                '<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">' +
+                                '<span style="color:#555;">Cantidad</span>' +
+                                '<span style="font-weight:600;">' + cantidad + '</span>' +
+                                '</div>' +
+                                '<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">' +
+                                '<span style="color:#555;">Precio unitario</span>' +
+                                '<span style="font-weight:600;">Q ' + precio.toFixed(2) + '</span>' +
+                                '</div>' +
+                                '<div style="display:flex; justify-content:space-between; padding:12px 0;">' +
+                                '<span style="color:#27AE60; font-weight:700; font-size:1.05rem;">Subtotal</span>' +
+                                '<span style="color:#27AE60; font-weight:700; font-size:1.05rem;">Q ' + subtotal.toFixed(2) + '</span>' +
+                                '</div>' +
+                                '</div>',
+                            confirmButtonColor: '#27AE60',
+                            confirmButtonText: 'Continuar',
+                            showCancelButton: true,
+                            cancelButtonColor: '#6c757d',
+                            cancelButtonText: 'Ver carrito',
+                            allowOutsideClick: false
+                        }).then(function (result) {
+                            if (result.dismiss === Swal.DismissReason.cancel) {
+                                window.location.href = '@Url.Action("Carrito", "Venta")';
+                            }
+                        });
+
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: response.message,
+                            confirmButtonColor: '#d33',
+                            confirmButtonText: 'Aceptar'
+                        });
+                    }
+                },
+                error: function (xhr, status, error) {
+                    $btn.html(originalText).prop('disabled', false);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Error al verificar el inventario. Intente nuevamente.',
+                        confirmButtonColor: '#d33',
+                        confirmButtonText: 'Aceptar'
+                    });
+                }
+            });
+        }
+
+        function eliminarProductoDefinitivo(productoId, nombre) {
+            Swal.fire({
+                title: '¿Eliminar producto?',
+                text: '¿Está seguro que desea eliminar "' + nombre + '" del sistema? Esta acción no se puede deshacer.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#E74C3C',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Eliminando...',
+                        text: 'Por favor espere',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading();
+                        }
+                    });
+
+                    $.ajax({
+                        url: '@Url.Action("EliminarProducto", "Venta")',
+                        type: 'POST',
+                        data: { productoId: productoId },
+                        success: function(response) {
+                            Swal.close();
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡Producto eliminado!',
+                                    text: response.message,
+                                    confirmButtonColor: '#27AE60',
+                                    confirmButtonText: 'Aceptar'
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: response.message,
+                                    confirmButtonColor: '#d33',
+                                    confirmButtonText: 'Aceptar'
+                                });
+                            }
+                        },
+                        error: function() {
+                            Swal.close();
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Error al eliminar el producto',
+                                confirmButtonColor: '#d33',
+                                confirmButtonText: 'Aceptar'
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+        function editarProducto(id, nombre, codigo, precio) {
+            document.getElementById('modalTitulo').innerText = 'Editar Producto';
+            document.getElementById('productoId').value = id;
+            document.getElementById('productoNombre').value = nombre;
+            document.getElementById('productoCodigo').value = codigo;
+            document.getElementById('productoPrecio').value = precio;
+            document.getElementById('modalProducto').style.display = 'flex';
+        }
+
+        function mostrarModalAgregar() {
+            document.getElementById('modalTitulo').innerText = 'Agregar Producto';
+            document.getElementById('productoId').value = '0';
+            document.getElementById('productoNombre').value = '';
+            document.getElementById('productoCodigo').value = '';
+            document.getElementById('productoPrecio').value = '';
+            document.getElementById('modalProducto').style.display = 'flex';
+        }
+
+        function cerrarModal() {
+            document.getElementById('modalProducto').style.display = 'none';
+        }
+
+        document.getElementById('formProducto').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            var id = document.getElementById('productoId').value;
+            var nombre = document.getElementById('productoNombre').value;
+            var codigo = document.getElementById('productoCodigo').value;
+            var precio = document.getElementById('productoPrecio').value;
+
+            if (!nombre || !codigo || !precio) {
+                Swal.fire('Error', 'Complete todos los campos', 'error');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Guardando...',
+                text: 'Por favor espere',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+
+            var url = id > 0 ? '@Url.Action("EditarProducto", "Venta")' : '@Url.Action("AgregarProducto", "Venta")';
+
+            $.ajax({
+                url: url,
+                type: 'POST',
+                data: {
+                    productoId: parseInt(id),
+                    nombre: nombre,
+                    codigo: codigo,
+                    precio: parseFloat(precio)
+                },
+                success: function(response) {
+                    Swal.close();
+                    if (response.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Éxito!',
+                            text: response.message,
+                            confirmButtonColor: '#27AE60'
+                        }).then(() => {
+                            location.reload();
+                        });
+                    } else {
+                        Swal.fire('Error', response.message, 'error');
+                    }
+                },
+                error: function() {
+                    Swal.close();
+                    Swal.fire('Error', 'Error al guardar el producto', 'error');
+                }
+            });
+        });
+
+        function actualizarContadorCarrito() {
+            var carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
+            var totalItems = carrito.reduce(function(sum, item) { return sum + item.Cantidad; }, 0);
+            $('#cartCount').text(totalItems);
+            $('#cartCount').addClass('cart-pulse');
+            setTimeout(function () {
+                $('#cartCount').removeClass('cart-pulse');
+            }, 300);
+        }
+
+        $(document).ready(function () {
+            actualizarContadorCarrito();
+
+            $('#buscadorProductos').on('keyup', function () {
+                var busqueda = $(this).val().toLowerCase();
+                var visibles = 0;
+
+                $('.producto-item').each(function () {
+                    var nombre = $(this).data('nombre');
+                    var codigo = $(this).data('codigo');
+                    var coincide = nombre.includes(busqueda) || codigo.includes(busqueda);
+                    if (busqueda === '' || coincide) {
+                        $(this).show();
+                        visibles++;
+                    } else {
+                        $(this).hide();
+                    }
+                });
+
+                $('#sinResultados').toggle(visibles === 0 && busqueda !== '');
+            });
+        });
+    </script>
+}
