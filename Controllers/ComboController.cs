@@ -134,7 +134,8 @@ namespace LaMediaCancha.Controllers
             {
                 Productos = new List<ComboModels.ComboProductoItem>(),
                 ProductosDisponibles = ObtenerProductosDisponibles(),
-                Activo = true
+                Activo = true,
+                PrecioCombo = 0
             };
 
             return View(model);

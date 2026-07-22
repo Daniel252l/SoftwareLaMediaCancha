@@ -23,7 +23,6 @@
         min-height: calc(100vh - 200px);
     }
 
-    /* Botones de acción en el header */
     .btn-agregar-producto {
         background: #27AE60;
         color: white;
@@ -34,10 +33,10 @@
         transition: all 0.3s ease;
     }
 
-    .btn-agregar-producto:hover {
-        background: #1E8449;
-        transform: translateY(-2px);
-    }
+        .btn-agregar-producto:hover {
+            background: #1E8449;
+            transform: translateY(-2px);
+        }
 
     .buscador-container .input-group {
         border-radius: 50px;
@@ -60,34 +59,46 @@
         box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         border: 1px solid #e9ecef;
         cursor: pointer;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
     }
 
-    .producto-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-        border-color: #c95a00;
-    }
+        .producto-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border-color: #c95a00;
+        }
 
-    .producto-card.agotado {
-        opacity: 0.6;
-        background: #f5f5f5;
-    }
+        .producto-card.agotado {
+            opacity: 0.6;
+            background: #f5f5f5;
+        }
 
-    .producto-card.agotado:hover {
-        transform: none;
-        cursor: not-allowed;
-    }
+            .producto-card.agotado:hover {
+                transform: none;
+                cursor: not-allowed;
+            }
 
-    .producto-card.producto-agregado {
-        animation: pulse 0.5s ease;
-        background: #e8f5e9;
-        border-color: #27AE60;
-    }
+        .producto-card.producto-agregado {
+            animation: pulse 0.5s ease;
+            background: #e8f5e9;
+            border-color: #27AE60;
+        }
 
     @@keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); background: #c8e6c9; }
-        100% { transform: scale(1); }
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.05);
+            background: #c8e6c9;
+        }
+
+        100% {
+            transform: scale(1);
+        }
     }
 
     .stock-badge {
@@ -122,29 +133,35 @@
         margin-bottom: 10px;
     }
 
-    .cantidad-control .input-group {
-        width: auto;
-        display: inline-flex;
+    .cantidad-control {
+        margin-top: 10px;
     }
 
-    .cantidad-control .btn-cantidad {
-        background: #f8f9fa;
-        border: 1px solid #ddd;
-        padding: 4px 10px;
-        font-weight: bold;
-    }
+        .cantidad-control .input-group {
+            width: auto;
+            display: inline-flex;
+            margin: 0 auto;
+        }
 
-    .cantidad-control .btn-cantidad:hover {
-        background: #c95a00;
-        color: white;
-        border-color: #c95a00;
-    }
+        .cantidad-control .btn-cantidad {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 4px 10px;
+            font-weight: bold;
+        }
 
-    .cantidad-control .cantidad-input {
-        text-align: center;
-        font-size: 0.9rem;
-        padding: 4px 0;
-    }
+            .cantidad-control .btn-cantidad:hover {
+                background: #c95a00;
+                color: white;
+                border-color: #c95a00;
+            }
+
+        .cantidad-control .cantidad-input {
+            text-align: center;
+            font-size: 0.9rem;
+            padding: 4px 0;
+            width: 60px;
+        }
 
     .btn-agregar {
         background: linear-gradient(135deg, #27AE60, #1e8449);
@@ -157,24 +174,19 @@
         width: 100%;
         transition: all 0.2s ease;
         cursor: pointer;
+        margin-top: auto;
     }
 
-    .btn-agregar:hover {
-        transform: scale(1.02);
-        box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
-    }
+        .btn-agregar:hover:not(:disabled) {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
+        }
 
-    .btn-agregar.disabled {
-        background: #95a5a6;
-        cursor: not-allowed;
-    }
+        .btn-agregar.disabled, .btn-agregar:disabled {
+            background: #95a5a6;
+            cursor: not-allowed;
+        }
 
-    .btn-agregar.disabled:hover {
-        transform: none;
-        box-shadow: none;
-    }
-
-    /* Botones de acción en tarjeta */
     .acciones-producto {
         position: absolute;
         top: 10px;
@@ -183,6 +195,7 @@
         gap: 5px;
         opacity: 0;
         transition: opacity 0.3s ease;
+        z-index: 10;
     }
 
     .producto-card:hover .acciones-producto {
@@ -207,32 +220,41 @@
         color: white;
     }
 
-    .btn-eliminar-producto:hover {
-        background: #C0392B;
-        transform: scale(1.1);
-    }
+        .btn-eliminar-producto:hover {
+            background: #C0392B;
+            transform: scale(1.1);
+        }
 
     .btn-editar-producto {
         background: #3498DB;
         color: white;
     }
 
-    .btn-editar-producto:hover {
-        background: #2980B9;
-        transform: scale(1.1);
-    }
+        .btn-editar-producto:hover {
+            background: #2980B9;
+            transform: scale(1.1);
+        }
 
     .cart-pulse {
         animation: cartPulse 0.3s ease;
     }
 
     @@keyframes cartPulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.3); background: #c95a00; color: white; }
-        100% { transform: scale(1); }
+        0% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.3);
+            background: #c95a00;
+            color: white;
+        }
+
+        100% {
+            transform: scale(1);
+        }
     }
 
-    /* Modal para agregar/editar producto */
     .modal-custom {
         display: none;
         position: fixed;
@@ -250,7 +272,9 @@
         background: white;
         border-radius: 20px;
         width: 90%;
-        max-width: 500px;
+        max-width: 650px;
+        max-height: 85vh;
+        overflow-y: auto;
         padding: 25px;
         animation: modalFadeIn 0.3s ease;
     }
@@ -260,6 +284,7 @@
             opacity: 0;
             transform: translateY(-50px);
         }
+
         to {
             opacity: 1;
             transform: translateY(0);
@@ -275,10 +300,10 @@
         align-items: center;
     }
 
-    .modal-custom-header h3 {
-        color: #8B4513;
-        margin: 0;
-    }
+        .modal-custom-header h3 {
+            color: #8B4513;
+            margin: 0;
+        }
 
     .modal-custom-close {
         background: none;
@@ -292,25 +317,25 @@
         margin-bottom: 20px;
     }
 
-    .form-group label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 600;
-        color: #2C3E50;
-    }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2C3E50;
+        }
 
-    .form-group input, .form-group select {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
-        font-size: 14px;
-    }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
 
-    .form-group input:focus, .form-group select:focus {
-        border-color: #D35400;
-        outline: none;
-    }
+            .form-group input:focus, .form-group select:focus {
+                border-color: #D35400;
+                outline: none;
+            }
 
     .btn-guardar {
         background: #27AE60;
@@ -324,33 +349,154 @@
         transition: all 0.3s ease;
     }
 
-    .btn-guardar:hover {
-        background: #1E8449;
-        transform: translateY(-2px);
+        .btn-guardar:hover {
+            background: #1E8449;
+            transform: translateY(-2px);
+        }
+
+    .ingredientes-section {
+        margin-top: 20px;
+        border-top: 1px solid #eee;
+        padding-top: 15px;
+    }
+
+    .ingredientes-title {
+        font-weight: 600;
+        color: #2C3E50;
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .ingredientes-list {
+        max-height: 250px;
+        overflow-y: auto;
+        border: 1px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 10px;
+        background: #fafafa;
+    }
+
+    .ingrediente-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px;
+        margin-bottom: 8px;
+        background: white;
+        border-radius: 8px;
+        border: 1px solid #e0e0e0;
+    }
+
+        .ingrediente-item select {
+            flex: 2;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .ingrediente-item input {
+            flex: 1;
+            width: 80px;
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        .ingrediente-item button {
+            background: #E74C3C;
+            color: white;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+            .ingrediente-item button:hover {
+                background: #C0392B;
+            }
+
+    .btn-agregar-ingrediente {
+        background: #3498DB;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+        .btn-agregar-ingrediente:hover {
+            background: #2980B9;
+        }
+
+    .rendimiento-input {
+        width: 100px;
+        padding: 6px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        text-align: center;
+    }
+
+    .rendimiento-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 10px;
+        flex-wrap: wrap;
     }
 
     @@media (max-width: 768px) {
         .producto-card {
             padding: 15px 10px;
         }
+
         .producto-nombre {
             font-size: 0.85rem;
         }
+
         .producto-precio {
             font-size: 1rem;
         }
+
         .btn-agregar {
             padding: 6px 12px;
             font-size: 0.7rem;
         }
+
         .acciones-producto {
             opacity: 1;
         }
+
         .btn-eliminar-producto, .btn-editar-producto {
             width: 24px;
             height: 24px;
             font-size: 10px;
         }
+
+        .modal-custom-content {
+            width: 95%;
+            padding: 15px;
+        }
+
+        .ingrediente-item {
+            flex-wrap: wrap;
+        }
+
+            .ingrediente-item select {
+                flex: 100%;
+            }
     }
 </style>
 
@@ -359,7 +505,6 @@
         <div class="col-12">
             <div class="card-custom card-custom-full">
 
-                <!-- Header -->
                 <div class="card-header-custom">
                     <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div>
@@ -378,17 +523,15 @@
                                 <i class="fas fa-shopping-cart"></i>
                                 Carrito (<span id="cartCount">0</span>)
                             </a>
-                            <a href="@Url.Action("Dashboard", "Home")" class="btn btn-outline-light">
+                            <a href="@Url.Action("Index", "Home")" class="btn btn-outline-light">
                                 <i class="fas fa-arrow-left"></i> Regresar
                             </a>
                         </div>
                     </div>
                 </div>
 
-                <!-- Body -->
                 <div class="card-body-custom p-4">
 
-                    <!-- Buscador -->
                     <div class="buscador-container mb-4">
                         <div class="input-group input-group-lg shadow-sm">
                             <span class="input-group-text bg-white border-end-0">
@@ -400,7 +543,6 @@
                         </div>
                     </div>
 
-                    <!-- Productos -->
                     <div id="productosContainer">
                         <div class="row g-3" id="productosGrid">
                             @if (Model != null && Model.Any())
@@ -414,8 +556,8 @@
 
                                     <div class="col-md-4 col-lg-3 col-xl-2 producto-item"
                                          data-id="@producto.ProductoId"
-                                         data-nombre="@producto.Nombre.ToLower()"
-                                         data-codigo="@producto.Codigo.ToLower()">
+                                         data-nombre="@producto.Nombre?.ToLower()"
+                                         data-codigo="@producto.Codigo?.ToLower()">
                                         <div class="@cardClass"
                                              data-id="@producto.ProductoId"
                                              data-nombre="@producto.Nombre"
@@ -499,7 +641,7 @@
     </div>
 </div>
 
-<!-- Modal para Agregar/Editar Producto -->
+<!-- Modal para Agregar/Editar Producto con Ingredientes -->
 <div id="modalProducto" class="modal-custom">
     <div class="modal-custom-content">
         <div class="modal-custom-header">
@@ -508,36 +650,96 @@
         </div>
         <form id="formProducto">
             <input type="hidden" id="productoId" value="0">
+            <input type="hidden" id="recetaId" value="0">
+
             <div class="form-group">
                 <label>Nombre del Producto</label>
                 <input type="text" id="productoNombre" class="form-control" required>
             </div>
+
             <div class="form-group">
                 <label>Código</label>
                 <input type="text" id="productoCodigo" class="form-control" required>
             </div>
+
             <div class="form-group">
                 <label>Precio de Venta (Q)</label>
                 <input type="number" id="productoPrecio" class="form-control" step="0.01" required>
             </div>
-            <div class="form-group">
-                <label>Categoría</label>
-                <select id="productoCategoria" class="form-control">
-                    <option value="Comida">Comida</option>
-                    <option value="Bebida">Bebida</option>
-                    <option value="Postre">Postre</option>
-                    <option value="Otro">Otro</option>
-                </select>
+
+            <div class="ingredientes-section">
+                <div class="ingredientes-title">
+                    <span><i class="fas fa-clipboard-list"></i> Materias Primas (Ingredientes)</span>
+                    <button type="button" class="btn-agregar-ingrediente" onclick="mostrarSelectorIngrediente()">
+                        <i class="fas fa-plus"></i> Agregar ingrediente
+                    </button>
+                </div>
+
+                <div class="rendimiento-group">
+                    <label>Rendimiento (unidades por receta):</label>
+                    <input type="number" id="rendimiento" class="rendimiento-input" value="1" step="0.5" min="0.5">
+                </div>
+
+                <div id="ingredientesContainer" class="ingredientes-list">
+                    <div class="text-muted text-center py-3" id="noIngredientesMsg">
+                        No hay ingredientes agregados. Haga clic en "Agregar ingrediente"
+                    </div>
+                </div>
             </div>
-            <button type="submit" class="btn-guardar">Guardar Producto</button>
+
+            <button type="submit" class="btn-guardar mt-3">Guardar Producto</button>
         </form>
     </div>
 </div>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <script>
+        // Variables globales
+        var ingredientesDisponibles = [];
+        var ingredientesSeleccionados = [];
+        var tempIngredienteActivo = false;
+
+        // ==================== FUNCIONES PRINCIPALES ====================
+
+        $(document).ready(function () {
+            actualizarContadorCarrito();
+            cargarMateriasPrimas();
+
+            $('#buscadorProductos').on('keyup', function () {
+                var busqueda = $(this).val().toLowerCase();
+                var visibles = 0;
+                $('.producto-item').each(function () {
+                    var nombre = $(this).data('nombre');
+                    var codigo = $(this).data('codigo');
+                    var coincide = (nombre && nombre.includes(busqueda)) || (codigo && codigo.includes(busqueda));
+                    if (busqueda === '' || coincide) {
+                        $(this).show();
+                        visibles++;
+                    } else {
+                        $(this).hide();
+                    }
+                });
+                $('#sinResultados').toggle(visibles === 0 && busqueda !== '');
+            });
+        });
+
+        function cargarMateriasPrimas() {
+            $.ajax({
+                url: '@Url.Action("GetMateriasPrimas", "Venta")',
+                type: 'GET',
+                success: function(data) {
+                    ingredientesDisponibles = data;
+                    console.log('Materias primas cargadas:', ingredientesDisponibles.length);
+                },
+                error: function(xhr) {
+                    console.log('Error al cargar materias primas:', xhr.responseText);
+                }
+            });
+        }
+
         function cambiarCantidad(btn, delta) {
             var input = $(btn).closest('.cantidad-control').find('.cantidad-input');
             var nuevaCantidad = parseInt(input.val()) + delta;
@@ -557,13 +759,7 @@
 
             if (isNaN(cantidad) || cantidad < 1) cantidad = 1;
             if (cantidad > maxStock) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Stock insuficiente',
-                    text: 'Solo hay ' + maxStock + ' unidades disponibles de ' + nombre,
-                    confirmButtonColor: '#c95a00',
-                    confirmButtonText: 'Aceptar'
-                });
+                Swal.fire({ icon: 'warning', title: 'Stock insuficiente', text: 'Solo hay ' + maxStock + ' unidades disponibles', confirmButtonColor: '#c95a00' });
                 return;
             }
 
@@ -577,99 +773,183 @@
                 data: { productoId: productoId, cantidad: cantidad },
                 success: function (response) {
                     $btn.html(originalText).prop('disabled', false);
-
                     if (response.success) {
                         var subtotal = cantidad * precio;
-
-                        var producto = {
-                            ProductoId: productoId,
-                            Codigo: card.closest('.producto-item').find('.producto-codigo').text(),
-                            Nombre: nombre,
-                            Cantidad: cantidad,
-                            PrecioUnitario: precio,
-                            Descuento: 0,
-                            Subtotal: subtotal,
-                            LotesSeleccionados: response.lotes
-                        };
-
-                        card.find('.cantidad-input').val(1);
-
-                        card.addClass('producto-agregado');
-                        setTimeout(function () {
-                            card.removeClass('producto-agregado');
-                        }, 500);
-
                         var carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
-                        var existe = carrito.find(function(p) { return p.ProductoId === producto.ProductoId; });
+                        var existe = carrito.find(function(p) { return p.ProductoId === productoId; });
+
                         if (existe) {
-                            existe.Cantidad += producto.Cantidad;
-                            if (producto.LotesSeleccionados) existe.LotesSeleccionados = producto.LotesSeleccionados;
+                            existe.Cantidad += cantidad;
+                            existe.Subtotal = existe.Cantidad * existe.PrecioUnitario;
                         } else {
-                            carrito.push(producto);
+                            carrito.push({
+                                ProductoId: productoId,
+                                Codigo: card.closest('.producto-item').find('.producto-codigo').text(),
+                                Nombre: nombre,
+                                Cantidad: cantidad,
+                                PrecioUnitario: precio,
+                                Descuento: 0,
+                                Subtotal: subtotal,
+                                LotesSeleccionados: response.lotes
+                            });
                         }
+
                         localStorage.setItem('carrito', JSON.stringify(carrito));
                         actualizarContadorCarrito();
+                        card.find('.cantidad-input').val(1);
+                        card.addClass('producto-agregado');
+                        setTimeout(function () { card.removeClass('producto-agregado'); }, 500);
 
                         Swal.fire({
                             icon: 'success',
                             title: '¡Producto agregado!',
-                            html: '<div style="padding: 0 20px;">' +
-                                '<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">' +
-                                '<span style="color:#555;">Producto</span>' +
-                                '<span style="font-weight:600;">' + nombre + '</span>' +
-                                '</div>' +
-                                '<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">' +
-                                '<span style="color:#555;">Cantidad</span>' +
-                                '<span style="font-weight:600;">' + cantidad + '</span>' +
-                                '</div>' +
-                                '<div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;">' +
-                                '<span style="color:#555;">Precio unitario</span>' +
-                                '<span style="font-weight:600;">Q ' + precio.toFixed(2) + '</span>' +
-                                '</div>' +
-                                '<div style="display:flex; justify-content:space-between; padding:12px 0;">' +
-                                '<span style="color:#27AE60; font-weight:700; font-size:1.05rem;">Subtotal</span>' +
-                                '<span style="color:#27AE60; font-weight:700; font-size:1.05rem;">Q ' + subtotal.toFixed(2) + '</span>' +
-                                '</div>' +
-                                '</div>',
+                            html: '<div style="padding: 0 20px;"><div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;"><span style="color:#555;">Producto</span><span style="font-weight:600;">' + nombre + '</span></div><div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;"><span style="color:#555;">Cantidad</span><span style="font-weight:600;">' + cantidad + '</span></div><div style="display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #eee;"><span style="color:#555;">Precio unitario</span><span style="font-weight:600;">Q ' + precio.toFixed(2) + '</span></div><div style="display:flex; justify-content:space-between; padding:12px 0;"><span style="color:#27AE60; font-weight:700;">Subtotal</span><span style="color:#27AE60; font-weight:700;">Q ' + subtotal.toFixed(2) + '</span></div></div>',
                             confirmButtonColor: '#27AE60',
                             confirmButtonText: 'Continuar',
                             showCancelButton: true,
                             cancelButtonColor: '#6c757d',
-                            cancelButtonText: 'Ver carrito',
-                            allowOutsideClick: false
+                            cancelButtonText: 'Ver carrito'
                         }).then(function (result) {
                             if (result.dismiss === Swal.DismissReason.cancel) {
                                 window.location.href = '@Url.Action("Carrito", "Venta")';
                             }
                         });
-
                     } else {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Error',
-                            text: response.message,
-                            confirmButtonColor: '#d33',
-                            confirmButtonText: 'Aceptar'
-                        });
+                        Swal.fire({ icon: 'error', title: 'Error', text: response.message, confirmButtonColor: '#d33' });
                     }
                 },
-                error: function (xhr, status, error) {
+                error: function () {
                     $btn.html(originalText).prop('disabled', false);
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Error al verificar el inventario. Intente nuevamente.',
-                        confirmButtonColor: '#d33',
-                        confirmButtonText: 'Aceptar'
-                    });
+                    Swal.fire({ icon: 'error', title: 'Error', text: 'Error al verificar el inventario', confirmButtonColor: '#d33' });
                 }
             });
         }
 
+        // ==================== FUNCIONES PARA INGREDIENTES ====================
+
+        function mostrarSelectorIngrediente() {
+            if (tempIngredienteActivo) return;
+            tempIngredienteActivo = true;
+
+            var container = document.getElementById('ingredientesContainer');
+            var noMsg = document.getElementById('noIngredientesMsg');
+            if (noMsg) noMsg.style.display = 'none';
+
+            if (!ingredientesDisponibles || ingredientesDisponibles.length === 0) {
+                Swal.fire('Error', 'No hay materias primas disponibles', 'error');
+                tempIngredienteActivo = false;
+                return;
+            }
+
+            var codigosSeleccionados = ingredientesSeleccionados.map(i => i.codigo);
+            var disponibles = ingredientesDisponibles.filter(i => !codigosSeleccionados.includes(i.Codigo));
+
+            if (disponibles.length === 0) {
+                Swal.fire('Advertencia', 'Ya agregó todas las materias primas disponibles', 'warning');
+                tempIngredienteActivo = false;
+                return;
+            }
+
+            var tempRow = document.createElement('div');
+            tempRow.id = 'tempIngredientesRow';
+            tempRow.className = 'ingrediente-item';
+            tempRow.style.background = '#e8f4fd';
+            tempRow.style.padding = '10px';
+            tempRow.style.marginBottom = '8px';
+            tempRow.style.borderRadius = '8px';
+
+            var selectHtml = '<select id="selectIngredienteTemp" style="flex:2; padding:8px; border-radius:6px; border:1px solid #ddd;">';
+            selectHtml += '<option value="">Seleccione una materia prima...</option>';
+
+            for (var i = 0; i < disponibles.length; i++) {
+                var mp = disponibles[i];
+                selectHtml += '<option value="' + mp.Codigo + '">' + mp.Nombre + ' (' + mp.UnidadMedida + ') - Stock: ' + mp.StockActual + '</option>';
+            }
+            selectHtml += '</select>';
+
+            tempRow.innerHTML = selectHtml +
+                '<input type="number" id="cantidadIngredienteTemp" placeholder="Cantidad" style="width:100px; padding:8px; border-radius:6px; border:1px solid #ddd;" step="0.01" min="0.01" value="1">' +
+                '<button type="button" onclick="agregarIngredienteConfirmar()" style="background:#27AE60; color:white; border:none; width:32px; height:32px; border-radius:6px; cursor:pointer;"><i class="fas fa-check"></i></button>' +
+                '<button type="button" onclick="cancelarAgregarIngrediente()" style="background:#95A5A6; color:white; border:none; width:32px; height:32px; border-radius:6px; cursor:pointer;"><i class="fas fa-times"></i></button>';
+
+            container.appendChild(tempRow);
+        }
+
+        function agregarIngredienteConfirmar() {
+            var select = document.getElementById('selectIngredienteTemp');
+            var cantidadInput = document.getElementById('cantidadIngredienteTemp');
+
+            if (select && select.value && cantidadInput && cantidadInput.value > 0) {
+                var codigo = select.value;
+                var nombre = select.options[select.selectedIndex].text.split(' (')[0];
+                var cantidad = parseFloat(cantidadInput.value);
+
+                // No validamos manualmente, confiamos en que el código existe en la BD
+                ingredientesSeleccionados.push({
+                    codigo: codigo,
+                    nombre: nombre,
+                    cantidad: cantidad
+                });
+
+                cancelarAgregarIngrediente();
+                renderizarIngredientes();
+            } else {
+                Swal.fire('Error', 'Seleccione un ingrediente y una cantidad válida', 'error');
+            }
+        }
+
+        function cancelarAgregarIngrediente() {
+            tempIngredienteActivo = false;
+            var tempRow = document.getElementById('tempIngredientesRow');
+            if (tempRow) tempRow.remove();
+
+            if (ingredientesSeleccionados.length === 0) {
+                var container = document.getElementById('ingredientesContainer');
+                container.innerHTML = '<div class="text-muted text-center py-3" id="noIngredientesMsg">No hay ingredientes agregados. Haga clic en "Agregar ingrediente"</div>';
+            }
+        }
+
+        function eliminarIngrediente(index) {
+            ingredientesSeleccionados.splice(index, 1);
+            renderizarIngredientes();
+        }
+
+        function renderizarIngredientes() {
+            var container = document.getElementById('ingredientesContainer');
+
+            if (ingredientesSeleccionados.length === 0) {
+                container.innerHTML = '<div class="text-muted text-center py-3" id="noIngredientesMsg">No hay ingredientes agregados. Haga clic en "Agregar ingrediente"</div>';
+                return;
+            }
+
+            var html = '';
+            for (var i = 0; i < ingredientesSeleccionados.length; i++) {
+                var ing = ingredientesSeleccionados[i];
+                html += '<div class="ingrediente-item">' +
+                    '<span style="flex:2;"><strong>' + ing.nombre + '</strong> <span style="color:#666; font-size:11px;">(' + ing.codigo + ')</span></span>' +
+                    '<input type="number" class="cantidad-ingrediente" data-index="' + i + '" value="' + ing.cantidad + '" step="0.01" min="0.01" style="width:100px; text-align:center;">' +
+                    '<span style="width:60px;">unidades</span>' +
+                    '<button type="button" onclick="eliminarIngrediente(' + i + ')"><i class="fas fa-trash-alt"></i></button>' +
+                    '</div>';
+            }
+
+            container.innerHTML = html;
+
+            $('.cantidad-ingrediente').off('change').on('change', function() {
+                var index = $(this).data('index');
+                var nuevaCantidad = parseFloat($(this).val());
+                if (!isNaN(nuevaCantidad) && nuevaCantidad > 0) {
+                    ingredientesSeleccionados[index].cantidad = nuevaCantidad;
+                }
+            });
+        }
+
+        // ==================== CRUD DE PRODUCTOS ====================
+
         function eliminarProductoDefinitivo(productoId, nombre) {
             Swal.fire({
                 title: '¿Eliminar producto?',
-                text: '¿Está seguro que desea eliminar "' + nombre + '" del sistema? Esta acción no se puede deshacer.',
+                text: '¿Está seguro que desea eliminar "' + nombre + '" del sistema?',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#E74C3C',
@@ -678,15 +958,7 @@
                 cancelButtonText: 'Cancelar'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    Swal.fire({
-                        title: 'Eliminando...',
-                        text: 'Por favor espere',
-                        allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading();
-                        }
-                    });
-
+                    Swal.fire({ title: 'Eliminando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                     $.ajax({
                         url: '@Url.Action("EliminarProducto", "Venta")',
                         type: 'POST',
@@ -694,35 +966,12 @@
                         success: function(response) {
                             Swal.close();
                             if (response.success) {
-                                Swal.fire({
-                                    icon: 'success',
-                                    title: '¡Producto eliminado!',
-                                    text: response.message,
-                                    confirmButtonColor: '#27AE60',
-                                    confirmButtonText: 'Aceptar'
-                                }).then(() => {
-                                    location.reload();
-                                });
+                                Swal.fire({ icon: 'success', title: '¡Producto eliminado!', text: response.message, confirmButtonColor: '#27AE60' }).then(() => location.reload());
                             } else {
-                                Swal.fire({
-                                    icon: 'error',
-                                    title: 'Error',
-                                    text: response.message,
-                                    confirmButtonColor: '#d33',
-                                    confirmButtonText: 'Aceptar'
-                                });
+                                Swal.fire({ icon: 'error', title: 'Error', text: response.message, confirmButtonColor: '#d33' });
                             }
                         },
-                        error: function() {
-                            Swal.close();
-                            Swal.fire({
-                                icon: 'error',
-                                title: 'Error',
-                                text: 'Error al eliminar el producto',
-                                confirmButtonColor: '#d33',
-                                confirmButtonText: 'Aceptar'
-                            });
-                        }
+                        error: function() { Swal.close(); Swal.fire({ icon: 'error', title: 'Error', text: 'Error al eliminar el producto', confirmButtonColor: '#d33' }); }
                     });
                 }
             });
@@ -734,6 +983,11 @@
             document.getElementById('productoNombre').value = nombre;
             document.getElementById('productoCodigo').value = codigo;
             document.getElementById('productoPrecio').value = precio;
+            document.getElementById('rendimiento').value = 1;
+
+            ingredientesSeleccionados = [];
+            renderizarIngredientes();
+
             document.getElementById('modalProducto').style.display = 'flex';
         }
 
@@ -743,12 +997,20 @@
             document.getElementById('productoNombre').value = '';
             document.getElementById('productoCodigo').value = '';
             document.getElementById('productoPrecio').value = '';
+            document.getElementById('rendimiento').value = '1';
+
+            ingredientesSeleccionados = [];
+            renderizarIngredientes();
+
             document.getElementById('modalProducto').style.display = 'flex';
         }
 
         function cerrarModal() {
             document.getElementById('modalProducto').style.display = 'none';
+            tempIngredienteActivo = false;
         }
+
+        // ==================== ENVÍO DEL FORMULARIO ====================
 
         document.getElementById('formProducto').addEventListener('submit', function(e) {
             e.preventDefault();
@@ -757,50 +1019,53 @@
             var nombre = document.getElementById('productoNombre').value;
             var codigo = document.getElementById('productoCodigo').value;
             var precio = document.getElementById('productoPrecio').value;
+            var rendimiento = document.getElementById('rendimiento').value;
 
             if (!nombre || !codigo || !precio) {
-                Swal.fire('Error', 'Complete todos los campos', 'error');
+                Swal.fire('Error', 'Complete los campos del producto', 'error');
                 return;
             }
 
-            Swal.fire({
-                title: 'Guardando...',
-                text: 'Por favor espere',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
+            if (ingredientesSeleccionados.length === 0) {
+                Swal.fire('Error', 'Debe agregar al menos un ingrediente', 'error');
+                return;
+            }
 
-            var url = id > 0 ? '@Url.Action("EditarProducto", "Venta")' : '@Url.Action("AgregarProducto", "Venta")';
+            var ingredientesParaEnviar = [];
+            for (var i = 0; i < ingredientesSeleccionados.length; i++) {
+                ingredientesParaEnviar.push({
+                    codigo: ingredientesSeleccionados[i].codigo,
+                    cantidad: ingredientesSeleccionados[i].cantidad
+                });
+            }
+
+            var datos = {
+                nombre: nombre,
+                codigo: codigo,
+                precio: parseFloat(precio),
+                rendimiento: parseFloat(rendimiento || 1),
+                ingredientes: ingredientesParaEnviar
+            };
+
+            Swal.fire({ title: 'Guardando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
             $.ajax({
-                url: url,
+                url: '@Url.Action("AgregarProductoCompleto", "Venta")',
                 type: 'POST',
-                data: {
-                    productoId: parseInt(id),
-                    nombre: nombre,
-                    codigo: codigo,
-                    precio: parseFloat(precio)
-                },
+                contentType: 'application/json',
+                data: JSON.stringify(datos),
                 success: function(response) {
                     Swal.close();
                     if (response.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: '¡Éxito!',
-                            text: response.message,
-                            confirmButtonColor: '#27AE60'
-                        }).then(() => {
-                            location.reload();
-                        });
+                        Swal.fire({ icon: 'success', title: '¡Éxito!', text: response.message, confirmButtonColor: '#27AE60' }).then(() => location.reload());
                     } else {
                         Swal.fire('Error', response.message, 'error');
                     }
                 },
-                error: function() {
+                error: function(xhr) {
                     Swal.close();
-                    Swal.fire('Error', 'Error al guardar el producto', 'error');
+                    console.log('Error:', xhr.responseText);
+                    Swal.fire('Error', 'Error al guardar el producto: ' + (xhr.responseJSON?.message || xhr.statusText), 'error');
                 }
             });
         });
@@ -810,32 +1075,7 @@
             var totalItems = carrito.reduce(function(sum, item) { return sum + item.Cantidad; }, 0);
             $('#cartCount').text(totalItems);
             $('#cartCount').addClass('cart-pulse');
-            setTimeout(function () {
-                $('#cartCount').removeClass('cart-pulse');
-            }, 300);
+            setTimeout(function () { $('#cartCount').removeClass('cart-pulse'); }, 300);
         }
-
-        $(document).ready(function () {
-            actualizarContadorCarrito();
-
-            $('#buscadorProductos').on('keyup', function () {
-                var busqueda = $(this).val().toLowerCase();
-                var visibles = 0;
-
-                $('.producto-item').each(function () {
-                    var nombre = $(this).data('nombre');
-                    var codigo = $(this).data('codigo');
-                    var coincide = nombre.includes(busqueda) || codigo.includes(busqueda);
-                    if (busqueda === '' || coincide) {
-                        $(this).show();
-                        visibles++;
-                    } else {
-                        $(this).hide();
-                    }
-                });
-
-                $('#sinResultados').toggle(visibles === 0 && busqueda !== '');
-            });
-        });
     </script>
 }

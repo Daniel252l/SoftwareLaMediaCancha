@@ -199,6 +199,7 @@
     <Compile Include="Models\OrdenModels.cs" />
     <Compile Include="Models\ProductoModels.cs" />
     <Compile Include="Models\Proveedor.cs" />
+    <Compile Include="Models\RecetaModels.cs" />
     <Compile Include="Models\ReservaModels.cs" />
     <Compile Include="Models\Rol.cs" />
     <Compile Include="Models\SillaModels.cs" />
@@ -265,6 +266,7 @@
     <Content Include="Content\font-awesome.css" />
     <Content Include="Content\font-awesome.min.css" />
     <Content Include="Content\images\logo.png" />
+    <Content Include="Content\images\logo2.png" />
     <Content Include="favicon.ico" />
     <Content Include="fonts\fontawesome-webfont.svg" />
     <Content Include="Global.asax" />

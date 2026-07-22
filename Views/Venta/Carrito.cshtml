@@ -8,22 +8,24 @@
         <div class="col-12">
             <div class="card-custom card-custom-full">
                 <div class="card-header-custom">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div>
-                            <h2><i class="fas fa-shopping-cart"></i> Carrito de Compras</h2>
-                            <p>Revise los productos seleccionados antes de facturar</p>
+                            <h2 class="text-white mb-1">
+                                <i class="fas fa-shopping-cart"></i> Carrito de Compras
+                            </h2>
+                            <p class="mb-0 text-white-50">Revise los productos seleccionados antes de facturar</p>
                         </div>
-                        <div class="btn-group-header">
-                            <a href="@Url.Action("Index")" class="btn-agregar-mas">
+                        <div class="btn-group-header mt-2 mt-sm-0">
+                            <a href="@Url.Action("Index")" class="btn btn-light">
                                 <i class="fas fa-plus"></i> Agregar más
                             </a>
-                            <a href="@Url.Action("Facturar")" class="btn-facturar">
+                            <a href="@Url.Action("Facturar")" id="btnFacturar" class="btn btn-success">
                                 <i class="fas fa-receipt"></i> Facturar
                             </a>
                         </div>
                     </div>
                 </div>
-                <div class="card-body-custom">
+                <div class="card-body-custom p-4">
                     <div id="carrito-container"></div>
                 </div>
             </div>
@@ -37,44 +39,28 @@
         gap: 10px;
     }
 
-    .btn-agregar-mas {
-        background: #3498DB;
+    .btn-light {
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.3);
         color: white;
-        padding: 10px 20px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: 600;
         transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
     }
 
-        .btn-agregar-mas:hover {
-            background: #2980B9;
+        .btn-light:hover {
+            background: rgba(255,255,255,0.3);
             transform: translateY(-2px);
             color: white;
-            text-decoration: none;
         }
 
-    .btn-facturar {
+    .btn-success {
         background: #27AE60;
-        color: white;
-        padding: 10px 20px;
-        border-radius: 8px;
-        text-decoration: none;
-        font-weight: 600;
+        border: none;
         transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
     }
 
-        .btn-facturar:hover {
+        .btn-success:hover {
             background: #1E8449;
             transform: translateY(-2px);
-            color: white;
-            text-decoration: none;
         }
 
     .table-carrito {
@@ -197,20 +183,22 @@
     }
 
     .carrito-vacio {
-        background: #d1ecf1;
-        color: #0c5460;
-        padding: 40px;
+        background: #f8f9fa;
+        border: 2px dashed #ddd;
+        padding: 60px;
         border-radius: 12px;
         text-align: center;
     }
 
         .carrito-vacio i {
-            font-size: 3rem;
+            font-size: 4rem;
+            color: #BDC3C7;
             margin-bottom: 15px;
         }
 
         .carrito-vacio p {
             font-size: 1.1rem;
+            color: #7F8C8D;
             margin-bottom: 20px;
         }
 
@@ -249,6 +237,23 @@
     .mt-4 {
         margin-top: 20px;
     }
+
+    @@media (max-width: 768px) {
+        .table-carrito th, .table-carrito td {
+            padding: 10px 8px;
+            font-size: 0.8rem;
+        }
+
+        .btn-eliminar {
+            padding: 5px 8px;
+            font-size: 0.7rem;
+        }
+
+        .btn-vaciar {
+            padding: 8px 15px;
+            font-size: 0.8rem;
+        }
+    }
 </style>
 
 @section Scripts {
@@ -272,8 +277,11 @@
                         </a>
                     </div>
                 `);
+                $('#btnFacturar').addClass('disabled').css('opacity', '0.5');
                 return;
             }
+
+            $('#btnFacturar').removeClass('disabled').css('opacity', '1');
 
             var html = `
                 <div class="table-responsive">
@@ -329,10 +337,10 @@
                         </tbody>
                         <tfoot>
                             <tr class="total-footer">
-                                <td colspan="3" class="total-label">TOTAL</td>
-                                <td class="text-right total-amount">Q ${totalGeneral.toFixed(2)}</td>
+                                <td colspan="3" class="total-label"><strong>TOTAL</strong></td>
+                                <td class="text-right total-amount"><strong>Q ${totalGeneral.toFixed(2)}</strong></td>
                                 <td></td>
-                            </tr>
+                            </table>
                         </tfoot>
                     </table>
                 </div>

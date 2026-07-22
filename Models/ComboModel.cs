@@ -41,7 +41,7 @@ namespace LaMediaCancha.Models
             public DateTime FechaCreacion { get; set; }
             public List<ComboDetalleViewModel> Productos { get; set; }
             public decimal Ahorro => PrecioRegularTotal - PrecioCombo;
-            public int TotalProductos { get; set; }  // ← Cambiar de solo lectura a editable
+            public int TotalProductos { get; set; }
         }
 
         public class ComboDetalleViewModel

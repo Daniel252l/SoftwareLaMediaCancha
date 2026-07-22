@@ -1,4 +1,5 @@
-﻿using LaMediaCancha.Models.ViewModels;
+﻿using LaMediaCancha.Models;
+using LaMediaCancha.Models.ViewModels;
 using LaMediaCancha.Services;
 using System;
 using System.Collections.Generic;
@@ -19,9 +20,7 @@ namespace LaMediaCancha.Controllers
         public ActionResult Index()
         {
             if (Session["UserRol"] == null)
-            {
                 return RedirectToAction("Login", "Account");
-            }
 
             var productos = _ventaService.ObtenerProductosConLotes();
             return View(productos);
@@ -30,28 +29,34 @@ namespace LaMediaCancha.Controllers
         public ActionResult Carrito()
         {
             if (Session["UserRol"] == null)
-            {
                 return RedirectToAction("Login", "Account");
-            }
             return View();
         }
-
         public ActionResult Facturar()
         {
             if (Session["UserRol"] == null)
-            {
                 return RedirectToAction("Login", "Account");
-            }
+
             return View();
+        }
+
+        public ActionResult Factura(int id)
+        {
+            if (Session["UserRol"] == null)
+                return RedirectToAction("Login", "Account");
+
+            var venta = _ventaService.ObtenerVentaPorId(id);
+            if (venta == null)
+                return HttpNotFound();
+
+            return View(venta);
         }
 
         [HttpPost]
         public JsonResult AplicarFIFO(int productoId, decimal cantidad)
         {
             if (Session["UserRol"] == null)
-            {
                 return Json(new { success = false, message = "Sesión expirada" });
-            }
 
             try
             {
@@ -68,9 +73,7 @@ namespace LaMediaCancha.Controllers
         public JsonResult ProcesarVenta(VentaViewModel model)
         {
             if (Session["UserRol"] == null)
-            {
                 return Json(new { success = false, message = "Sesión expirada" });
-            }
 
             try
             {
@@ -78,7 +81,6 @@ namespace LaMediaCancha.Controllers
                 string usuarioNombre = Session["UserNombre"]?.ToString() ?? "Usuario";
 
                 int ventaId = _ventaService.RegistrarVenta(model, usuarioId, usuarioNombre);
-
                 return Json(new { success = true, message = "Venta registrada exitosamente", ventaId = ventaId });
             }
             catch (Exception ex)
@@ -87,46 +89,39 @@ namespace LaMediaCancha.Controllers
             }
         }
 
-        // Ver detalle de factura
-        public ActionResult Factura(int id)
+        [HttpPost]
+        public JsonResult VerificarStockParaVenta(int productoId, decimal cantidad)
         {
             if (Session["UserRol"] == null)
-                return RedirectToAction("Login", "Account");
+                return Json(new { success = false, message = "Sesión expirada" });
 
-            var venta = _ventaService.ObtenerVentaPorId(id);
-            if (venta == null)
-                return HttpNotFound();
+            try
+            {
+                var verificacion = _ventaService.VerificarStockParaVenta(productoId, cantidad);
 
-            return View(venta);
+                return Json(new
+                {
+                    success = true,
+                    hayStock = verificacion.HayStock,
+                    mensaje = verificacion.Mensaje,
+                    esProductoSimple = verificacion.EsProductoSimple,
+                    detalles = verificacion.Detalles.Select(d => new
+                    {
+                        d.ProductoCompraId,
+                        d.ProductoCompraNombre,
+                        d.CantidadNecesaria,
+                        d.CantidadTotal,
+                        d.UnidadMedida,
+                        d.StockDisponible,
+                        d.Suficiente
+                    })
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
-
-        // Imprimir factura
-        public ActionResult ImprimirFactura(int id)
-        {
-            if (Session["UserRol"] == null)
-                return RedirectToAction("Login", "Account");
-
-            var venta = _ventaService.ObtenerVentaPorId(id);
-            if (venta == null)
-                return HttpNotFound();
-
-            return View("ImprimirFactura", venta);
-        }
-
-        // Ver detalle de venta
-        public ActionResult DetalleVenta(int id)
-        {
-            if (Session["UserRol"] == null)
-                return RedirectToAction("Login", "Account");
-
-            var venta = _ventaService.ObtenerVentaPorId(id);
-            if (venta == null)
-                return HttpNotFound();
-
-            return View(venta);
-        }
-
-        // ==================== MÉTODOS PARA AGREGAR, EDITAR Y ELIMINAR PRODUCTOS ====================
 
         [HttpPost]
         public JsonResult AgregarProducto(string nombre, string codigo, decimal precio)
@@ -145,7 +140,6 @@ namespace LaMediaCancha.Controllers
                 if (precio <= 0)
                     return Json(new { success = false, message = "El precio debe ser mayor a cero" });
 
-                // Verificar si el código ya existe
                 if (_ventaService.ExisteCodigoProducto(codigo))
                     return Json(new { success = false, message = "Ya existe un producto con este código" });
 
@@ -178,7 +172,6 @@ namespace LaMediaCancha.Controllers
                 if (precio <= 0)
                     return Json(new { success = false, message = "El precio debe ser mayor a cero" });
 
-                // Verificar si el código ya existe (excluyendo el producto actual)
                 if (_ventaService.ExisteCodigoProducto(codigo, productoId))
                     return Json(new { success = false, message = "Ya existe otro producto con este código" });
 
@@ -217,19 +210,99 @@ namespace LaMediaCancha.Controllers
             }
         }
 
+        [HttpGet]
+        public JsonResult GetMateriasPrimas()
+        {
+            if (Session["UserRol"] == null)
+                return Json(new { success = false, message = "Sesión expirada" }, JsonRequestBehavior.AllowGet);
+
+            try
+            {
+                var materiasPrimas = _ventaService.ObtenerMateriasPrimas();
+                return Json(materiasPrimas, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
         [HttpPost]
-        public JsonResult EliminarProductoDuplicado(int productoId)
+        public JsonResult AgregarProductoCompleto()
         {
             if (Session["UserRol"] == null)
                 return Json(new { success = false, message = "Sesión expirada" });
 
             try
             {
-                bool eliminado = _ventaService.EliminarProductoFisico(productoId);
-                if (eliminado)
-                    return Json(new { success = true, message = "Producto duplicado eliminado correctamente" });
-                else
-                    return Json(new { success = false, message = "No se encontró el producto" });
+                // Leer el cuerpo de la solicitud como string
+                string jsonString = "";
+                using (var reader = new System.IO.StreamReader(Request.InputStream))
+                {
+                    jsonString = reader.ReadToEnd();
+                }
+
+                // Deserializar usando Newtonsoft.Json
+                var data = Newtonsoft.Json.Linq.JObject.Parse(jsonString);
+
+                string nombre = data["nombre"]?.ToString() ?? "";
+                string codigo = data["codigo"]?.ToString() ?? "";
+
+                decimal precio = 0;
+                if (data["precio"] != null)
+                {
+                    decimal.TryParse(data["precio"].ToString(), System.Globalization.NumberStyles.Any,
+                        System.Globalization.CultureInfo.InvariantCulture, out precio);
+                }
+
+                decimal rendimiento = 1;
+                if (data["rendimiento"] != null)
+                {
+                    decimal.TryParse(data["rendimiento"].ToString(), System.Globalization.NumberStyles.Any,
+                        System.Globalization.CultureInfo.InvariantCulture, out rendimiento);
+                }
+
+                var ingredientes = new List<object>();
+
+                var ingredientesArray = data["ingredientes"] as Newtonsoft.Json.Linq.JArray;
+                if (ingredientesArray != null)
+                {
+                    foreach (var item in ingredientesArray)
+                    {
+                        string codigoMP = item["codigo"]?.ToString() ?? "";
+                        decimal cantidad = 0;
+
+                        if (item["cantidad"] != null)
+                        {
+                            decimal.TryParse(item["cantidad"].ToString(), System.Globalization.NumberStyles.Any,
+                                System.Globalization.CultureInfo.InvariantCulture, out cantidad);
+                        }
+
+                        if (!string.IsNullOrEmpty(codigoMP) && cantidad > 0)
+                        {
+                            ingredientes.Add(new { codigo = codigoMP, cantidad = cantidad });
+                        }
+                    }
+                }
+
+                // Validaciones
+                if (string.IsNullOrEmpty(nombre))
+                    return Json(new { success = false, message = "El nombre del producto es requerido" });
+
+                if (string.IsNullOrEmpty(codigo))
+                    return Json(new { success = false, message = "El código del producto es requerido" });
+
+                if (precio <= 0)
+                    return Json(new { success = false, message = "El precio debe ser mayor a cero" });
+
+                if (ingredientes.Count == 0)
+                    return Json(new { success = false, message = "Debe agregar al menos un ingrediente" });
+
+                if (_ventaService.ExisteCodigoProducto(codigo))
+                    return Json(new { success = false, message = "Ya existe un producto con este código" });
+
+                int productoId = _ventaService.AgregarProductoCompleto(nombre, codigo, precio, rendimiento, ingredientes);
+                return Json(new { success = true, message = "Producto agregado exitosamente", productoId = productoId });
             }
             catch (Exception ex)
             {
@@ -238,3 +311,4 @@ namespace LaMediaCancha.Controllers
         }
     }
 }
+    

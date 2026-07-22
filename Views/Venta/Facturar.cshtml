@@ -1,5 +1,5 @@
 ﻿@{
-    ViewBag.Title = "Facturar Venta";
+    ViewBag.Title = "Facturar";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -8,81 +8,104 @@
         <div class="col-12">
             <div class="card-custom card-custom-full">
                 <div class="card-header-custom">
-                    <div class="d-flex justify-content-between align-items-center">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
                         <div>
                             <h2 class="text-white mb-1">
-                                <i class="fas fa-file-invoice"></i> Facturar Venta
+                                <i class="fas fa-file-invoice"></i> Facturación
                             </h2>
                             <p class="mb-0 text-white-50">Complete los datos del cliente y confirme la venta</p>
                         </div>
-                        <a href="@Url.Action("Carrito")" class="btn btn-light">
-                            <i class="fas fa-arrow-left"></i> Regresar al Carrito
-                        </a>
+                        <div class="mt-2 mt-sm-0">
+                            <a href="@Url.Action("Carrito")" class="btn btn-light">
+                                <i class="fas fa-arrow-left"></i> Volver al Carrito
+                            </a>
+                        </div>
                     </div>
                 </div>
                 <div class="card-body-custom p-4">
-                    <form id="frmFacturar">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold"><i class="fas fa-user"></i> Nombre del Cliente</label>
-                                <input type="text" id="ClienteNombre" class="form-control" placeholder="Consumidor Final" />
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold"><i class="fas fa-id-card"></i> Tipo de Documento</label>
-                                <select id="TipoDocumento" class="form-select">
-                                    <option value="CF">CF - Consumidor Final</option>
-                                    <option value="NIT">NIT/DPI</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div id="divDocumento" class="mb-3" style="display: none;">
-                            <label class="form-label fw-bold"><i class="fas fa-id-card"></i> Número de NIT <span class="text-danger">*</span></label>
-                            <input type="text" id="ClienteDocumento" class="form-control" placeholder="Ej: 1234567-8" />
-                            <small class="text-muted">Ingrese el NIT del cliente</small>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold"><i class="fas fa-phone"></i> Teléfono</label>
-                                <input type="text" id="ClienteTelefono" class="form-control" placeholder="Opcional" />
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold"><i class="fas fa-credit-card"></i> Tipo de Pago</label>
-                                <select id="TipoPago" class="form-select" required>
-                                    <option value="Efectivo">Efectivo</option>
-                                    <option value="Tarjeta Débito">Tarjeta Débito</option>
-                                    <option value="Tarjeta Crédito">Tarjeta Crédito</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label fw-bold"><i class="fas fa-pen"></i> Observaciones</label>
-                            <textarea id="Observaciones" class="form-control" rows="2" placeholder="Notas adicionales (opcional)"></textarea>
-                        </div>
-
-                        <hr class="my-4" style="border-top: 2px solid #f0f0f0;" />
-
-                        <h3 class="mb-3" style="color: #8B4513;">
-                            <i class="fas fa-shopping-cart"></i> Resumen del Pedido
-                        </h3>
-                        <div id="resumen-carrito"></div>
-
-                        <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top">
-                            <button type="button" id="btnRegresar" class="btn btn-secondary">
-                                <i class="fas fa-arrow-left"></i> Regresar
-                            </button>
-                            <button type="submit" id="btnFacturar" class="btn btn-primary">
-                                <i class="fas fa-check-circle"></i> Confirmar Venta
-                            </button>
-                        </div>
-                    </form>
+                    <div id="carrito-resumen"></div>
+                    <div id="formulario-cliente" class="mt-4"></div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .cliente-card {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border: 1px solid #ECF0F1;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2C3E50;
+        }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 14px;
+    }
+
+        .form-control:focus {
+            border-color: #D35400;
+            outline: none;
+        }
+
+    .btn-confirmar {
+        background: #27AE60;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .btn-confirmar:hover {
+            background: #1E8449;
+            transform: translateY(-2px);
+        }
+
+    .resumen-card {
+        background: white;
+        border-radius: 16px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border: 1px solid #ECF0F1;
+    }
+
+    .resumen-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .resumen-total {
+        display: flex;
+        justify-content: space-between;
+        padding: 12px 0;
+        font-size: 1.2rem;
+        font-weight: 800;
+        color: #D35400;
+        border-top: 2px solid #333;
+        margin-top: 10px;
+    }
+</style>
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -91,107 +114,138 @@
             return parseFloat(valor) || 0;
         }
 
-        function calcularTotales() {
-            var carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
-            var subtotal = 0;
-            for (var i = 0; i < carrito.length; i++) {
-                subtotal += formatearNumero(carrito[i].Cantidad) * formatearNumero(carrito[i].PrecioUnitario);
-            }
-            var impuesto = subtotal * 0.12;
-            return { subtotal: subtotal, impuesto: impuesto, total: subtotal + impuesto };
-        }
-
         function renderResumen() {
             var carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
-            var container = $('#resumen-carrito');
+            var container = $('#carrito-resumen');
 
             if (carrito.length === 0) {
-                container.html(
-                    '<div class="alert alert-warning text-center py-5">' +
-                        '<i class="fas fa-shopping-cart fa-2x mb-2 d-block"></i>' +
-                        'No hay productos en el carrito<br><br>' +
-                        '<a href="@Url.Action("Index")" class="btn btn-primary">' +
-                            '<i class="fas fa-cart-plus"></i> Agregar productos' +
-                        '</a>' +
-                    '</div>'
-                );
-                $('#btnFacturar').prop('disabled', true);
+                window.location.href = '@Url.Action("Index")';
                 return;
             }
 
-            $('#btnFacturar').prop('disabled', false);
-
-            var html =
-                '<div class="table-responsive">' +
-                    '<table class="table table-hover">' +
-                        '<thead class="table-dark">' +
-                            '<tr>' +
-                                '<th style="width:45%;">Producto</th>' +
-                                '<th style="width:15%;" class="text-center">Cantidad</th>' +
-                                '<th style="width:20%;" class="text-end">Precio Unitario</th>' +
-                                '<th style="width:20%;" class="text-end">Subtotal</th>' +
-                            '</tr>' +
-                        '</thead>' +
-                        '<tbody>';
+            var html = '<div class="resumen-card"><h4>Resumen del Pedido</h4>';
+            var totalGeneral = 0;
 
             for (var i = 0; i < carrito.length; i++) {
                 var item = carrito[i];
                 var cantidad = formatearNumero(item.Cantidad);
                 var precio = formatearNumero(item.PrecioUnitario);
-                var subtotalItem = cantidad * precio;
-                var nombre = item.Nombre || '';
-                var codigo = item.Codigo || '';
+                var subtotal = cantidad * precio;
+                totalGeneral += subtotal;
 
-                var lotesHtml = '';
-                if (item.LotesSeleccionados && item.LotesSeleccionados.length > 0) {
-                    lotesHtml = '<div class="small text-muted mt-1"><i class="fas fa-layer-group"></i> ';
-                    for (var j = 0; j < item.LotesSeleccionados.length; j++) {
-                        var lote = item.LotesSeleccionados[j];
-                        lotesHtml += 'Lote ' + lote.NumeroLote + ': ' + lote.Cantidad + ' x Q' + formatearNumero(lote.PrecioUnitario).toFixed(2) + ' ';
-                    }
-                    lotesHtml += '</div>';
-                }
-
-                html +=
-                    '<tr>' +
-                        '<td>' +
-                            '<strong>' + escapeHtml(nombre) + '</strong>' +
-                            '<br><small class="text-muted">Código: ' + escapeHtml(codigo) + '</small>' +
-                            lotesHtml +
-                        '</td>' +
-                        '<td class="text-center"><strong>' + cantidad + '</strong></td>' +
-                        '<td class="text-end">Q ' + precio.toFixed(2) + '</td>' +
-                        '<td class="text-end"><strong>Q ' + subtotalItem.toFixed(2) + '</strong></td>' +
-                    '</tr>';
+                html += '<div class="resumen-item">' +
+                    '<div><strong>' + escapeHtml(item.Nombre) + '</strong> x ' + cantidad + '</div>' +
+                    '<div>Q ' + subtotal.toFixed(2) + '</div>' +
+                    '</div>';
             }
 
-            var totales = calcularTotales();
-
-            html +=
-                        '</tbody>' +
-                        '<tfoot>' +
-                            '<tr class="table-light">' +
-                                '<td colspan="3" class="text-end py-3"><strong>Subtotal:</strong></td>' +
-                                '<td class="text-end py-3"><strong>Q ' + totales.subtotal.toFixed(2) + '</strong></td>' +
-                            '</tr>' +
-                            '<tr class="table-light">' +
-                                '<td colspan="3" class="text-end py-3"><strong>IVA (12%):</strong></td>' +
-                                '<td class="text-end py-3"><strong>Q ' + totales.impuesto.toFixed(2) + '</strong></td>' +
-                            '</tr>' +
-                            '<tr style="background:#f0fff4; border-top: 2px solid #27AE60;">' +
-                                '<td colspan="3" class="text-end py-3"><strong class="h5">TOTAL A PAGAR:</strong></td>' +
-                                '<td class="text-end py-3"><strong class="h5" style="color:#27AE60;">Q ' + totales.total.toFixed(2) + '</strong></td>' +
-                            '</tr>' +
-                        '</tfoot>' +
-                    '</table>' +
-                '</div>';
+            html += '<div class="resumen-total">' +
+                '<span>TOTAL A PAGAR:</span>' +
+                '<span>Q ' + totalGeneral.toFixed(2) + '</span>' +
+                '</div></div>';
 
             container.html(html);
+
+            var formHtml = `
+                <div class="cliente-card">
+                    <h4>Datos del Cliente</h4>
+                    <div class="form-group">
+                        <label>Nombre del Cliente</label>
+                        <input type="text" id="clienteNombre" class="form-control" placeholder="Ingrese el nombre del cliente">
+                    </div>
+                    <div class="form-group">
+                        <label>NIT / Documento</label>
+                        <input type="text" id="clienteDocumento" class="form-control" placeholder="Opcional">
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono</label>
+                        <input type="text" id="clienteTelefono" class="form-control" placeholder="Opcional">
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo de Pago</label>
+                        <select id="tipoPago" class="form-control">
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Tarjeta">Tarjeta</option>
+                            <option value="Transferencia">Transferencia</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Observaciones</label>
+                        <textarea id="observaciones" class="form-control" rows="3" placeholder="Notas adicionales..."></textarea>
+                    </div>
+                    <div class="text-right">
+                        <button id="btnConfirmarVenta" class="btn-confirmar">
+                            <i class="fas fa-check-circle"></i> Confirmar Venta
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            $('#formulario-cliente').html(formHtml);
+
+            $('#btnConfirmarVenta').on('click', function() {
+                confirmarVenta(totalGeneral);
+            });
+        }
+
+        function confirmarVenta(totalGeneral) {
+            var carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
+            var clienteNombre = $('#clienteNombre').val().trim();
+
+            if (!clienteNombre) {
+                Swal.fire('Error', 'Por favor ingrese el nombre del cliente', 'error');
+                return;
+            }
+
+            var datos = {
+                ClienteNombre: clienteNombre,
+                ClienteDocumento: $('#clienteDocumento').val() || null,
+                ClienteTelefono: $('#clienteTelefono').val() || null,
+                TipoPago: $('#tipoPago').val(),
+                Observaciones: $('#observaciones').val() || null,
+                Subtotal: totalGeneral,
+                Impuesto: totalGeneral * 0.12,
+                Descuento: 0,
+                Total: totalGeneral * 1.12,
+                Carrito: carrito
+            };
+
+            Swal.fire({
+                title: 'Procesando venta...',
+                text: 'Por favor espere',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            $.ajax({
+                url: '@Url.Action("ProcesarVenta", "Venta")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify(datos),
+                success: function(response) {
+                    if (response.success) {
+                        localStorage.removeItem('carrito');
+                        Swal.fire({
+                            icon: 'success',
+                            title: '¡Venta registrada!',
+                            text: response.message,
+                            confirmButtonText: 'Ver Factura'
+                        }).then(() => {
+                            window.location.href = '@Url.Action("Factura", "Venta")?id=' + response.ventaId;
+                        });
+                    } else {
+                        Swal.fire('Error', response.message, 'error');
+                    }
+                },
+                error: function() {
+                    Swal.fire('Error', 'Error al procesar la venta', 'error');
+                }
+            });
         }
 
         function escapeHtml(text) {
             if (!text) return '';
-            return String(text).replace(/[&<>]/g, function (m) {
+            return String(text).replace(/[&<>]/g, function(m) {
                 if (m === '&') return '&amp;';
                 if (m === '<') return '&lt;';
                 if (m === '>') return '&gt;';
@@ -199,176 +253,8 @@
             });
         }
 
-        $(document).ready(function () {
+        $(document).ready(function() {
             renderResumen();
-
-            $('#TipoDocumento').change(function () {
-                if ($(this).val() === 'NIT') {
-                    $('#divDocumento').show(300);
-                    $('#ClienteDocumento').prop('required', true);
-                } else {
-                    $('#divDocumento').hide(300);
-                    $('#ClienteDocumento').prop('required', false);
-                    $('#ClienteDocumento').val('');
-                }
-            });
-
-            $('#btnRegresar').click(function () {
-                window.location.href = '@Url.Action("Carrito")';
-            });
-
-            $('#frmFacturar').submit(function (e) {
-                e.preventDefault();
-
-                var carrito = JSON.parse(localStorage.getItem('carrito') || '[]');
-                if (carrito.length === 0) {
-                    Swal.fire('Atención', 'No hay productos en el carrito', 'warning');
-                    return;
-                }
-
-                var tipoDocumento = $('#TipoDocumento').val();
-                var documento = $('#ClienteDocumento').val();
-
-                if (tipoDocumento === 'NIT' && (!documento || documento.trim() === '')) {
-                    Swal.fire('Atención', 'Debe ingresar el número de NIT', 'warning');
-                    return;
-                }
-
-                var totales = calcularTotales();
-                var data = {
-                    ClienteNombre: $('#ClienteNombre').val() || 'Consumidor Final',
-                    ClienteDocumento: tipoDocumento === 'CF' ? 'CF' : documento,
-                    ClienteTelefono: $('#ClienteTelefono').val(),
-                    TipoPago: $('#TipoPago').val(),
-                    Subtotal: totales.subtotal,
-                    Impuesto: totales.impuesto,
-                    Descuento: 0,
-                    Total: totales.total,
-                    Observaciones: $('#Observaciones').val(),
-                    Carrito: carrito
-                };
-
-                Swal.fire({
-                    title: 'Confirmar venta',
-                    html:
-                        '<div style="text-align:left; padding: 0 10px;">' +
-                            '<p><strong>Cliente:</strong> ' + data.ClienteNombre + '</p>' +
-                            '<p><strong>Documento:</strong> ' + data.ClienteDocumento + '</p>' +
-                            '<p><strong>Forma de pago:</strong> ' + data.TipoPago + '</p>' +
-                            '<hr>' +
-                            '<p><strong>Total a pagar:</strong> <span style="color:#27AE60; font-size:1.2rem;">Q ' + totales.total.toFixed(2) + '</span></p>' +
-                        '</div>',
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: '<i class="fas fa-check"></i> Sí, facturar',
-                    cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
-                    confirmButtonColor: '#27AE60',
-                    cancelButtonColor: '#6c757d'
-                }).then(function (result) {
-                    if (result.isConfirmed) {
-                        $('#btnFacturar').html('<i class="fas fa-spinner fa-spin"></i> Procesando...');
-                        $('#btnFacturar').prop('disabled', true);
-
-                        $.ajax({
-                            url: '@Url.Action("ProcesarVenta", "Venta")',
-                            type: 'POST',
-                            data: JSON.stringify(data),
-                            contentType: 'application/json',
-                            success: function (response) {
-                                if (response.success) {
-                                    localStorage.removeItem('carrito');
-                                    Swal.fire({
-                                        icon: 'success',
-                                        title: '¡Venta registrada!',
-                                        text: response.message,
-                                        confirmButtonText: 'Ver factura',
-                                        confirmButtonColor: '#27AE60'
-                                    }).then(function () {
-                                        window.location.href = '@Url.Action("Factura", "Venta")/' + response.ventaId;
-                                    });
-                                } else {
-                                    Swal.fire('Error', response.message, 'error');
-                                    $('#btnFacturar').html('<i class="fas fa-check-circle"></i> Confirmar Venta');
-                                    $('#btnFacturar').prop('disabled', false);
-                                }
-                            },
-                            error: function (xhr) {
-                                console.error(xhr.responseText);
-                                Swal.fire('Error', 'Error al procesar la venta', 'error');
-                                $('#btnFacturar').html('<i class="fas fa-check-circle"></i> Confirmar Venta');
-                                $('#btnFacturar').prop('disabled', false);
-                            }
-                        });
-                    }
-                });
-            });
         });
     </script>
 }
-
-<style>
-    .form-control, .form-select {
-        border-radius: 8px;
-        border: 1px solid #ddd;
-        padding: 10px 12px;
-        transition: all 0.2s ease;
-    }
-
-        .form-control:focus, .form-select:focus {
-            border-color: #c95a00;
-            box-shadow: 0 0 0 3px rgba(201, 90, 0, 0.1);
-            outline: none;
-        }
-
-    .form-label {
-        font-size: 0.85rem;
-        font-weight: 600;
-        color: #495057;
-        margin-bottom: 5px;
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #27AE60, #1e8449);
-        border: none;
-        padding: 10px 25px;
-        border-radius: 8px;
-        transition: all 0.2s ease;
-    }
-
-        .btn-primary:hover {
-            background: linear-gradient(135deg, #1e8449, #166638);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
-        }
-
-    .btn-secondary {
-        background: #6c757d;
-        border: none;
-        padding: 10px 25px;
-        border-radius: 8px;
-        transition: all 0.2s ease;
-    }
-
-        .btn-secondary:hover {
-            background: #5a6268;
-            transform: translateY(-2px);
-        }
-
-    .table th {
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .alert-warning {
-        background: #fff3cd;
-        color: #856404;
-        border: 1px solid #ffeeba;
-        border-radius: 12px;
-    }
-
-    .table tfoot tr td {
-        font-size: 0.95rem;
-        vertical-align: middle;
-    }
-</style>
